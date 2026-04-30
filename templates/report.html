@@ -1,0 +1,157 @@
+<!-- templates/report.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CORE Analysis Report</title>
+    <style>
+        body {
+            font-family: Nunito, sans-serif;
+            margin: 30px;
+            background: #f7f7f7;
+            color: #222;
+        }
+
+        h1,
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        th {
+            background: #efefef;
+        }
+
+        .warning {
+            color: #b00020;
+            margin-bottom: 8px;
+        }
+
+        a {
+            color: #0a58ca;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>CORE Analysis Report</h1>
+
+    <div class="card">
+        <p><strong>File:</strong> {{ filename }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Summary</h2>
+
+        <table>
+            <tr>
+                <th>Total Devices</th>
+                <td>{{ summary.devices_total }}</td>
+            </tr>
+            <tr>
+                <th>Routers</th>
+                <td>{{ summary.routers }}</td>
+            </tr>
+            <tr>
+                <th>Links</th>
+                <td>{{ summary.links }}</td>
+            </tr>
+            <tr>
+                <th>Networks Inferred</th>
+                <td>{{ summary.networks }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Networks</h2>
+
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Members</th>
+                <th>Prefixes</th>
+            </tr>
+
+            {% for net in networks %}
+            <tr>
+                <td>{{ net.name }}</td>
+                <td>
+                    <p><strong>Type:</strong> {{ net.kind }}</p>
+                    {% if net.kind == "point-to-point" %}
+                    <p style="color: darkred;"><strong>P2P link</strong></p>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <p><strong>Members:</strong></p>
+                    <ul>
+                        {% for m in net.members %}
+                        <li>{{ m }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <p><strong>Prefixes:</strong></p>
+                    {% if net.prefixes %}
+                    <ul>
+                        {% for p in net.prefixes %}
+                        <li>{{ p }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>- none detected -</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Warnings</h2>
+
+        {% if warnings %}
+        {% for item in warnings %}
+        <div class="warning">{{ item }}</div>
+        {% endfor %}
+        {% else %}
+        <p>No warnings detected.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <a href="/">Analyze another file</a>
+    </div>
+
+</body>
+
+</html>

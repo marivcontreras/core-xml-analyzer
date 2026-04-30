@@ -1,0 +1,3 @@
+cd myrepos/core-xml-analyzer
+.venv\Scripts\activate
+uvicorn main:app --reload
