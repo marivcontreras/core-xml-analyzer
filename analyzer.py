@@ -206,6 +206,10 @@ def infer_networks(data):
             "name": f"{n1['name']} <-> {n2['name']}",
             "kind": "point-to-point",
             "members": [n1["name"], n2["name"]],
+            "member_interfaces": [
+                {"node": link["node1"], "iface": link["iface1"]["name"]},
+                {"node": link["node2"], "iface": link["iface2"]["name"]}
+            ],
             "prefixes": set()
         }
 
@@ -322,14 +326,15 @@ def check_p2p_consistency(net, data):
     members = net.get("member_interfaces", [])
     if len(members) != 2:
         return
-
+    
     endpoints = []
 
     for m in members:
         node_id = m["node"]
         iface = m["iface"]
 
-        addrs = get_staticroute_addresses(node_id, iface, data)
+        addrs = get_staticroute_interface_addresses(node_id, iface, data)
+        #data["warnings"].append(f"node {node_id} for {iface}: found {addrs} IP addresses")
 
         global_ip = None
         site_ip = None
@@ -337,11 +342,11 @@ def check_p2p_consistency(net, data):
         for ip in addrs:
             if ip.version != 6:
                 continue
-
-            if ip.is_global:
-                global_ip = ip
-            elif ip.is_private:  # fd00::/8
+            
+            if classify_ipv6(ip) == "site":  # fd00::/8
                 site_ip = ip
+            elif classify_ipv6(ip) == "global":  # 2001::/16
+                global_ip = ip
 
         endpoints.append({
             "node": node_id,
@@ -350,6 +355,7 @@ def check_p2p_consistency(net, data):
             "site": site_ip
         })
 
+    #data["warnings"].append(f"endpoints {endpoints}")
     if len(endpoints) != 2:
         return
 
@@ -359,21 +365,25 @@ def check_p2p_consistency(net, data):
     if a["global"] and b["global"]:
         if not same_block(str(a["global"].network), str(b["global"].network)):
             data["warnings"].append(
-                f"{net['name']}: globales en distintos bloques ({a['global']} vs {b['global']})"
+                f"{net['name']}: direcciones globales de distintos bloques ({a['global']} - {b['global']})"
             )
 
     # --- SITE CHECK ---
     if a["site"] and b["site"]:
         if not same_block(str(a["site"].network), str(b["site"].network)):
             data["warnings"].append(
-                f"{net['name']}: site en distintos bloques ({a['site']} vs {b['site']})"
+                f"{net['name']}: direcciones site de distintos bloques ({a['site']} - {b['site']})"
             )
 
     # --- MISSING ADDRESS CHECK ---
     for ep in endpoints:
-        if not ep["global"] or not ep["site"]:
+        if not ep["global"]:
             data["warnings"].append(
-                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección completa (global+site)"
+                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección global"
+            )
+        if not ep["site"]:
+            data["warnings"].append(
+                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección site"
             )
 
 def same_block(p1, p2):
@@ -382,15 +392,16 @@ def same_block(p1, p2):
 
     return n1.network_address == n2.network_address and n1.prefixlen == n2.prefixlen
 
-def get_staticroute_addresses(node_id, iface_name, data):
+def get_staticroute_interface_addresses(node_id, iface_name, data):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
     matches = re.findall(
-        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
+        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
         text
     )
 
+    #data["warnings"].append(f"node {node_id} for {iface_name}: found {matches} IP addresses")
     result = []
 
     for addr, mask, dev in matches:
@@ -521,6 +532,14 @@ def classify_prefix(prefix):
     
     return "unknown"
 
+def classify_ipv6(ip):
+    addr = ip.ip.exploded.lower()
+
+    if addr.startswith("fd"):
+        return "site"
+    if addr.startswith("20") or addr.startswith("30"):
+        return "global"
+    return "other"
 # --------------------------------------------------
 # RADVD ALIGNMENT CHECK
 # --------------------------------------------------
