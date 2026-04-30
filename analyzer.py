@@ -23,7 +23,9 @@ def parse_xml(xml_text):
     parse_services(root, data)
     parse_l2_networks(root, data)
     infer_networks(data)
-
+    validate_networks(data)
+    validate_radvd_interfaces(data)
+    
     return data
 
 # --------------------------------------------------
@@ -228,6 +230,179 @@ def infer_networks(data):
         data["networks"][net_counter] = net
         net_counter += 1
 
+    data["networks"] = dict(sorted(data["networks"].items(), key=lambda item: item[1]["prefixes"]))
+
+# --------------------------------------------------
+# NETWORK VALIDATION
+# --------------------------------------------------
+
+def validate_networks(data):
+    for net in data["networks"].values():
+        prefixes = [p for p in net["prefixes"] if p != "-"]
+
+        if not prefixes:
+            continue
+
+        kinds = [classify_prefix(p) for p in prefixes]
+        
+        if "ipv4" in kinds and len(kinds) <= 1:
+            continue
+
+        if "ipv4" in kinds and len(kinds) > 1:
+            data["warnings"].append(
+                f"{net['name']}: se asignaron direcciones adicionales en internet ({', '.join(prefixes)})"
+            )
+        
+        if "unknown" in kinds:
+            data["warnings"].append(
+                f"{net['name']}: prefijo desconocido ({', '.join(prefixes)})"
+            )
+
+        
+        
+        # ----------------------------------
+        # 1. Too many prefixes
+        # ----------------------------------
+        if len(prefixes) > 2:
+            data["warnings"].append(
+                f"{net['name']}: se asignaron mas de 2 bloques de red ({', '.join(prefixes)})"
+            )
+
+        # ----------------------------------
+        # 2. Wrong mask
+        # ----------------------------------
+        for p in prefixes:
+            net_obj = ipaddress.ip_network(p, strict=False)
+
+            if net["kind"] in ["lan", "wireless"] and net_obj.prefixlen != 64:
+                data["warnings"].append(
+                    f"{net['name']}: prefijo {p} deberia ser /64"
+                )
+
+            if net["kind"] == "point-to-point" and net_obj.prefixlen != 127:
+                data["warnings"].append(
+                    f"{net['name']}: prefijo {p} deberia ser /127"
+                )
+
+        # ----------------------------------
+        # 3. Missing addresses (global + site)
+        # ----------------------------------
+        if "ipv6-site" not in kinds:
+            data["warnings"].append(
+                f"{net['name']}: prefijo site faltante (existentes: {', '.join(prefixes)})"
+            )
+
+        if "admin" not in net["name"].lower():  # you may refine later
+            if "ipv6-global" not in kinds:
+                data["warnings"].append(
+                    f"{net['name']}: prefijo global faltante (existentes: {', '.join(prefixes)})"
+                )
+
+        # ----------------------------------
+        # 4. Admin network should NOT have global
+        # (basic heuristic: name contains 'Admin')
+        # ----------------------------------
+        if "admin" in net["name"].lower():
+            if "global" in kinds:
+                data["warnings"].append(
+                    f"{net['name']}: red admin no debería usar direcciones globales"
+                )
+
+        # ----------------------------------
+        # 5. P2P consistency
+        # ----------------------------------
+        if net["kind"] == "point-to-point":
+            check_p2p_consistency(net, data)
+
+def check_p2p_consistency(net, data):
+    # only applies to p2p
+    if net["kind"] != "point-to-point":
+        return
+
+    members = net.get("member_interfaces", [])
+    if len(members) != 2:
+        return
+
+    endpoints = []
+
+    for m in members:
+        node_id = m["node"]
+        iface = m["iface"]
+
+        addrs = get_staticroute_addresses(node_id, iface, data)
+
+        global_ip = None
+        site_ip = None
+
+        for ip in addrs:
+            if ip.version != 6:
+                continue
+
+            if ip.is_global:
+                global_ip = ip
+            elif ip.is_private:  # fd00::/8
+                site_ip = ip
+
+        endpoints.append({
+            "node": node_id,
+            "iface": iface,
+            "global": global_ip,
+            "site": site_ip
+        })
+
+    if len(endpoints) != 2:
+        return
+
+    a, b = endpoints
+
+    # --- GLOBAL CHECK ---
+    if a["global"] and b["global"]:
+        if not same_block(str(a["global"].network), str(b["global"].network)):
+            data["warnings"].append(
+                f"{net['name']}: globales en distintos bloques ({a['global']} vs {b['global']})"
+            )
+
+    # --- SITE CHECK ---
+    if a["site"] and b["site"]:
+        if not same_block(str(a["site"].network), str(b["site"].network)):
+            data["warnings"].append(
+                f"{net['name']}: site en distintos bloques ({a['site']} vs {b['site']})"
+            )
+
+    # --- MISSING ADDRESS CHECK ---
+    for ep in endpoints:
+        if not ep["global"] or not ep["site"]:
+            data["warnings"].append(
+                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección completa (global+site)"
+            )
+
+def same_block(p1, p2):
+    n1 = ipaddress.ip_network(p1, strict=False)
+    n2 = ipaddress.ip_network(p2, strict=False)
+
+    return n1.network_address == n2.network_address and n1.prefixlen == n2.prefixlen
+
+def get_staticroute_addresses(node_id, iface_name, data):
+    services = data["services"].get(node_id, {})
+    text = services.get("StaticRoute", "")
+
+    matches = re.findall(
+        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
+        text
+    )
+
+    result = []
+
+    for addr, mask, dev in matches:
+        if dev == iface_name:
+            try:
+                ip = ipaddress.ip_interface(f"{addr}/{mask}")
+                result.append(ip)
+            except:
+                pass
+
+    return result
+
 # --------------------------------------------------
 # PREFIX EXTRACTION
 # --------------------------------------------------
@@ -259,9 +434,10 @@ def get_prefixes_from_radvd(node_id, iface_name, data):
     services = data["services"].get(node_id, {})
     text = services.get("radvd", "")
 
-    # find interface blocks
+    # Match full interface blocks (including inner braces)
+    
     iface_blocks = re.findall(
-        r'interface\s+(\S+)\s*\{([^}]*)\}',
+        r'interface\s+(\S+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
         text,
         re.DOTALL
     )
@@ -273,7 +449,7 @@ def get_prefixes_from_radvd(node_id, iface_name, data):
         matches = re.findall(
             r'prefix\s+([0-9a-fA-F:]+)/(\d+)',
             body
-        )
+        )       
 
         for addr, mask in matches:
             try:
@@ -330,6 +506,105 @@ def get_prefixes_for_interface(node_id, iface, data):
         prefixes.update(get_prefixes_from_link_iface(iface))
 
     return prefixes
+
+def classify_prefix(prefix):
+    net = ipaddress.ip_network(prefix, strict=False)
+
+    if net.version == 6:
+        if net.network_address.exploded.startswith("fd"):
+            return "ipv6-site"
+        
+        if net.network_address.exploded.startswith("2001"):
+            return "ipv6-global"
+    if net.version == 4:
+        return "ipv4"
+    
+    return "unknown"
+
+# --------------------------------------------------
+# RADVD ALIGNMENT CHECK
+# --------------------------------------------------
+def get_radvd_interfaces(node_id, data):
+    result = {}
+
+    services = data["services"].get(node_id, {})
+    text = services.get("radvd", "")
+
+    iface_blocks = re.findall(
+        r'interface\s+(\S+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
+        text,
+        re.DOTALL
+    )
+
+    for iface, body in iface_blocks:
+        prefixes = []
+
+        matches = re.findall(
+            r'prefix\s+([0-9a-fA-F:]+)/(\d+)',
+            body
+        )
+
+        for addr, mask in matches:
+            try:
+                net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
+                prefixes.append(net)
+            except:
+                pass
+
+        if prefixes:
+            result[iface] = prefixes
+
+    return result
+
+def get_staticroute_addresses(node_id, data):
+    result = {}
+
+    services = data["services"].get(node_id, {})
+    text = services.get("StaticRoute", "")
+
+    matches = re.findall(
+        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
+        text
+    )
+
+    for addr, mask, iface in matches:
+        try:
+            ip = ipaddress.ip_interface(f"{addr}/{mask}")
+        except:
+            continue
+
+        if iface not in result:
+            result[iface] = []
+
+        result[iface].append(ip)
+
+    return result
+
+def validate_radvd_interfaces(data):
+    for node_id, services in data["services"].items():
+        if "radvd" not in services:
+            continue
+
+        node = data["devices"].get(node_id, {"name": f"node{node_id}"})
+        node_name = node["name"]
+
+        radvd_map = get_radvd_interfaces(node_id, data)
+        addr_map = get_staticroute_addresses(node_id, data)
+       
+        for iface, prefixes in radvd_map.items():
+            assigned_ips = addr_map.get(iface, [])
+
+            if not assigned_ips:
+                data["warnings"].append(
+                    f"{node_name}: La interfaz {iface} tiene configurado radvd pero no se encontraron direcciones asignadas correspondientes al bloque anunciado ({', '.join(str(p) for p in prefixes)})"
+                )
+                continue
+
+            for ip in assigned_ips:
+                if not any(ip.ip in prefix for prefix in prefixes):
+                    data["warnings"].append(
+                        f"{node_name}: La dirección {ip} en la interfaz {iface} no pertenece a los bloques anunciados ({', '.join(str(p) for p in prefixes)})"
+                    )
 
 # --------------------------------------------------
 # REPORT HELPERS

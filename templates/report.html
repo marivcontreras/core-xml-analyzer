@@ -16,12 +16,13 @@
         h1,
         h2 {
             margin-bottom: 10px;
+            margin-top: 0px;
         }
 
         .card {
             background: white;
-            padding: 10px;
-            margin-bottom: 20px;
+            padding: 20px;
+            margin-bottom: 10px;
             border-radius: 8px;
             box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
         }
@@ -64,7 +65,7 @@
     <h1>CORE Analysis Report</h1>
 
     <div class="card">
-        <p><strong>File:</strong> {{ filename }}</p>
+        <strong>Archivo:</strong> {{ filename }}
     </div>
 
     <div class="card">
@@ -91,42 +92,29 @@
     </div>
 
     <div class="card">
-        <h2>Networks</h2>
+        <h2>Redes</h2>
 
         <table>
             <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Members</th>
-                <th>Prefixes</th>
+                <th>Red</th>
+                <th>Tipo</th>
+                <th>Equipos</th>
+                <th>Prefijos</th>
             </tr>
 
             {% for net in networks %}
             <tr>
                 <td>{{ net.name }}</td>
                 <td>
-                    <p><strong>Type:</strong> {{ net.kind }}</p>
-                    {% if net.kind == "point-to-point" %}
-                    <p style="color: darkred;"><strong>P2P link</strong></p>
-                    {% endif %}
+                    {{ net.kind }}
                 </td>
 
                 <td>
-                    <p><strong>Members:</strong></p>
-                    <ul>
-                        {% for m in net.members %}
-                        <li>{{ m }}</li>
-                        {% endfor %}
-                    </ul>
+                    {{ net.members | join( ' | ' )}}
                 </td>
                 <td>
-                    <p><strong>Prefixes:</strong></p>
                     {% if net.prefixes %}
-                    <ul>
-                        {% for p in net.prefixes %}
-                        <li>{{ p }}</li>
-                        {% endfor %}
-                    </ul>
+                    {{ net.prefixes | join( ', ' )}}
                     {% else %}
                     <p>- none detected -</p>
                     {% endif %}
