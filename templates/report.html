@@ -125,15 +125,38 @@
     </div>
 
     <div class="card">
-        <h2>Warnings</h2>
+        <h2>Desglose de advertencias por red</h2>
 
-        {% if warnings %}
-        {% for item in warnings %}
-        <div class="warning">{{ item }}</div>
+        {% for net in networks %}
+        <div class="network">
+            {% set net_warnings = warnings.get(net.name) %}
+            {% if net_warnings %}
+            <h3>{{ net.name }} ({{ net.kind }})</h3>
+
+            <p>Equipos: {{ net.members | join(", ") }} | Prefijos: {{ net.prefixes | join(", ") }}</p>
+
+            {% for type, items in net_warnings.items() %}
+            <div class="warning-group {{ type }}">
+                <strong>
+                    {{ {
+                    'missing': 'Faltantes',
+                    'invalid': 'Inválidos',
+                    'inconsistent': 'Inconsistentes',
+                    'design': 'Diseño',
+                    'generic': 'Otros'
+                    }[type] }}
+                </strong>
+                <ul>
+                    {% for w in items %}
+                    <li>{{ w.message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+        </div>
         {% endfor %}
-        {% else %}
-        <p>No warnings detected.</p>
-        {% endif %}
     </div>
 
     <div class="card">

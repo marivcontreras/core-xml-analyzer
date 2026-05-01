@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
-from analyzer import parse_xml, pretty_networks, summarize
+from parser.parser import parse_xml
+from report.formatters import pretty_networks, summarize
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -26,6 +27,8 @@ async def analyze(request: Request, file: UploadFile = File(...)):
     summary = summarize(result)
     networks = pretty_networks(result)
 
+    grouped_warnings = group_warnings(result)
+
     return templates.TemplateResponse(
         request=request,
         name="report.html",
@@ -33,6 +36,23 @@ async def analyze(request: Request, file: UploadFile = File(...)):
             "filename": file.filename,
             "summary": summary,
             "networks": networks,
-            "warnings": result["warnings"]
+            "warnings": grouped_warnings
         }
     )
+
+def group_warnings(data):
+    grouped = {}
+
+    for w in data["warnings"]:
+        net = w.get("network", "global")
+        wtype = w.get("type", "generic")
+
+        if net not in grouped:
+            grouped[net] = {}
+
+        if wtype not in grouped[net]:
+            grouped[net][wtype] = []
+
+        grouped[net][wtype].append(w)
+
+    return grouped
