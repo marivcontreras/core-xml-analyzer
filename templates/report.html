@@ -138,13 +138,7 @@
             {% for type, items in net_warnings.items() %}
             <div class="warning-group {{ type }}">
                 <strong>
-                    {{ {
-                    'missing': 'Faltantes',
-                    'invalid': 'Inválidos',
-                    'inconsistent': 'Inconsistentes',
-                    'design': 'Diseño',
-                    'generic': 'Otros'
-                    }[type] }}
+                 {{ TYPE_LABELS[type] if type in TYPE_LABELS else type }}
                 </strong>
                 <ul>
                     {% for w in items %}
@@ -154,6 +148,31 @@
             </div>
             {% endfor %}
             {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <h2>Configuración de Routers</h2>
+
+        {% for node, types in router_warnings.items() %}
+        <div class="router-block">
+            <h3>{{ node }}</h3>
+
+            {% for type, warnings in types.items() %}
+            <div class="warning-group">
+                <strong>{{ TYPE_LABELS[type] }}</strong>
+                <ul>
+                    {% for w in warnings %}
+                    <li>
+                        {{ w.message }}
+                        {% if w.interface %} ({{ w.interface }}) {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
 
         </div>
         {% endfor %}

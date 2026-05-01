@@ -3,7 +3,15 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from parser.parser import parse_xml
-from report.formatters import pretty_networks, summarize
+from report.formatters import group_router_warnings_by_type, group_warnings, pretty_networks, summarize
+
+TYPE_LABELS = {
+    "syntax": "Sintaxis",
+    "missing": "Faltante",
+    "invalid": "Inválido",
+    "design": "Diseño",
+    "inconsistent": "Inconsistente"
+}
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -29,6 +37,8 @@ async def analyze(request: Request, file: UploadFile = File(...)):
 
     grouped_warnings = group_warnings(result)
 
+    router_warnings = group_router_warnings_by_type(result)
+
     return templates.TemplateResponse(
         request=request,
         name="report.html",
@@ -36,23 +46,9 @@ async def analyze(request: Request, file: UploadFile = File(...)):
             "filename": file.filename,
             "summary": summary,
             "networks": networks,
-            "warnings": grouped_warnings
+            "warnings": grouped_warnings,
+            "router_warnings": router_warnings,
+            "TYPE_LABELS": TYPE_LABELS
         }
     )
 
-def group_warnings(data):
-    grouped = {}
-
-    for w in data["warnings"]:
-        net = w.get("network", "global")
-        wtype = w.get("type", "generic")
-
-        if net not in grouped:
-            grouped[net] = {}
-
-        if wtype not in grouped[net]:
-            grouped[net][wtype] = []
-
-        grouped[net][wtype].append(w)
-
-    return grouped

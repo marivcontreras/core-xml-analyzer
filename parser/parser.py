@@ -1,3 +1,5 @@
+from validation.ip_commands import validate_ip_addr_commands
+
 from .devices import parse_devices, parse_network_nodes
 from .links import parse_links
 from .services import parse_services
@@ -25,6 +27,9 @@ def parse_xml(xml_text):
     parse_network_nodes(root, data)
     parse_links(root, data)
     parse_services(root, data)
+    for node_id in data["services"]:
+        validate_ip_addr_commands(node_id, data)
+
     parse_l2_networks(root, data)
 
     infer_networks(data)
