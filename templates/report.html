@@ -138,7 +138,7 @@
             {% for type, items in net_warnings.items() %}
             <div class="warning-group {{ type }}">
                 <strong>
-                 {{ TYPE_LABELS[type] if type in TYPE_LABELS else type }}
+                    {{ TYPE_LABELS[type] if type in TYPE_LABELS else type }}
                 </strong>
                 <ul>
                     {% for w in items %}
@@ -177,6 +177,102 @@
         </div>
         {% endfor %}
     </div>
+
+    <h2>Configuración de Routing (debug)</h2>
+
+    {% for node_id, routing in data.routing.items() %}
+    <div class="card">
+        <h3>Router {{ data.devices[node_id].name if node_id in data.devices else node_id }}</h3>
+
+        <!-- RULES -->
+        <h4>Reglas (ip rule)</h4>
+        {% if routing.rules %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Prioridad</th>
+                    <th>Src</th>
+                    <th>Dst</th>
+                    <th>Proto</th>
+                    <th>FwMark</th>
+                    <th>Tabla</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in routing.rules %}
+                <tr>
+                    <td>{{ rule.priority if rule.priority else "-" }}</td>
+                    <td>{{ rule.src if rule.src else "-" }}</td>
+                    <td>{{ rule.dst if rule.dst else "-" }}</td>
+                    <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
+                    <td>{{ rule.fwmark if rule.fwmark else "-" }}</td>
+                    <td>{{ rule.table }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay reglas</p>
+        {% endif %}
+
+        <!-- ROUTES -->
+        <h4>Rutas (ip route)</h4>
+        {% if routing.routes %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Destino</th>
+                    <th>Via</th>
+                    <th>Interfaz</th>
+                    <th>Tabla</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for route in routing.routes %}
+                <tr>
+                    <td>{{ route.type }}</td>
+                    <td>{{ route.dst }}</td>
+                    <td>{{ route.via if route.via else "-" }}</td>
+                    <td>{{ route.dev if route.dev else "-" }}</td>
+                    <td>{{ route.table }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay rutas</p>
+        {% endif %}
+
+        <!-- IPTABLES -->
+        <h4>Marcado de tráfico (ip6tables)</h4>
+        {% if routing.iptables %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Chain</th>
+                    <th>Proto</th>
+                    <th>Mark</th>
+                    <th>Target</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in routing.iptables %}
+                <tr>
+                    <td>{{ rule.chain if rule.chain else "-" }}</td>
+                    <td>{{ rule.protocol if rule.protocol else "-" }}</td>
+                    <td>{{ rule.mark if rule.mark else "-" }}</td>
+                    <td>{{ rule.target if rule.target else "-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay reglas de ip6tables</p>
+        {% endif %}
+
+    </div>
+    {% endfor %}
 
     <div class="card">
         <a href="/">Analyze another file</a>

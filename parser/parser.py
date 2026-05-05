@@ -2,7 +2,7 @@ from validation.ip_commands import validate_ip_addr_commands
 
 from .devices import parse_devices, parse_network_nodes
 from .links import parse_links
-from .services import parse_services
+from .services import parse_routing, parse_services
 from .l2 import parse_l2_networks
 
 from analyzer.networks import infer_networks
@@ -27,6 +27,7 @@ def parse_xml(xml_text):
     parse_network_nodes(root, data)
     parse_links(root, data)
     parse_services(root, data)
+    parse_routing(data)
     for node_id in data["services"]:
         validate_ip_addr_commands(node_id, data)
 

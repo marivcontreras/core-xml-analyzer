@@ -71,3 +71,23 @@ def group_warnings(data):
         grouped[net][wtype].append(w)
 
     return grouped
+
+def strip_comments(text):
+    lines = text.splitlines()
+    cleaned = []
+
+    for line in lines:
+        line = line.strip()
+
+        # ignorar línea completa comentada
+        if line.startswith("#"):
+            continue
+
+        # eliminar comentario inline
+        if "#" in line:
+            line = line.split("#", 1)[0].strip()
+
+        if line:
+            cleaned.append(line)
+
+    return "\n".join(cleaned)

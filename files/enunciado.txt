@@ -1,0 +1,21 @@
+Nuestro proveedor ISP nos asigna el bloque 2001:##::/56 (siendo ## el número de su grupo).
+Las redes contenidas en los sectores Ventas, Data Center y W-Guest deben poder comunicarse con otros equipos de Internet, mientras que la redes del sector de Administración sólo se comunicará con equipos dentro de la Intranet.
+Se debe poder acceder a cualquiera de los routers desde fuera de la Intranet.
+Se desea reservar el último bloque /64 para conexiones punto a punto entre routers (asignando bloques /127 a cada link según recomendación de la RFC6164).
+Todas las interfaces de INTERNET sólo tienen direcciones IPv4 (están asignadas en la topología). El resto de las interfaces sólo tienen direcciones IPv6.
+La Red Casa tiene asignado el bloque global 2001:1::/64.
+
+Configure manualmente las rutas que permitan que los equipos se comuniquen entre sí dentro de la Intranet y con Internet, considerando las siguientes condiciones:
+Desde la red inalámbrica de W-GUEST no debe ser posible acceder a equipos internos de la intranet, excepto al SERVIDOR-DNS y al SERVIDOR-WEB, pero por sus direcciones globales. Además debe ser posible acceder a Internet.
+Dentro del tráfico procesado por el Router 5, los paquetes originados en la red WGuest  con destino fuera de la intranet deben ser direccionados al Router 3, mientras que el resto del tráfico debe ser direccionado al Router 4.
+Dentro del tráfico procesado por el Router-4, los paquetes TCP con destino fuera de la intranet deben pasar por el Router 3, mientras que el resto del tráfico dirigido fuera de la intranet debe ser direccionado al router frontera.
+Configure los routers R2 y R-Casa para establecer un tunel tipo sit (transporte de datagramas IPv6 sobre IPv4) entre la red de la empresa y la red hogareña.
+
+
+Routers/Redes	DataCenter	WVentas	SwVentas	WGuest	SwAdmin	SwOfiAdmin	R1-R4	R4-R5	R5-R6	R5-R3	R4-R3	R2-R3	R2-R4	default
+R1	direct	default	default	default	default	default	direct	default	default	default	default	default	default	R4
+R6	default	direct	direct	default	default	default	default	default	direct	default	default	default	default	R5
+R3	{R2, R4, R5}	{R2, R4, R5}	{R2, R4, R5}	{R2, R4, R5}	direct	direct	{R2, R4, R5}	{R2, R4, R5}	{R2, R4, R5}	direct	direct	direct	{R2, R4, R5}	R2
+R5	{R4, R3}	R6	R6	direct	{R4, R3}	{R4, R3}	{R4, R3}	direct	direct	direct	{R4, R3}	{R4, R3}	{R4, R3}	R4 (R3 tabla wguest)
+R4	R1	{R5, R3}	{R5, R3}	{R5, R3}	{R5, R3}	{R5, R3}	direct	direct	{R5, R3}	{R5, R3}	direct	{R5, R3}	direct	R2 (R3 tabla tcp)
+R2	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	{R4, R3}	direct	direct	ISP

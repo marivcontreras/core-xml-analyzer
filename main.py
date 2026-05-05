@@ -34,7 +34,6 @@ async def analyze(request: Request, file: UploadFile = File(...)):
     result = parse_xml(text)
     summary = summarize(result)
     networks = pretty_networks(result)
-
     grouped_warnings = group_warnings(result)
 
     router_warnings = group_router_warnings_by_type(result)
@@ -48,6 +47,7 @@ async def analyze(request: Request, file: UploadFile = File(...)):
             "networks": networks,
             "warnings": grouped_warnings,
             "router_warnings": router_warnings,
+            "data": result,
             "TYPE_LABELS": TYPE_LABELS
         }
     )
