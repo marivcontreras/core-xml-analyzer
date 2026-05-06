@@ -178,6 +178,53 @@
         {% endfor %}
     </div>
 
+    <h2>Matriz de Routing</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Red</th>
+                {% for router in data.routing_matrix_table.routers %}
+                <th>{{ router }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data.routing_matrix_table.rows %}
+            <tr>
+                <td><strong>{{ row.network }}</strong></td>
+
+                {% for router in data.routing_matrix_table.routers %}
+                <td>{{ row["values"][router] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <pre>{{ data.routing_matrix_table }}</pre>
+
+    {% for router, nets in data.routing_matrix.items() %}
+    <h3>{{ router }}</h3>
+    <table>
+        <tr>
+            <th>Red</th>
+            <th>Tipo</th>
+            <th>Via</th>
+            <th>Tabla</th>
+        </tr>
+        {% for net, cell in nets.items() %}
+        <tr>
+            <td>{{ net }}</td>
+            <td>{{ cell.type }}</td>
+            <td>{{ cell.via if cell.via else "-" }}</td>
+            <td>{{ cell.table if cell.table else "-" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+
+
     <h2>Configuración de Routing (debug)</h2>
 
     {% for node_id, routing in data.routing.items() %}

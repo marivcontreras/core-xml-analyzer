@@ -91,3 +91,74 @@ def strip_comments(text):
             cleaned.append(line)
 
     return "\n".join(cleaned)
+
+def format_cell(cell):
+    if not cell:
+        return "-"
+
+    parts = []
+
+    if cell.get("type"):
+        parts.append(cell["type"])
+
+    if cell.get("via"):
+        parts.append(f"via {cell['via']}")
+
+    if cell.get("table") and cell["table"] != "main":
+        parts.append(f"table {cell['table']}")
+
+    return " | ".join(parts) if parts else "-"
+
+INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
+
+def is_intranet_network(net_name, matrix):
+    # 1. incluir p2p SI ambos extremos son intranet
+    if "<->" in net_name:
+        parts = [p.strip() for p in net_name.split("<->")]
+        return all(p in INTRANET_ROUTERS for p in parts)
+
+    # 2. excluir cosas obvias
+    if net_name.lower() in ["default", "internet", "isp"]:
+        return False
+
+    # 3. redes LAN/WiFi por nombre (ajustable)
+    intranet_keywords = [
+        "DataCenter", "WVentas", "SwVentas",
+        "WGuest", "SwAdmin", "SwOfiAdmin"
+    ]
+
+    return any(k in net_name for k in intranet_keywords)
+
+def build_matrix_table(matrix):
+    routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
+
+    # recolectar redes
+    networks = set()
+    for r in matrix.values():
+        networks.update(r.keys())
+
+    # filtrar redes (acá usamos la función nueva)
+    networks = sorted(n for n in networks if is_intranet_network(n, matrix))
+
+    rows = []
+
+    for net in networks:
+        row = {"network": net, "values": {}}
+        has_data = False
+
+        for router in routers:
+            cell = matrix.get(router, {}).get(net)
+            formatted = format_cell(cell)
+
+            if formatted != "-":
+                has_data = True
+
+            row["values"][router] = formatted
+
+        if has_data:
+            rows.append(row)
+
+    return {
+        "routers": routers,
+        "rows": rows
+    }
