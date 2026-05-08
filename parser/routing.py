@@ -1,42 +1,165 @@
 
 import ipaddress
 
+from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.l2 import get_node
+from report.formatters import is_intranet_network
+
+def calculate_lpm_score(route_dst, network_prefixes):
+    """
+    Returns the best LPM score for a route against a list
+    of network prefixes.
+
+    Higher = more specific match.
+
+    Examples:
+        route_dst = "2001:db8::/64"
+        network_prefixes = [
+            "2001:db8::/64",
+            "2001:db8:1::/64"
+        ]
+
+        -> 64
+
+    Supports:
+    - exact prefix matches
+    - default routes (::/0)
+    - overlapping prefixes
+    - IPv4 and IPv6
+    """
+
+    if not route_dst:
+        return None
+
+    try:
+        route_network = ipaddress.ip_network(
+            route_dst,
+            strict=False
+        )
+
+    except Exception:
+        return None
+
+    best_score = None
+
+    for prefix in network_prefixes:
+
+        try:
+            candidate_network = ipaddress.ip_network(
+                prefix,
+                strict=False
+            )
+
+        except Exception:
+            continue
+
+        # Different IP family
+        if (
+            route_network.version !=
+            candidate_network.version
+        ):
+            continue
+
+        # --------------------------------------------------
+        # Exact match
+        # --------------------------------------------------
+
+        if route_network == candidate_network:
+            score = route_network.prefixlen
+
+        # --------------------------------------------------
+        # Route contains candidate
+        # Example:
+        #   route: 2001::/48
+        #   candidate: 2001::1/64
+        # --------------------------------------------------
+
+        elif candidate_network.subnet_of(route_network):
+            score = route_network.prefixlen
+
+        # --------------------------------------------------
+        # Route is more specific than candidate
+        # Example:
+        #   route: 2001::1/64
+        #   candidate: 2001::/48
+        # --------------------------------------------------
+
+        elif route_network.subnet_of(candidate_network):
+            score = route_network.prefixlen
+
+        else:
+            continue
+
+        if best_score is None or score > best_score:
+            best_score = score
+
+    return best_score
+
+def find_best_routes_by_table(routes, prefixes):
+    best_routes = {}
+
+    for route in routes:
+
+        dst = route.get("dst")
+
+        if not dst:
+            continue
+
+        table = route.get("table", "main")
+
+        score = calculate_lpm_score(
+            dst,
+            prefixes
+        )
+
+        if score is None:
+            continue
+
+        current = best_routes.get(table)
+
+        if (
+            current is None or
+            score > current["score"]
+        ):
+            best_routes[table] = {
+                "route": route,
+                "score": score
+            }
+
+    return best_routes
+
 
 def classify_route(route):
-    if route.get("type") in ["blackhole", "unreachable", "prohibit"]:
-        return route["type"]
+    rtype = route.get("type")
 
-    if route.get("dst") == "default":
+    # 1. bloqueos explícitos
+    if rtype in ["blackhole", "prohibit", "unreachable"]:
+        return rtype
+
+    dst = route.get("dst")
+    table = route.get("table", "main")
+
+    # 2. default
+    if dst in ["default", "::/0", "0.0.0.0/0"]:
+        if table != "main":
+            return "policy-default"
         return "default"
 
+    # 3. policy routing
+    if table != "main":
+        return "policy"
+
+    # 4. indirect normal
     if route.get("via"):
         return "indirect"
 
-    return "direct"
+    # fallback raro
+    return "unknown"
 
 INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
 
 def is_intranet_router(router):
     return router in INTRANET_ROUTERS
-
-
-def is_intranet_network(net_name):
-    # p2p internos
-    if "<->" in net_name:
-        r1, r2 = [r.strip() for r in net_name.split("<->")]
-        return r1 in INTRANET_ROUTERS and r2 in INTRANET_ROUTERS
-
-    # excluir externos
-    if net_name.lower() in ["default", "internet", "isp"]:
-        return False
-
-    # LAN/WiFi internas
-    keywords = [
-        "DataCenter", "WVentas", "SwVentas",
-        "WGuest", "SwAdmin", "SwOfiAdmin"
-    ]
-    return any(k in net_name for k in keywords)
 
 def route_match_score(route_dst, network_prefix):
     """
@@ -92,17 +215,82 @@ def find_interface_to_network(node_id, net, data):
     net_name = net.get("name")
 
     for link in data.get("links", []):
-        if link["node1"] == node_id:
-            other = get_node(data, link["node2"])
-            if other.get("name") == net_name:
-                iface = link.get("iface1")
-                return iface.get("name") if iface else None
 
-        if link["node2"] == node_id:
-            other = get_node(data, link["node1"])
-            if other.get("name") == net_name:
-                iface = link.get("iface2")
-                return iface.get("name") if iface else None
+        node1 = link.get("node1")
+        node2 = link.get("node2")
+
+        iface1 = link.get("iface1")
+        iface2 = link.get("iface2")
+
+        # -------------------------------------------------
+        # Normal network object connection
+        # Router <-> Switch/LAN/etc
+        # -------------------------------------------------
+
+        if node1 == node_id:
+            other = get_node(data, node2)
+
+            if other and other.get("name") == net_name:
+                return iface1.get("name") if iface1 else None
+
+        if node2 == node_id:
+            other = get_node(data, node1)
+
+            if other and other.get("name") == net_name:
+                return iface2.get("name") if iface2 else None
+
+        # -------------------------------------------------
+        # P2P network support
+        # Network represented by the link itself
+        # Example: "R4 <-> R5"
+        # -------------------------------------------------
+
+        if (
+            node1 == node_id or
+            node2 == node_id
+        ):
+            n1 = get_node(data, node1)
+            n2 = get_node(data, node2)
+
+            if not n1 or not n2:
+                continue
+
+            p2p_name_a = f"{n1.get('name')}<>{n2.get('name')}"
+            p2p_name_b = f"{n2.get('name')}<>{n1.get('name')}"
+
+            if net_name in [p2p_name_a, p2p_name_b]:
+
+                if node1 == node_id:
+                    return iface1.get("name") if iface1 else None
+
+                if node2 == node_id:
+                    return iface2.get("name") if iface2 else None
+
+    return None
+
+def resolve_ip_owner(ip_str, data):
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except:
+        return None
+
+    for net in data["networks"].values():
+        for member in net.get("member_interfaces", []):
+            node_id = member["node"]
+            iface = member["iface"]
+
+            addrs = get_staticroute_interface_addresses(node_id, iface, data)
+
+            for addr in addrs:
+                if addr.ip == ip:
+                    node = data["devices"].get(node_id, {"name": f"node{node_id}"})
+
+                    return {
+                        "node": node["name"],
+                        "interface": iface,
+                        "network": net["name"],
+                        "type": "neighbor"
+                    }
 
     return None
 
@@ -111,6 +299,7 @@ def build_routing_matrix(data):
 
     for node_id, routing in data.get("routing", {}).items():
         device = data["devices"].get(node_id)
+
         if not device:
             continue
 
@@ -130,39 +319,87 @@ def build_routing_matrix(data):
             if not is_intranet_network(net_name):
                 continue
 
-            prefixes = [p for p in net.get("prefixes", []) if p != "-"]
+            prefixes = [
+                p for p in net.get("prefixes", [])
+                if p != "-"
+            ]
+
+            # siempre inicializar lista
+            matrix[router_name][net_name] = []
 
             # --------------------------------------------------
-            # 1. DIRECT ROUTE (por pertenencia a la red)
+            # 1. DIRECT ROUTE
             # --------------------------------------------------
-            is_direct = router_belongs_to_network(router_name, net, data)
+
+            is_direct = router_belongs_to_network(
+                router_name,
+                net,
+                data
+            )
 
             if is_direct:
-                matrix[router_name][net_name] = {
+                matrix[router_name][net_name].append({
                     "type": "direct",
                     "via": None,
-                    "dev": find_interface_to_network(node_id, net, data),
+                    "via_info": None,
+                    "dev": find_interface_to_network(
+                        node_id,
+                        net,
+                        data
+                    ),
                     "table": "local",
                     "dst": None,
-                    "score": 999  # más alto que cualquier LPM
-                }
-                continue  # 🔥 clave: no buscar en rutas
+                    "score": 999,
+                    "is_default": False,
+                    "is_policy": False
+                })
 
             # --------------------------------------------------
-            # 2. INDIRECT ROUTE (LPM)
+            # 2. INDIRECT ROUTES
+            #    (una mejor ruta por tabla)
             # --------------------------------------------------
-            best_route = find_best_route(routes, prefixes)
 
-            if best_route:
-                matrix[router_name][net_name] = {
-                    "type": classify_route(best_route["route"]),
-                    "via": best_route["route"].get("via"),
-                    "dev": best_route["route"].get("dev"),
-                    "table": best_route["route"].get("table", "main"),
-                    "dst": best_route["route"].get("dst"),
-                    "score": best_route["score"]
-                }
-            else:
+            best_routes = find_best_routes_by_table(
+                routes,
+                prefixes
+            )
+
+            for table_name, best_route in best_routes.items():
+
+                if not best_route:
+                    continue
+
+                route = best_route["route"]
+
+                via = route.get("via")
+
+                via_info = None
+
+                if via:
+                    via_info = resolve_ip_owner(
+                        via,
+                        data
+                    )
+
+                matrix[router_name][net_name].append({
+                    "type": classify_route(route),
+                    "via": via,
+                    "via_info": via_info,
+                    "dev": route.get("dev"),
+                    "table": table_name,
+                    "dst": route.get("dst"),
+                    "score": best_route["score"],
+                    "is_default": route.get("dst") in ["default", "::/0"],
+                    "is_policy": table_name != "main"
+                })
+
+            # --------------------------------------------------
+            # 3. limpiar redes sin rutas
+            # --------------------------------------------------
+
+            if not matrix[router_name][net_name]:
                 matrix[router_name][net_name] = None
 
     return matrix
+
+

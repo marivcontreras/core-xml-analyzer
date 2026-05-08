@@ -98,23 +98,36 @@ def format_cell(cell):
 
     parts = []
 
-    if cell.get("type"):
-        parts.append(cell["type"])
+    parts = [cell.get("type", "-")]
 
     if cell.get("via"):
-        parts.append(f"via {cell['via']}")
+        via = cell["via"]
 
-    if cell.get("table") and cell["table"] != "main":
+        if cell.get("via_info"):
+            info = cell["via_info"]
+            via = f"{via} ({info['node']}-{info['interface']})"
+
+        parts.append(f"via {via}")
+
+
+    if cell.get("table"):
         parts.append(f"table {cell['table']}")
 
-    return " | ".join(parts) if parts else "-"
+    return "<br>".join(parts)
 
 INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
 
-def is_intranet_network(net_name, matrix):
+def reverse_route_name(route_name):
+    if "<>" in route_name:
+        parts = [p.strip() for p in route_name.split("<>")]
+        if len(parts) == 2:
+            return f"{parts[1]}<>{parts[0]}"
+    return route_name
+
+def is_intranet_network(net_name):
     # 1. incluir p2p SI ambos extremos son intranet
-    if "<->" in net_name:
-        parts = [p.strip() for p in net_name.split("<->")]
+    if "<>" in net_name:
+        parts = [p.strip() for p in net_name.split("<>")]
         return all(p in INTRANET_ROUTERS for p in parts)
 
     # 2. excluir cosas obvias
@@ -123,42 +136,75 @@ def is_intranet_network(net_name, matrix):
 
     # 3. redes LAN/WiFi por nombre (ajustable)
     intranet_keywords = [
-        "DataCenter", "WVentas", "SwVentas",
+        "SwDataCenter", "WVentas", "SwVentas",
         "WGuest", "SwAdmin", "SwOfiAdmin"
     ]
 
     return any(k in net_name for k in intranet_keywords)
 
-def build_matrix_table(matrix):
+def build_matrix_table(matrix, validation_result=None):
     routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
+
+    validation_table = {}
+    warnings = []
+
+    if validation_result:
+        validation_table = validation_result.get("validation_table", {})
+        warnings = validation_result.get("warnings", [])
 
     # recolectar redes
     networks = set()
+
     for r in matrix.values():
         networks.update(r.keys())
 
-    # filtrar redes (acá usamos la función nueva)
-    networks = sorted(n for n in networks if is_intranet_network(n, matrix))
+    # filtrar redes
+    networks = sorted(
+        n for n in networks
+        if is_intranet_network(n)
+    )
 
     rows = []
 
     for net in networks:
-        row = {"network": net, "values": {}}
+        row = {
+            "network": net,
+            "values": {},
+            "validation": {}
+        }
+
         has_data = False
 
         for router in routers:
             cell = matrix.get(router, {}).get(net)
-            formatted = format_cell(cell)
 
-            if formatted != "-":
-                has_data = True
+            #formatted = format_cell(cell)
 
-            row["values"][router] = formatted
+            #if formatted != "-":
+            #    has_data = True
+
+            row["values"][router] = cell
+
+            # validation lives separately
+            row["validation"][router] = (
+                validation_table
+                    .get(router, {})
+                    .get(net, build_empty_validation())
+            )
 
         if has_data:
             rows.append(row)
 
     return {
         "routers": routers,
-        "rows": rows
+        "rows": rows,
+        "warnings": warnings
+    }
+
+
+def build_empty_validation():
+    return {
+        "exists": True,
+        "valid": True,
+        "fields": {}
     }

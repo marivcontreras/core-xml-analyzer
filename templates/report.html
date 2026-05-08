@@ -35,7 +35,7 @@
         th,
         td {
             text-align: left;
-            padding: 10px;
+            padding: 5px;
             border-bottom: 1px solid #ddd;
             vertical-align: top;
         }
@@ -56,6 +56,16 @@
 
         a:hover {
             text-decoration: underline;
+        }
+
+        details summary {
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        details[open] summary {
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -124,6 +134,7 @@
         </table>
     </div>
 
+    {% if warnings.items() %}
     <div class="card">
         <h2>Desglose de advertencias por red</h2>
 
@@ -152,7 +163,9 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
 
+    {% if router_warnings.items() %}
     <div class="card">
         <h2>Configuración de Routers</h2>
 
@@ -177,60 +190,167 @@
         </div>
         {% endfor %}
     </div>
+    {% endif %}
 
-    <h2>Matriz de Routing</h2>
+    <div class="card">
+        <h2>Matriz de Routing</h2>
 
-    <table>
-        <thead>
+        <table class="routing-table">
+            <thead>
+                <tr>
+                    <th>Red</th>
+
+                    {% for router in data.routing_matrix_table.routers %}
+                    <th>{{ router }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in data.routing_matrix_table.rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.network }}</strong>
+                    </td>
+
+                    {% for router in data.routing_matrix_table.routers %}
+
+                    {% set cell = row["values"][router] %}
+                    {% set validation = row["validation"][router] %}
+
+                    <td class="routing-cell
+                    {% if not validation.exists %} routing-missing {% endif %}
+                    {% if not validation.valid %} routing-invalid {% endif %}">
+
+                        {% if cell %}
+
+                        <div class="route-entry">
+
+                            {% for field_name, field_value in cell.items() %}
+
+                            {% set field_validation = validation.fields.get(field_name) %}
+
+                            <div class="
+                            route-field
+                            {% if field_validation and not field_validation.valid %}
+                                route-field-invalid
+                            {% endif %}">
+
+                                <span class="route-field-name">
+                                    {{ field_name }}
+                                </span>
+
+                                <span class="route-field-value">
+                                    {{ field_value }}
+                                </span>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                        {% else %}
+
+                        <div class="route-missing">
+                            Missing Route
+                        </div>
+
+                        {% endif %}
+
+                    </td>
+
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+        {% if data.routing_validation.warnings %}
+        <div class="routing-warnings">
+
+            <h3>Warnings</h3>
+
+            <ul class="warning-list">
+
+                {% for warning in data.routing_validation.warnings %}
+
+                <li class="
+                warning-item
+                warning-{{ warning.severity }}">
+
+                    <div class="warning-header">
+                        <strong>{{ warning.router }}</strong>
+                        /
+                        <strong>{{ warning.route }}</strong>
+                    </div>
+
+                    <div class="warning-message">
+                        {{ warning.message }}
+                    </div>
+
+                    {% if warning.field %}
+                    <div class="warning-details">
+
+                        <div>
+                            <strong>Field:</strong>
+                            {{ warning.field }}
+                        </div>
+
+                        <div>
+                            <strong>Expected:</strong>
+                            {{ warning.expected }}
+                        </div>
+
+                        <div>
+                            <strong>Actual:</strong>
+                            {{ warning.actual }}
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </div>
+        {% endif %}
+    </div>
+
+    <details class="card">
+        <summary>
+            Detalle de rutas por router
+        </summary>
+        {% for router, nets in data.routing_matrix.items() %}
+        <h3>{{ router }}</h3>
+        <table>
             <tr>
                 <th>Red</th>
-                {% for router in data.routing_matrix_table.routers %}
-                <th>{{ router }}</th>
-                {% endfor %}
+                <th>Tipo</th>
+                <th>Via</th>
+                <th>Tabla</th>
             </tr>
-        </thead>
-        <tbody>
-            {% for row in data.routing_matrix_table.rows %}
+            {% for net, cell in nets.items() %}
             <tr>
-                <td><strong>{{ row.network }}</strong></td>
-
-                {% for router in data.routing_matrix_table.routers %}
-                <td>{{ row["values"][router] }}</td>
-                {% endfor %}
+                <td>{{ net }}</td>
+                <td>{{ cell.type }}</td>
+                <td>{{ cell.via if cell.via else "-" }}</td>
+                <td>{{ cell.table if cell.table else "-" }}</td>
             </tr>
             {% endfor %}
-        </tbody>
-    </table>
-
-    <pre>{{ data.routing_matrix_table }}</pre>
-
-    {% for router, nets in data.routing_matrix.items() %}
-    <h3>{{ router }}</h3>
-    <table>
-        <tr>
-            <th>Red</th>
-            <th>Tipo</th>
-            <th>Via</th>
-            <th>Tabla</th>
-        </tr>
-        {% for net, cell in nets.items() %}
-        <tr>
-            <td>{{ net }}</td>
-            <td>{{ cell.type }}</td>
-            <td>{{ cell.via if cell.via else "-" }}</td>
-            <td>{{ cell.table if cell.table else "-" }}</td>
-        </tr>
+        </table>
         {% endfor %}
-    </table>
-    {% endfor %}
-
-
-    <h2>Configuración de Routing (debug)</h2>
+    </details>
 
     {% for node_id, routing in data.routing.items() %}
-    <div class="card">
-        <h3>Router {{ data.devices[node_id].name if node_id in data.devices else node_id }}</h3>
-
+    <details class="card">
+        <summary>
+            Reglas configuradas (Router {{ data.devices[node_id].name if node_id in data.devices else node_id }})
+        </summary>
         <!-- RULES -->
         <h4>Reglas (ip rule)</h4>
         {% if routing.rules %}
@@ -318,7 +438,7 @@
         <p>No hay reglas de ip6tables</p>
         {% endif %}
 
-    </div>
+    </details>
     {% endfor %}
 
     <div class="card">

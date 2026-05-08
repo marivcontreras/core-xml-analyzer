@@ -187,7 +187,7 @@ print(pretty_networks(data))
   "networks": 3,
   "warnings": [
     "LAN1: prefijo global faltante (fd00::/64)",
-    "R1 <-> R2: R1 (eth1) sin dirección global"
+    "R1 - R2: R1 (eth1) sin dirección global"
   ]
 }
 ```
@@ -205,7 +205,7 @@ print(pretty_networks(data))
     "prefixes": ["fd00::/64"]
   },
   {
-    "name": "R1 <-> R2",
+    "name": "R1 - R2",
     "kind": "point-to-point",
     "members": ["R1", "R2"],
     "prefixes": ["2001:0:0:ff::/127", "fd00:0:0:ff::/127"]

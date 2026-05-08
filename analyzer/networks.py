@@ -78,7 +78,7 @@ def infer_networks(data):
 
         net = {
             "id": net_counter,
-            "name": f"{n1['name']} <-> {n2['name']}",
+            "name": f"{n1['name']}<>{n2['name']}",
             "kind": "point-to-point",
             "members": [n1["name"], n2["name"]],
             "member_interfaces": [
@@ -100,7 +100,7 @@ def infer_networks(data):
                 f"{n1['name']} no tiene una dirección IP en {link['iface1']['name']} (p2p)",
                 wtype="missing",
                 scope="interface",
-                network=f"{n1['name']} <-> {n2['name']}",
+                network=f"{n1['name']}<>{n2['name']}",
                 node=n1["name"],
                 interface=link["iface1"]["name"],
                 code="missing_ip_p2p"
@@ -112,7 +112,7 @@ def infer_networks(data):
                 f"{n2['name']} no tiene una dirección IP en {link['iface2']['name']} (p2p)",
                 wtype="missing",
                 scope="interface",
-                network=f"{n1['name']} <-> {n2['name']}",
+                network=f"{n1['name']}<>{n2['name']}",
                 node=n2["name"],
                 interface=link["iface2"]["name"],
                 code="missing_ip_p2p"
