@@ -10,11 +10,11 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
         interpreted_routes = interpreted_matrix.get(router_name, {})
 
-        print(
-            f"Validating {router_name}: "
-            f"interpreted_routes={interpreted_routes.keys()} "
-            f"expected_routes={expected_routes.keys()}"
-        )
+        #print(
+        #    f"Validating {router_name}: "
+        #    f"interpreted_routes={interpreted_routes.keys()} "
+        #    f"expected_routes={expected_routes.keys()}"
+        #)
 
         for route_name, expected in expected_routes.items():
 
@@ -28,9 +28,18 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 reversed_name = reverse_route_name(route_name)
                 interpreted = interpreted_routes.get(reversed_name)
 
+            # --------------------------------------------------
+            # validation structure
+            # --------------------------------------------------
+
             route_result = {
                 "exists": True,
                 "valid": False,
+
+                # render-friendly summary
+                "field_validation": {},
+
+                # detailed matching info
                 "matched_routes": [],
                 "missing_expected_routes": [],
                 "extra_routes": []
@@ -43,6 +52,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # --------------------------------------------------
 
             if interpreted is None:
+
                 warnings.append({
                     "router": router_name,
                     "route": route_name,
@@ -73,6 +83,12 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             matched_interpreted_indexes = set()
 
             # --------------------------------------------------
+            # validation accumulators
+            # --------------------------------------------------
+
+            aggregated_field_validation = {}
+
+            # --------------------------------------------------
             # validate each expected route
             # --------------------------------------------------
 
@@ -85,6 +101,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 for idx, interpreted_route in enumerate(interpreted):
 
                     field_results = {}
+
                     valid_fields = 0
                     invalid_fields = 0
 
@@ -100,6 +117,26 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                         field_results[field_name] = field_result
 
+                        # ------------------------------------------
+                        # aggregate render validation
+                        # ------------------------------------------
+
+                        current = aggregated_field_validation.get(field_name)
+
+                        if current is None:
+                            aggregated_field_validation[field_name] = {
+                                "valid": field_result["valid"],
+                                "expected": field_result["expected"],
+                                "actual": field_result["actual"]
+                            }
+
+                        elif not field_result["valid"]:
+                            aggregated_field_validation[field_name] = {
+                                "valid": False,
+                                "expected": field_result["expected"],
+                                "actual": field_result["actual"]
+                            }
+
                         if field_result["valid"]:
                             valid_fields += 1
                         else:
@@ -108,14 +145,21 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     score = valid_fields - invalid_fields
 
                     if score > best_candidate_score:
+
                         best_candidate_score = score
+
                         best_candidate = {
                             "interpreted_index": idx,
                             "interpreted_route": interpreted_route,
                             "field_results": field_results
                         }
 
+                    # ----------------------------------------------
+                    # full match
+                    # ----------------------------------------------
+
                     if invalid_fields == 0:
+
                         matched = True
 
                         matched_interpreted_indexes.add(idx)
@@ -202,6 +246,10 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 len(route_result["missing_expected_routes"]) == 0
             )
 
+            route_result["field_validation"] = (
+                aggregated_field_validation
+            )
+
         # ------------------------------------------------------
         # detect totally unexpected networks
         # ------------------------------------------------------
@@ -212,6 +260,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 route_name not in expected_routes and
                 reverse_route_name(route_name) not in expected_routes
             ):
+
                 warnings.append({
                     "router": router_name,
                     "route": route_name,

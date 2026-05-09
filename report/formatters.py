@@ -152,13 +152,19 @@ def build_matrix_table(matrix, validation_result=None):
         validation_table = validation_result.get("validation_table", {})
         warnings = validation_result.get("warnings", [])
 
-    # recolectar redes
+    # ----------------------------------------------------------
+    # collect networks
+    # ----------------------------------------------------------
+
     networks = set()
 
     for r in matrix.values():
         networks.update(r.keys())
 
-    # filtrar redes
+    # ----------------------------------------------------------
+    # filter networks
+    # ----------------------------------------------------------
+
     networks = sorted(
         n for n in networks
         if is_intranet_network(n)
@@ -167,6 +173,7 @@ def build_matrix_table(matrix, validation_result=None):
     rows = []
 
     for net in networks:
+
         row = {
             "network": net,
             "values": {},
@@ -176,21 +183,33 @@ def build_matrix_table(matrix, validation_result=None):
         has_data = False
 
         for router in routers:
+
             cell = matrix.get(router, {}).get(net)
 
-            #formatted = format_cell(cell)
-
-            #if formatted != "-":
-            #    has_data = True
-
-            row["values"][router] = cell
-
-            # validation lives separately
-            row["validation"][router] = (
+            validation = (
                 validation_table
                     .get(router, {})
                     .get(net, build_empty_validation())
             )
+
+            print(f"Processing cell for router {router}, network {net}, validation: {validation}")
+            # --------------------------------------------------
+            # normalize routing entries to list
+            # renderer should always receive same structure
+            # --------------------------------------------------
+
+            if cell is None:
+                normalized_cell = []
+            elif isinstance(cell, list):
+                normalized_cell = cell
+            else:
+                normalized_cell = [cell]
+
+            if normalized_cell:
+                has_data = True
+
+            row["values"][router] = normalized_cell
+            row["validation"][router] = validation
 
         if has_data:
             rows.append(row)
@@ -206,5 +225,8 @@ def build_empty_validation():
     return {
         "exists": True,
         "valid": True,
-        "fields": {}
+        "field_validation": {},
+        "matched_routes": [],
+        "missing_expected_routes": [],
+        "extra_routes": []
     }

@@ -199,7 +199,6 @@
             <thead>
                 <tr>
                     <th>Red</th>
-
                     {% for router in data.routing_matrix_table.routers %}
                     <th>{{ router }}</th>
                     {% endfor %}
@@ -215,27 +214,22 @@
 
                     {% for router in data.routing_matrix_table.routers %}
 
-                    {% set cell = row["values"][router] %}
+                    {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell
-                    {% if not validation.exists %} routing-missing {% endif %}
-                    {% if not validation.valid %} routing-invalid {% endif %}">
+                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %}
+                    {% if not validation["valid"] %} routing-invalid {% endif %}">
 
-                        {% if cell %}
+                        {% if routes %}
+                        {% for route in routes %}
 
                         <div class="route-entry">
 
-                            {% for field_name, field_value in cell.items() %}
+                            {% for field_name, field_value in route.items() %}                            
+                            {% set field_validation = validation["field_validation"].get(field_name) %}
 
-                            {% set field_validation = validation.fields.get(field_name) %}
-
-                            <div class="
-                            route-field
-                            {% if field_validation and not field_validation.valid %}
-                                route-field-invalid
-                            {% endif %}">
-
+                            <div class="route-field {% if field_validation and not field_validation.valid %}
+                                    route-field-invalid {% endif %}">
                                 <span class="route-field-name">
                                     {{ field_name }}
                                 </span>
@@ -243,13 +237,12 @@
                                 <span class="route-field-value">
                                     {{ field_value }}
                                 </span>
-
                             </div>
 
                             {% endfor %}
-
                         </div>
 
+                        {% endfor %}
                         {% else %}
 
                         <div class="route-missing">
@@ -259,31 +252,28 @@
                         {% endif %}
 
                     </td>
-
                     {% endfor %}
+
                 </tr>
                 {% endfor %}
+
             </tbody>
+
         </table>
 
-
-        {% if data.routing_validation.warnings %}
+        {% if data.routing_matrix_table.warnings %}
         <div class="routing-warnings">
 
             <h3>Warnings</h3>
 
             <ul class="warning-list">
 
-                {% for warning in data.routing_validation.warnings %}
+                {% for warning in data.routing_matrix_table.warnings %}
 
-                <li class="
-                warning-item
-                warning-{{ warning.severity }}">
+                <li class=" warning-item warning-{{ warning.severity }} ">
 
                     <div class="warning-header">
-                        <strong>{{ warning.router }}</strong>
-                        /
-                        <strong>{{ warning.route }}</strong>
+                        <strong>{{ warning.router }}</strong> / <strong>{{ warning.route }}</strong>
                     </div>
 
                     <div class="warning-message">
@@ -291,6 +281,7 @@
                     </div>
 
                     {% if warning.field %}
+
                     <div class="warning-details">
 
                         <div>
@@ -309,17 +300,15 @@
                         </div>
 
                     </div>
+
                     {% endif %}
-
                 </li>
-
                 {% endfor %}
-
             </ul>
-
         </div>
         {% endif %}
     </div>
+
 
     <details class="card">
         <summary>

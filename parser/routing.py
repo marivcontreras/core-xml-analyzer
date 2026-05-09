@@ -32,10 +32,7 @@ def calculate_lpm_score(route_dst, network_prefixes):
         return None
 
     try:
-        route_network = ipaddress.ip_network(
-            route_dst,
-            strict=False
-        )
+        route_network = normalize_route_network(route_dst)
 
     except Exception:
         return None
@@ -45,10 +42,7 @@ def calculate_lpm_score(route_dst, network_prefixes):
     for prefix in network_prefixes:
 
         try:
-            candidate_network = ipaddress.ip_network(
-                prefix,
-                strict=False
-            )
+            candidate_network = normalize_route_network(prefix)
 
         except Exception:
             continue
@@ -95,6 +89,12 @@ def calculate_lpm_score(route_dst, network_prefixes):
 
     return best_score
 
+def normalize_route_network(value):
+    if value == "default":
+        return ipaddress.ip_network("::/0")
+
+    return ipaddress.ip_network(value, strict=False)
+
 def find_best_routes_by_table(routes, prefixes):
     best_routes = {}
 
@@ -107,20 +107,14 @@ def find_best_routes_by_table(routes, prefixes):
 
         table = route.get("table", "main")
 
-        score = calculate_lpm_score(
-            dst,
-            prefixes
-        )
+        score = calculate_lpm_score(dst, prefixes)
 
         if score is None:
             continue
 
         current = best_routes.get(table)
 
-        if (
-            current is None or
-            score > current["score"]
-        ):
+        if (current is None or score > current["score"]):
             best_routes[table] = {
                 "route": route,
                 "score": score
