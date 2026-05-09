@@ -67,6 +67,112 @@
         details[open] summary {
             margin-bottom: 12px;
         }
+
+        .routing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .routing-cell {
+            vertical-align: top;
+            min-width: 220px;
+            padding: 8px;
+        }
+
+        .route-entry {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .route-field {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 6px;
+
+            border-radius: 6px;
+
+            background: #f5f5f5;
+            border: 1px solid #696363;
+        }
+
+        .route-field-invalid {
+            background: #ffe5e5;
+            border: 1px solid #ff6b6b;
+        }
+
+        .route-field-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .route-field-value {
+            font-family: monospace;
+            word-break: break-word;
+        }
+
+        .route-field-div
+        {
+            margin: 2px;
+        }
+
+        .routing-invalid {
+            background: rgba(255, 0, 0, 0.04);
+        }
+
+        .routing-missing {
+            background: rgba(255, 0, 0, 0.08);
+        }
+
+        .route-missing {
+            color: #b00020;
+            font-weight: bold;
+        }
+
+        .routing-warnings {
+            margin-top: 24px;
+        }
+
+        .warning-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            padding: 0;
+            list-style: none;
+        }
+
+        .warning-item {
+            padding: 10px 12px;
+
+            border-radius: 8px;
+
+            border-left: 4px solid #ff9800;
+
+            background: #fff8e1;
+        }
+
+        .warning-error {
+            border-left-color: #e53935;
+            background: #ffebee;
+        }
+
+        .warning-header {
+            margin-bottom: 4px;
+        }
+
+        .warning-details {
+            margin-top: 6px;
+
+            font-size: 13px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
     </style>
 </head>
 
@@ -217,21 +323,21 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %}
-                    {% if not validation["valid"] %} routing-invalid {% endif %}">
+                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
+                        validation["valid"] %} routing-invalid {% endif %}">
 
                         {% if routes %}
                         {% for route in routes %}
 
                         <div class="route-entry">
 
-                            {% for field_name, field_value in route.items() %}                            
+                            {% for field_name, field_value in route.items() %}
                             {% set field_validation = validation["field_validation"].get(field_name) %}
 
                             <div class="route-field {% if field_validation and not field_validation.valid %}
                                     route-field-invalid {% endif %}">
                                 <span class="route-field-name">
-                                    {{ field_name }}
+                                    {{ field_name }}:
                                 </span>
 
                                 <span class="route-field-value">
@@ -240,6 +346,8 @@
                             </div>
 
                             {% endfor %}
+                            <span class="route-field-div"> ------------------------ </span>
+
                         </div>
 
                         {% endfor %}

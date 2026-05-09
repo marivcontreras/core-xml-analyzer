@@ -24,7 +24,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # reverse p2p route support
             # --------------------------------------------------
 
-            if interpreted is None and "<->" in route_name:
+            if interpreted is None and "<>" in route_name:
                 reversed_name = reverse_route_name(route_name)
                 interpreted = interpreted_routes.get(reversed_name)
 
@@ -109,11 +109,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                         interpreted_value = interpreted_route.get(field_name)
 
-                        field_result = validate_route_field(
-                            field_name,
-                            interpreted_value,
-                            expected_value
-                        )
+                        field_result = validate_route_field(field_name, interpreted_value, expected_value)
 
                         field_results[field_name] = field_result
 
@@ -256,11 +252,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
         for route_name in interpreted_routes.keys():
 
-            if (
-                route_name not in expected_routes and
-                reverse_route_name(route_name) not in expected_routes
-            ):
-
+            if (route_name not in expected_routes and reverse_route_name(route_name) not in expected_routes):
                 warnings.append({
                     "router": router_name,
                     "route": route_name,

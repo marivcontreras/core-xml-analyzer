@@ -16,12 +16,22 @@ def direct(iface=None):
     }
 
 
-def default():
+def default(iface, via):
+    normalized_vias = []
+
+    node, interface = via.rsplit("-", 1)
+
+    normalized_vias.append({
+            "node": node,
+            "interface": interface,
+            "type": "neighbor"
+        })
+
     return {
-        "type": "default",
+        "type": "indirect",
         "via": AUTO,
-        "via_info": ANY,
-        "dev": ANY,
+        "via_info": normalized_vias,
+        "dev": iface,
         "table": "main",
         "dst": "default",
         "score": 0,
@@ -34,7 +44,7 @@ def indirect(vias, devs=None):
     normalized_vias = []
 
     for via in vias:
-        node, interface = via.split("-")
+        node, interface = via.rsplit("-", 1)
 
         normalized_vias.append({
             "node": node,
@@ -50,7 +60,7 @@ def indirect(vias, devs=None):
         "table": "main",
         "dst": AUTO,
         "score": ANY,
-        "is_default": False,
+        "is_default": ANY,
         "is_policy": False
     }
 
@@ -58,34 +68,34 @@ def indirect(vias, devs=None):
 EXPECTED_ROUTING_MATRIX = {
     "R1-DC": {
         "SwDataCenter": direct("eth0"),
-        "WVentas": default(),
-        "SwVentas": default(),
-        "WGuest": default(),
-        "SwAdmin": default(),
-        "SwOfiAdmin": default(),
+        "WVentas": default("eth1", "R4-eth1"),
+        "SwVentas": default("eth1", "R4-eth1"),
+        "WGuest": default("eth1", "R4-eth1"),
+        "SwAdmin": default("eth1", "R4-eth1"),
+        "SwOfiAdmin": default("eth1", "R4-eth1"),
         "R4<>R1-DC": direct("eth1"),
-        "R4<>R5": default(),
-        "R5<>R6": default(),
-        "R5<>R3": default(),
-        "R4<>R3": default(),
-        "R2<>R3": default(),
-        "R2<>R4": default()
+        "R4<>R5": default("eth1", "R4-eth1"),
+        "R5<>R6": default("eth1", "R4-eth1"),
+        "R5<>R3": default("eth1", "R4-eth1"),
+        "R4<>R3": default("eth1", "R4-eth1"),
+        "R2<>R3": default("eth1", "R4-eth1"),
+        "R2<>R4": default("eth1", "R4-eth1")
     },
 
     "R6": {
-        "SwDataCenter": default(),
+        "SwDataCenter": default("eth2", "R5-eth0"),
         "WVentas": direct("eth0"),
         "SwVentas": direct("eth1"),
-        "WGuest": default(),
-        "SwAdmin": default(),
-        "SwOfiAdmin": default(),
-        "R4<>R1-DC": default(),
-        "R4<>R5": default(),
+        "WGuest": default("eth2", "R5-eth0"),
+        "SwAdmin": default("eth2", "R5-eth0"),
+        "SwOfiAdmin": default("eth2", "R5-eth0"),
+        "R4<>R1-DC": default("eth2", "R5-eth0"),
+        "R4<>R5": default("eth2", "R5-eth0"),
         "R5<>R6": direct("eth2"),
-        "R5<>R3": default(),
-        "R4<>R3": default(),
-        "R2<>R3": default(),
-        "R2<>R4": default()
+        "R5<>R3": default("eth2", "R5-eth0"),
+        "R4<>R3": default("eth2", "R5-eth0"),
+        "R2<>R3": default("eth2", "R5-eth0"),
+        "R2<>R4": default("eth2", "R5-eth0")
     },
 
     "R3": {
@@ -175,7 +185,7 @@ EXPECTED_ROUTING_MATRIX = {
 
     "R4": {
         "SwDataCenter": indirect(
-            ["R1-eth1"]
+            ["R1-DC-eth1"]
         ),
 
         "WVentas": indirect(

@@ -133,12 +133,6 @@ def classify_route(route):
     dst = route.get("dst")
     table = route.get("table", "main")
 
-    # 2. default
-    if dst in ["default", "::/0", "0.0.0.0/0"]:
-        if table != "main":
-            return "policy-default"
-        return "default"
-
     # 3. policy routing
     if table != "main":
         return "policy"
@@ -304,7 +298,6 @@ def build_routing_matrix(data):
             continue
 
         matrix[router_name] = {}
-
         routes = routing.get("routes", [])
 
         for net in data.get("networks", {}).values():
@@ -313,10 +306,7 @@ def build_routing_matrix(data):
             if not is_intranet_network(net_name):
                 continue
 
-            prefixes = [
-                p for p in net.get("prefixes", [])
-                if p != "-"
-            ]
+            prefixes = [p for p in net.get("prefixes", []) if p != "-"]
 
             # siempre inicializar lista
             matrix[router_name][net_name] = []
@@ -325,22 +315,14 @@ def build_routing_matrix(data):
             # 1. DIRECT ROUTE
             # --------------------------------------------------
 
-            is_direct = router_belongs_to_network(
-                router_name,
-                net,
-                data
-            )
+            is_direct = router_belongs_to_network(router_name, net, data)
 
             if is_direct:
                 matrix[router_name][net_name].append({
                     "type": "direct",
                     "via": None,
                     "via_info": None,
-                    "dev": find_interface_to_network(
-                        node_id,
-                        net,
-                        data
-                    ),
+                    "dev": find_interface_to_network(node_id, net, data),
                     "table": "local",
                     "dst": None,
                     "score": 999,
@@ -349,18 +331,15 @@ def build_routing_matrix(data):
                 })
 
             # --------------------------------------------------
-            # 2. INDIRECT ROUTES
-            #    (una mejor ruta por tabla)
+            # 2. INDIRECT ROUTES (una mejor ruta por tabla)
             # --------------------------------------------------
 
-            best_routes = find_best_routes_by_table(
-                routes,
-                prefixes
-            )
+            best_routes = find_best_routes_by_table(routes, prefixes)
 
             for table_name, best_route in best_routes.items():
 
-                if not best_route:
+                # si no existen rutas válidas, o la mejor ruta en main es la directa no agrego indirectas
+                if not best_route or (table_name == "main" and is_direct):
                     continue
 
                 route = best_route["route"]
@@ -370,10 +349,7 @@ def build_routing_matrix(data):
                 via_info = None
 
                 if via:
-                    via_info = resolve_ip_owner(
-                        via,
-                        data
-                    )
+                    via_info = resolve_ip_owner(via, data)
 
                 matrix[router_name][net_name].append({
                     "type": classify_route(route),
