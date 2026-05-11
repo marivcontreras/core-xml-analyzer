@@ -81,8 +81,43 @@
 
         .route-entry {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: wrap;
+
             gap: 4px;
+
+            padding: 4px;
+            margin-bottom: 4px;
+
+            border: #b0a8a8 1px solid;
+            border-radius: 6px;
+        }
+
+        /* ------------------------------ */
+        /* Global IPv6 */
+        /* ------------------------------ */
+
+        .route-entry-global {
+            background-color: #e3f2fd;
+            border-color: #64b5f6;
+        }
+
+        /* ------------------------------ */
+        /* ULA */
+        /* ------------------------------ */
+
+        .route-entry-ula {
+            background-color: #ede7f6;
+            border-color: #9575cd;
+        }
+
+        /* ------------------------------ */
+        /* Direct */
+        /* ------------------------------ */
+
+        .route-entry-direct {
+            background-color: #eeeeee;
+            border-color: #9e9e9e;
         }
 
         .route-field {
@@ -114,8 +149,7 @@
             word-break: break-word;
         }
 
-        .route-field-div
-        {
+        .route-field-div {
             margin: 2px;
         }
 
@@ -300,7 +334,10 @@
 
     <div class="card">
         <h2>Matriz de Routing</h2>
-
+        <div>
+            <h5> NOTA: Esta tabla explica como se llega a cada red desde cada router (ver comandos interpretados por
+                router en la siguientes secciones) </h5>
+        </div>
         <table class="routing-table">
             <thead>
                 <tr>
@@ -323,30 +360,51 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
+                    <td class="routing-cell {% if not validation[" exists"] %} routing-missing {% endif %} {% if not
                         validation["valid"] %} routing-invalid {% endif %}">
 
                         {% if routes %}
                         {% for route in routes %}
 
-                        <div class="route-entry">
+                        {% set net_prefix = route.get("net_prefix") %}
+
+                        <div class="route-entry
+                            {% if net_prefix %}
+                                {% if net_prefix.startswith('FD') or net_prefix.startswith('fd') %}
+                                    route-entry-ula
+                                {% elif net_prefix.startswith('2001:') %}
+                                    route-entry-global
+                                {% elif net_prefix == 'both' %}
+                                    route-entry-direct
+                                {% endif %}
+                            {% endif %}
+                        ">
 
                             {% for field_name, field_value in route.items() %}
                             {% set field_validation = validation["field_validation"].get(field_name) %}
 
+                            {% if field_value != None and field_name != "score" and field_name != "is_default"
+                            and field_name != "is_policy" %}
                             <div class="route-field {% if field_validation and not field_validation.valid %}
                                     route-field-invalid {% endif %}">
                                 <span class="route-field-name">
                                     {{ field_name }}:
                                 </span>
 
+                                {% if field_name != "via_info" %}
                                 <span class="route-field-value">
                                     {{ field_value }}
                                 </span>
+
+                                {% else %}
+                                <span class="route-field-value">
+                                    {{ field_value["node"] }}-{{ field_value["interface"] }}
+                                </span>
+                                {% endif %}
                             </div>
+                            {% endif %}
 
                             {% endfor %}
-                            <span class="route-field-div"> ------------------------ </span>
 
                         </div>
 
@@ -416,32 +474,6 @@
         </div>
         {% endif %}
     </div>
-
-
-    <details class="card">
-        <summary>
-            Detalle de rutas por router
-        </summary>
-        {% for router, nets in data.routing_matrix.items() %}
-        <h3>{{ router }}</h3>
-        <table>
-            <tr>
-                <th>Red</th>
-                <th>Tipo</th>
-                <th>Via</th>
-                <th>Tabla</th>
-            </tr>
-            {% for net, cell in nets.items() %}
-            <tr>
-                <td>{{ net }}</td>
-                <td>{{ cell.type }}</td>
-                <td>{{ cell.via if cell.via else "-" }}</td>
-                <td>{{ cell.table if cell.table else "-" }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% endfor %}
-    </details>
 
     {% for node_id, routing in data.routing.items() %}
     <details class="card">
@@ -515,6 +547,8 @@
             <thead>
                 <tr>
                     <th>Chain</th>
+                    <th>Src</th>
+                    <th>Dst</th>
                     <th>Proto</th>
                     <th>Mark</th>
                     <th>Target</th>
@@ -524,6 +558,8 @@
                 {% for rule in routing.iptables %}
                 <tr>
                     <td>{{ rule.chain if rule.chain else "-" }}</td>
+                    <td>{{ rule.src if rule.src else "-" }}</td>
+                    <td>{{ rule.dst if rule.dst else "-" }}</td>
                     <td>{{ rule.protocol if rule.protocol else "-" }}</td>
                     <td>{{ rule.mark if rule.mark else "-" }}</td>
                     <td>{{ rule.target if rule.target else "-" }}</td>

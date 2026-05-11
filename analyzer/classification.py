@@ -14,6 +14,24 @@ def classify_prefix(prefix):
     
     return "unknown"
 
+def classify_prefix_type(dst):
+
+    if not dst:
+        return "unknown"
+
+    dst = dst.lower()
+
+    if dst in ["default", "::/0"]:
+        return "default"
+
+    if dst.startswith("fd"):
+        return "site"
+
+    if dst.startswith("2001:"):
+        return "global"
+
+    return "other"
+
 def classify_ipv6(ip):
     addr = ip.ip.exploded.lower()
 

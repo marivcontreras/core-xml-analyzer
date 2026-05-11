@@ -1,101 +1,90 @@
 
 import ipaddress
 
+from analyzer.classification import classify_ipv6, classify_prefix, classify_prefix_type
 from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.l2 import get_node
 from report.formatters import is_intranet_network
-
-def calculate_lpm_score(route_dst, network_prefixes):
-    """
-    Returns the best LPM score for a route against a list
-    of network prefixes.
-
-    Higher = more specific match.
-
-    Examples:
-        route_dst = "2001:db8::/64"
-        network_prefixes = [
-            "2001:db8::/64",
-            "2001:db8:1::/64"
-        ]
-
-        -> 64
-
-    Supports:
-    - exact prefix matches
-    - default routes (::/0)
-    - overlapping prefixes
-    - IPv4 and IPv6
-    """
-
-    if not route_dst:
-        return None
-
-    try:
-        route_network = normalize_route_network(route_dst)
-
-    except Exception:
-        return None
-
-    best_score = None
-
-    for prefix in network_prefixes:
-
-        try:
-            candidate_network = normalize_route_network(prefix)
-
-        except Exception:
-            continue
-
-        # Different IP family
-        if (
-            route_network.version !=
-            candidate_network.version
-        ):
-            continue
-
-        # --------------------------------------------------
-        # Exact match
-        # --------------------------------------------------
-
-        if route_network == candidate_network:
-            score = route_network.prefixlen
-
-        # --------------------------------------------------
-        # Route contains candidate
-        # Example:
-        #   route: 2001::/48
-        #   candidate: 2001::1/64
-        # --------------------------------------------------
-
-        elif candidate_network.subnet_of(route_network):
-            score = route_network.prefixlen
-
-        # --------------------------------------------------
-        # Route is more specific than candidate
-        # Example:
-        #   route: 2001::1/64
-        #   candidate: 2001::/48
-        # --------------------------------------------------
-
-        elif route_network.subnet_of(candidate_network):
-            score = route_network.prefixlen
-
-        else:
-            continue
-
-        if best_score is None or score > best_score:
-            best_score = score
-
-    return best_score
-
 def normalize_route_network(value):
     if value == "default":
         return ipaddress.ip_network("::/0")
 
     return ipaddress.ip_network(value, strict=False)
 
-def find_best_routes_by_table(routes, prefixes):
+def calculate_lpm_score(route_dst, target_prefix):
+    """
+    Calculates longest-prefix-match score between:
+
+        route_dst
+        vs
+        target_prefix
+
+    Higher score = more specific route.
+
+    Supports:
+    - exact matches
+    - default routes
+    - supernets
+    - IPv4 / IPv6
+    """
+
+    if not route_dst or not target_prefix:
+        return None
+
+    try:
+        route_network = normalize_route_network(route_dst)
+        target_network = normalize_route_network(target_prefix)
+
+    except Exception:
+        return None
+
+    # ------------------------------------------------------
+    # Different IP family
+    # ------------------------------------------------------
+
+    if route_network.version != target_network.version:
+        return None
+
+    # ------------------------------------------------------
+    # Exact match
+    # ------------------------------------------------------
+
+    if route_network == target_network:
+        return route_network.prefixlen
+
+    # ------------------------------------------------------
+    # Route contains target
+    #
+    # route:   2001::/48
+    # target:  2001::1/64
+    # ------------------------------------------------------
+
+    if target_network.subnet_of(route_network):
+        return route_network.prefixlen
+
+    # ------------------------------------------------------
+    # No match
+    # ------------------------------------------------------
+
+    return None
+
+
+def find_best_routes_by_table(routes, target_prefix):
+    """
+    Finds the best matching route PER TABLE for a single target prefix.
+
+    Returns:
+        {
+            "main": {
+                "route": ...,
+                "score": ...
+            },
+            "100": {
+                ...
+            }
+        }
+    """
+
     best_routes = {}
 
     for route in routes:
@@ -107,21 +96,27 @@ def find_best_routes_by_table(routes, prefixes):
 
         table = route.get("table", "main")
 
-        score = calculate_lpm_score(dst, prefixes)
+        score = calculate_lpm_score(
+            dst,
+            target_prefix
+        )
 
         if score is None:
             continue
 
         current = best_routes.get(table)
 
-        if (current is None or score > current["score"]):
+        if (
+            current is None or
+            score > current["score"]
+        ):
+
             best_routes[table] = {
                 "route": route,
                 "score": score
             }
 
     return best_routes
-
 
 def classify_route(route):
     rtype = route.get("type")
@@ -325,6 +320,7 @@ def build_routing_matrix(data):
                     "dev": find_interface_to_network(node_id, net, data),
                     "table": "local",
                     "dst": None,
+                    "net_prefix": "both",
                     "score": 999,
                     "is_default": False,
                     "is_policy": False
@@ -333,35 +329,38 @@ def build_routing_matrix(data):
             # --------------------------------------------------
             # 2. INDIRECT ROUTES (una mejor ruta por tabla)
             # --------------------------------------------------
+            for prefix in prefixes:
 
-            best_routes = find_best_routes_by_table(routes, prefixes)
+                best_routes = find_best_routes_by_table(routes, prefix)
 
-            for table_name, best_route in best_routes.items():
+                for table_name, best_route in best_routes.items():
 
-                # si no existen rutas válidas, o la mejor ruta en main es la directa no agrego indirectas
-                if not best_route or (table_name == "main" and is_direct):
-                    continue
+                    # si no existen rutas válidas, o la mejor ruta en main es la directa no agrego indirectas
+                    if not best_route or (table_name == "main" and is_direct):
+                        continue
 
-                route = best_route["route"]
+                    route = best_route["route"]
 
-                via = route.get("via")
+                    via = route.get("via")
 
-                via_info = None
+                    via_info = None
 
-                if via:
-                    via_info = resolve_ip_owner(via, data)
+                    if via:
+                        via_info = resolve_ip_owner(via, data)
 
-                matrix[router_name][net_name].append({
-                    "type": classify_route(route),
-                    "via": via,
-                    "via_info": via_info,
-                    "dev": route.get("dev"),
-                    "table": table_name,
-                    "dst": route.get("dst"),
-                    "score": best_route["score"],
-                    "is_default": route.get("dst") in ["default", "::/0"],
-                    "is_policy": table_name != "main"
-                })
+                    matrix[router_name][net_name].append({
+                        "type": classify_route(route),
+                        "via": via,
+                        "via_info": via_info,
+                        "dev": route.get("dev"),
+                        "table": table_name,
+                        "dst": route.get("dst"),
+                        "net_prefix": prefix,
+                        "prefix_type": classify_prefix_type(prefix),
+                        "score": best_route["score"],
+                        "is_default": route.get("dst") in ["default", "::/0"],
+                        "is_policy": table_name != "main"
+                    })
 
             # --------------------------------------------------
             # 3. limpiar redes sin rutas

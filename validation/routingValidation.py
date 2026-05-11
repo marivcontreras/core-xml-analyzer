@@ -57,7 +57,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     "router": router_name,
                     "route": route_name,
                     "severity": "error",
-                    "message": f"Missing route '{route_name}'"
+                    "message": f"Ruta faltante hacia '{route_name}'"
                 })
 
                 route_result["exists"] = False
@@ -92,14 +92,46 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # validate each expected route
             # --------------------------------------------------
 
+            expanded_expected_routes = []
+
             for expected_route in expected_routes_list:
 
+                prefixes = expected_route.get("prefixes")
+
+                # --------------------------------------------------
+                # route has multiple target prefixes
+                # generate one validation entry per prefix
+                # --------------------------------------------------
+
+                if prefixes:
+
+                    for prefix in prefixes:
+
+                        expanded_route = dict(expected_route)
+
+                        expanded_route["dst"] = prefix
+
+                        expanded_expected_routes.append(
+                            expanded_route
+                        )
+
+                else:
+                    expanded_expected_routes.append(
+                        expected_route
+                    )
+
+            for expected_route in expanded_expected_routes:
+                
                 matched = False
                 best_candidate = None
                 best_candidate_score = -1
 
                 for idx, interpreted_route in enumerate(interpreted):
 
+                    # already consumed by another expected route
+                    if idx in matched_interpreted_indexes:
+                        continue
+                    
                     field_results = {}
 
                     valid_fields = 0
@@ -185,7 +217,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         "route": route_name,
                         "severity": "error",
                         "message": (
-                            f"No matching route found for "
+                            f"No se encontró una ruta válida hacia "
                             f"'{route_name}'"
                         )
                     })
@@ -224,15 +256,25 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         interpreted_route
                     )
 
-                    warnings.append({
-                        "router": router_name,
-                        "route": route_name,
-                        "severity": "warning",
-                        "message": (
-                            f"Unexpected extra route in "
-                            f"table '{interpreted_route.get('table')}'"
-                        )
-                    })
+                    if (interpreted_route.get('table') == "main"):
+                        warnings.append({
+                            "router": router_name,
+                            "route": route_name,
+                            "severity": "warning",
+                            "message": (
+                                f"Ruta adicional en tabla main: {interpreted_route}"
+                            )
+                        })
+                    else:
+                        warnings.append({
+                            "router": router_name,
+                            "route": route_name,
+                            "severity": "warning",
+                            "message": (
+                                f"Ruta hacia red '{route_name}' en tabla "
+                                f"{interpreted_route.get('table')}"
+                            )
+                        })
 
             # --------------------------------------------------
             # final validity
@@ -257,7 +299,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     "router": router_name,
                     "route": route_name,
                     "severity": "warning",
-                    "message": f"Unexpected route '{route_name}'"
+                    "message": f"Ruta adicional no esperada hacia '{route_name}'"
                 })
 
     return {
@@ -281,6 +323,13 @@ def validate_route_field(field_name, actual, expected):
     if expected == "__AUTO__":
         return result
 
+    if field_name == "table":
+        if actual != expected and (expected != "main"):
+            result["valid"] = True
+            result["highlight"] = None
+
+        return result
+
     # Direct comparison
     if not isinstance(expected, list):
         if actual != expected:
@@ -296,7 +345,7 @@ def validate_route_field(field_name, actual, expected):
             result["highlight"] = "red"
 
         return result
-
+    
     # Generic allowed values
     if actual not in expected:
         result["valid"] = False
@@ -321,6 +370,6 @@ def match_via_info(actual, expected_options):
 
 def build_warning_message(router, route, field, expected, actual):
     return (
-        f"[{router}] Route '{route}' has invalid '{field}'. "
-        f"Expected: {expected} | Actual: {actual}"
+        f"[{router}] La ruta '{route}' tiene un valor inválido para el campo '{field}'. "
+        f"Esperado: {expected} | Actual: {actual}"
     )

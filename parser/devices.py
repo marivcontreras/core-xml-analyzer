@@ -178,13 +178,23 @@ def parse_ip6tables(text):
             "chain": None,
             "protocol": None,
             "mark": None,
-            "target": None
+            "target": None,
+            "src": None,
+            "dst": None
         }
 
         chain = re.search(r'-A\s+(\S+)', line)
         proto = re.search(r'-p\s+(\S+)', line)
         mark = re.search(r'--set-mark\s+(\S+)', line)
         target = re.search(r'-j\s+(\S+)', line)
+        src = re.search(r'-s\s+(\S+)', line)
+        dst = re.search(r'-d\s+(\S+)', line)      
+
+        if src:
+            rule["src"] = src.group(1)
+
+        if dst:
+            rule["dst"] = dst.group(1)
 
         if chain:
             rule["chain"] = chain.group(1)

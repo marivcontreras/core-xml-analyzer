@@ -1,6 +1,10 @@
 ANY = "__ANY__"
 AUTO = "__AUTO__"
 
+def clone_with_prefix_type(route, prefix_type):
+    cloned = dict(route)
+    cloned["prefix_type"] = prefix_type
+    return cloned
 
 def direct(iface=None):
     return {
@@ -9,7 +13,7 @@ def direct(iface=None):
         "via_info": None,
         "dev": iface,
         "table": "local",
-        "dst": None,
+        "dst": AUTO,
         "score": 999,
         "is_default": False,
         "is_policy": False
@@ -27,7 +31,7 @@ def default(iface, via):
             "type": "neighbor"
         })
 
-    return {
+    base_route =  {
         "type": "indirect",
         "via": AUTO,
         "via_info": normalized_vias,
@@ -38,6 +42,38 @@ def default(iface, via):
         "is_default": True,
         "is_policy": False
     }
+
+    return [
+        clone_with_prefix_type(base_route, "global"),
+        clone_with_prefix_type(base_route, "site")
+    ]
+
+def defaultSite(iface, via):
+    normalized_vias = []
+
+    node, interface = via.rsplit("-", 1)
+
+    normalized_vias.append({
+            "node": node,
+            "interface": interface,
+            "type": "neighbor"
+        })
+
+    base_route =  {
+        "type": "indirect",
+        "via": AUTO,
+        "via_info": normalized_vias,
+        "dev": iface,
+        "table": "main",
+        "dst": "default",
+        "score": 0,
+        "is_default": True,
+        "is_policy": False
+    }
+
+    return [
+        clone_with_prefix_type(base_route, "site")
+    ]
 
 
 def indirect(vias, devs=None):
@@ -52,7 +88,7 @@ def indirect(vias, devs=None):
             "type": "neighbor"
         })
 
-    return {
+    base_route = {
         "type": "indirect",
         "via": AUTO,
         "via_info": normalized_vias,
@@ -64,6 +100,39 @@ def indirect(vias, devs=None):
         "is_policy": False
     }
 
+    return [
+        clone_with_prefix_type(base_route, "global"),
+        clone_with_prefix_type(base_route, "site")
+    ]
+
+def indirectSite(vias, devs=None):
+    normalized_vias = []
+
+    for via in vias:
+        node, interface = via.rsplit("-", 1)
+
+        normalized_vias.append({
+            "node": node,
+            "interface": interface,
+            "type": "neighbor"
+        })
+
+    base_route = {
+        "type": "indirect",
+        "via": AUTO,
+        "via_info": normalized_vias,
+        "dev": devs if devs else ANY,
+        "table": "main",
+        "dst": AUTO,
+        "score": ANY,
+        "is_default": ANY,
+        "is_policy": False
+    }
+
+    return [
+        clone_with_prefix_type(base_route, "site")
+    ]
+
 
 EXPECTED_ROUTING_MATRIX = {
     "R1-DC": {
@@ -71,8 +140,8 @@ EXPECTED_ROUTING_MATRIX = {
         "WVentas": default("eth1", "R4-eth1"),
         "SwVentas": default("eth1", "R4-eth1"),
         "WGuest": default("eth1", "R4-eth1"),
-        "SwAdmin": default("eth1", "R4-eth1"),
-        "SwOfiAdmin": default("eth1", "R4-eth1"),
+        "SwAdmin": defaultSite("eth1", "R4-eth1"),
+        "SwOfiAdmin": defaultSite("eth1", "R4-eth1"),
         "R4<>R1-DC": direct("eth1"),
         "R4<>R5": default("eth1", "R4-eth1"),
         "R5<>R6": default("eth1", "R4-eth1"),
@@ -87,8 +156,8 @@ EXPECTED_ROUTING_MATRIX = {
         "WVentas": direct("eth0"),
         "SwVentas": direct("eth1"),
         "WGuest": default("eth2", "R5-eth0"),
-        "SwAdmin": default("eth2", "R5-eth0"),
-        "SwOfiAdmin": default("eth2", "R5-eth0"),
+        "SwAdmin": defaultSite("eth2", "R5-eth0"),
+        "SwOfiAdmin": defaultSite("eth2", "R5-eth0"),
         "R4<>R1-DC": default("eth2", "R5-eth0"),
         "R4<>R5": default("eth2", "R5-eth0"),
         "R5<>R6": direct("eth2"),
@@ -154,11 +223,11 @@ EXPECTED_ROUTING_MATRIX = {
 
         "WGuest": direct("eth1"),
 
-        "SwAdmin": indirect(
+        "SwAdmin": indirectSite(
             ["R4-eth0", "R3-eth2"]
         ),
 
-        "SwOfiAdmin": indirect(
+        "SwOfiAdmin": indirectSite(
             ["R4-eth0", "R3-eth2"]
         ),
 
@@ -200,11 +269,11 @@ EXPECTED_ROUTING_MATRIX = {
             ["R5-eth2", "R3-eth4"]
         ),
 
-        "SwAdmin": indirect(
+        "SwAdmin": indirectSite(
             ["R5-eth2", "R3-eth4"]
         ),
 
-        "SwOfiAdmin": indirect(
+        "SwOfiAdmin": indirectSite(
             ["R5-eth2", "R3-eth4"]
         ),
 
@@ -245,11 +314,11 @@ EXPECTED_ROUTING_MATRIX = {
             ["R4-eth2", "R3-eth3"]
         ),
 
-        "SwAdmin": indirect(
+        "SwAdmin": indirectSite(
             ["R4-eth2", "R3-eth3"]
         ),
 
-        "SwOfiAdmin": indirect(
+        "SwOfiAdmin": indirectSite(
             ["R4-eth2", "R3-eth3"]
         ),
 
