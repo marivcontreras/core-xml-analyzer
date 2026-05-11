@@ -192,7 +192,7 @@ def build_matrix_table(matrix, validation_result=None):
                     .get(net, build_empty_validation())
             )
 
-            print(f"Processing cell for router {router}, network {net}, validation: {validation}")
+            #print(f"Processing cell for router {router}, network {net}, validation: {validation}")
             # --------------------------------------------------
             # normalize routing entries to list
             # renderer should always receive same structure

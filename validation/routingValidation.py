@@ -1,4 +1,5 @@
 from report.formatters import reverse_route_name
+from validation.routingHelper import ANY
 
 def validate_routing_matrix(interpreted_matrix, expected_matrix):
     warnings = []
@@ -92,36 +93,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # validate each expected route
             # --------------------------------------------------
 
-            expanded_expected_routes = []
-
-            for expected_route in expected_routes_list:
-
-                prefixes = expected_route.get("prefixes")
-
-                # --------------------------------------------------
-                # route has multiple target prefixes
-                # generate one validation entry per prefix
-                # --------------------------------------------------
-
-                if prefixes:
-
-                    for prefix in prefixes:
-
-                        expanded_route = dict(expected_route)
-
-                        expanded_route["dst"] = prefix
-
-                        expanded_expected_routes.append(
-                            expanded_route
-                        )
-
-                else:
-                    expanded_expected_routes.append(
-                        expected_route
-                    )
-
-            for expected_route in expanded_expected_routes:
-                
+            for expected_route in expected_routes_list:                
                 matched = False
                 best_candidate = None
                 best_candidate_score = -1
@@ -132,6 +104,28 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     if idx in matched_interpreted_indexes:
                         continue
                     
+                    # --------------------------------------------------
+                    # compare only routes with same intent
+                    # --------------------------------------------------
+
+                    expected_prefix_type = expected_route.get("prefix_type")
+                    interpreted_prefix_type = interpreted_route.get("prefix_type")
+
+                    if (
+                        expected_prefix_type is not None and
+                        interpreted_prefix_type != expected_prefix_type
+                    ):
+                        continue
+
+                    expected_is_policy = expected_route.get("is_policy")
+                    interpreted_is_policy = interpreted_route.get("is_policy")
+
+                    if (
+                        expected_is_policy is not ANY and
+                        interpreted_is_policy != expected_is_policy
+                    ):
+                        continue
+
                     field_results = {}
 
                     valid_fields = 0
@@ -330,6 +324,13 @@ def validate_route_field(field_name, actual, expected):
 
         return result
 
+    if field_name == "type":
+        if isinstance(expected, list) and actual in expected:
+            result["valid"] = True
+            result["highlight"] = None
+
+        return result
+    
     # Direct comparison
     if not isinstance(expected, list):
         if actual != expected:
@@ -352,7 +353,6 @@ def validate_route_field(field_name, actual, expected):
         result["highlight"] = "red"
 
     return result
-
 
 def match_via_info(actual, expected_options):
     if actual is None:

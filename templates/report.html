@@ -360,7 +360,7 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation[" exists"] %} routing-missing {% endif %} {% if not
+                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
                         validation["valid"] %} routing-invalid {% endif %}">
 
                         {% if routes %}
