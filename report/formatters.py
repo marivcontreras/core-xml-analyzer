@@ -117,6 +117,67 @@ def format_cell(cell):
 
 INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
 
+def format_via_info(via_info):
+    if not via_info:
+        return "-"
+
+    if isinstance(via_info, dict):
+        via_info = [via_info]
+
+    formatted = []
+
+    for item in via_info:
+
+        node = item.get("node", "?")
+        interface = item.get("interface", "?")
+        network = item.get("network")
+
+        if (node is None and interface is None and network is None):
+            return "Dirección IPv6 inexistente en la topología"
+        
+        text = f"{node}-{interface}"
+
+        if network:
+            text += f" en red {network}"
+
+        formatted.append(text)
+
+    return " | ".join(formatted)
+
+def format_route(route):
+    if not route:
+        return "-"
+
+    parts = []
+
+    route_type = route.get("type")    
+    dst = route.get("dst")
+    table = route.get("table")
+    dev = route.get("dev")
+    via_info = route.get("via_info")
+    
+    if route_type:
+        parts.append(f"type={route_type}")   
+
+    if dst:
+        parts.append(f"dst={dst}")
+
+    if via_info:
+            parts.append(
+                f"via={format_via_info(via_info)}"
+            )     
+
+    if dev:
+        parts.append(f"dev={dev}")   
+
+    if table:
+        parts.append(f"table={table}")        
+
+    if route.get("is_policy"):
+        parts.append("policy")
+
+    return " | ".join(parts)
+
 def reverse_route_name(route_name):
     if "<>" in route_name:
         parts = [p.strip() for p in route_name.split("<>")]
@@ -142,7 +203,7 @@ def is_intranet_network(net_name):
 
     return any(k in net_name for k in intranet_keywords)
 
-def build_matrix_table(matrix, validation_result=None):
+def build_matrix_table(matrix, networks_data, validation_result=None):
     routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
 
     validation_table = {}
@@ -151,7 +212,7 @@ def build_matrix_table(matrix, validation_result=None):
     if validation_result:
         validation_table = validation_result.get("validation_table", {})
         warnings = validation_result.get("warnings", [])
-
+        grouped_warnings = validation_result.get("grouped_warnings", [])
     # ----------------------------------------------------------
     # collect networks
     # ----------------------------------------------------------
@@ -170,12 +231,23 @@ def build_matrix_table(matrix, validation_result=None):
         if is_intranet_network(n)
     )
 
+    network_prefixes = {}
+
+    for net in networks_data.values():
+
+        net_name = net.get("name")
+
+        network_prefixes[net_name] = [
+            p for p in net.get("prefixes", [])
+            if p != "-"
+        ]
+
     rows = []
 
     for net in networks:
-
         row = {
             "network": net,
+            "prefixes": network_prefixes.get(net, []),
             "values": {},
             "validation": {}
         }
@@ -217,7 +289,8 @@ def build_matrix_table(matrix, validation_result=None):
     return {
         "routers": routers,
         "rows": rows,
-        "warnings": warnings
+        "warnings": warnings,
+        "grouped_warnings": grouped_warnings
     }
 
 
@@ -230,3 +303,14 @@ def build_empty_validation():
         "missing_expected_routes": [],
         "extra_routes": []
     }
+
+from collections import defaultdict
+
+def group_warnings_by_router(warnings):
+    grouped = defaultdict(list)
+
+    for warning in warnings:
+        router = warning.get("router", "Unknown")
+        grouped[router].append(warning)
+
+    return dict(grouped)

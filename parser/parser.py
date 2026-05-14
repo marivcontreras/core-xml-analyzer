@@ -50,7 +50,7 @@ def parse_xml(xml_text):
 
     data["routing_validation"] = validate_routing_matrix(data["routing_matrix"], EXPECTED_ROUTING_MATRIX)
 
-    data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["routing_validation"])
+    data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["networks"], data["routing_validation"])
 
     #print(data["routing_validation"]);
 

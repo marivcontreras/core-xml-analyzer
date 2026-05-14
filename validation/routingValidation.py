@@ -1,4 +1,4 @@
-from report.formatters import reverse_route_name
+from report.formatters import format_route, format_via_info, reverse_route_name
 from validation.routingHelper import ANY
 
 def validate_routing_matrix(interpreted_matrix, expected_matrix):
@@ -84,12 +84,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             matched_interpreted_indexes = set()
 
             # --------------------------------------------------
-            # validation accumulators
-            # --------------------------------------------------
-
-            aggregated_field_validation = {}
-
-            # --------------------------------------------------
             # validate each expected route
             # --------------------------------------------------
 
@@ -111,19 +105,13 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     expected_prefix_type = expected_route.get("prefix_type")
                     interpreted_prefix_type = interpreted_route.get("prefix_type")
 
-                    if (
-                        expected_prefix_type is not None and
-                        interpreted_prefix_type != expected_prefix_type
-                    ):
+                    if (expected_prefix_type is not None and interpreted_prefix_type is not None and interpreted_prefix_type != expected_prefix_type):
                         continue
-
+                
                     expected_is_policy = expected_route.get("is_policy")
                     interpreted_is_policy = interpreted_route.get("is_policy")
 
-                    if (
-                        expected_is_policy is not ANY and
-                        interpreted_is_policy != expected_is_policy
-                    ):
+                    if (expected_is_policy is not ANY and interpreted_is_policy != expected_is_policy):
                         continue
 
                     field_results = {}
@@ -139,26 +127,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                         field_results[field_name] = field_result
 
-                        # ------------------------------------------
-                        # aggregate render validation
-                        # ------------------------------------------
-
-                        current = aggregated_field_validation.get(field_name)
-
-                        if current is None:
-                            aggregated_field_validation[field_name] = {
-                                "valid": field_result["valid"],
-                                "expected": field_result["expected"],
-                                "actual": field_result["actual"]
-                            }
-
-                        elif not field_result["valid"]:
-                            aggregated_field_validation[field_name] = {
-                                "valid": False,
-                                "expected": field_result["expected"],
-                                "actual": field_result["actual"]
-                            }
-
                         if field_result["valid"]:
                             valid_fields += 1
                         else:
@@ -173,8 +141,10 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         best_candidate = {
                             "interpreted_index": idx,
                             "interpreted_route": interpreted_route,
-                            "field_results": field_results
+                            "field_results": field_results,
                         }
+
+                        best_candidate["interpreted_route"]["_field_validation"] = dict(field_results)
 
                     # ----------------------------------------------
                     # full match
@@ -185,15 +155,28 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         matched = True
 
                         matched_interpreted_indexes.add(idx)
-
+                        interpreted_route["_field_validation"] = field_results
                         route_result["matched_routes"].append({
                             "expected": expected_route,
                             "actual": interpreted_route,
                             "fields": field_results,
                             "valid": True
                         })
-
                         break
+
+                    # --------------------------------------------------
+                    # mirror via_info validation into via
+                    # so both fields highlight together
+                    # --------------------------------------------------
+
+                    via_info_validation = best_candidate["interpreted_route"]["_field_validation"].get("via_info")
+
+                    if via_info_validation is not None and not via_info_validation["valid"]:
+                        best_candidate["interpreted_route"]["_field_validation"]["via"] = {
+                            "valid": via_info_validation["valid"],
+                            "expected": via_info_validation["expected"],
+                            "actual": via_info_validation["actual"]
+                        }              
 
                 # --------------------------------------------------
                 # no valid interpreted route matched
@@ -211,8 +194,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         "route": route_name,
                         "severity": "error",
                         "message": (
-                            f"No se encontró una ruta válida hacia "
-                            f"'{route_name}'"
+                            f"No se puede alcanzar la red {expected_route.get("prefix_type")} {route_name} desde {router_name}" 
                         )
                     })
 
@@ -239,65 +221,43 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                                 })
 
             # --------------------------------------------------
-            # extra interpreted routes
-            # --------------------------------------------------
-
-            for idx, interpreted_route in enumerate(interpreted):
-
-                if idx not in matched_interpreted_indexes:
-
-                    route_result["extra_routes"].append(
-                        interpreted_route
-                    )
-
-                    if (interpreted_route.get('table') == "main"):
-                        warnings.append({
-                            "router": router_name,
-                            "route": route_name,
-                            "severity": "warning",
-                            "message": (
-                                f"Ruta adicional en tabla main: {interpreted_route}"
-                            )
-                        })
-                    else:
-                        warnings.append({
-                            "router": router_name,
-                            "route": route_name,
-                            "severity": "warning",
-                            "message": (
-                                f"Ruta hacia red '{route_name}' en tabla "
-                                f"{interpreted_route.get('table')}"
-                            )
-                        })
-
-            # --------------------------------------------------
             # final validity
             # --------------------------------------------------
 
-            route_result["valid"] = (
-                len(route_result["missing_expected_routes"]) == 0
-            )
-
-            route_result["field_validation"] = (
-                aggregated_field_validation
-            )
+            route_result["valid"] = (len(route_result["missing_expected_routes"]) == 0)
 
         # ------------------------------------------------------
         # detect totally unexpected networks
         # ------------------------------------------------------
 
-        for route_name in interpreted_routes.keys():
+        #for route_name in interpreted_routes.keys():
 
-            if (route_name not in expected_routes and reverse_route_name(route_name) not in expected_routes):
-                warnings.append({
-                    "router": router_name,
-                    "route": route_name,
-                    "severity": "warning",
-                    "message": f"Ruta adicional no esperada hacia '{route_name}'"
-                })
+        #    if (route_name not in expected_routes and reverse_route_name(route_name) not in expected_routes):
+        #        warnings.append({
+        #            "router": router_name,
+        #            "route": route_name,
+        #            "severity": "warning",
+        #            "message": f"Ruta adicional no esperada hacia {route_name}"
+        #        })
+
+        from collections import defaultdict
+
+        grouped_warnings = defaultdict(
+            lambda: defaultdict(list)
+        )
+
+        for warning in warnings:
+
+            router = warning.get("router", "Unknown")
+            route = warning.get("route", "Unknown")
+
+            grouped_warnings[router][route].append(
+                warning
+            )
 
     return {
         "warnings": warnings,
+        "grouped_warnings": grouped_warnings,
         "validation_table": validation_table
     }
 
@@ -369,7 +329,19 @@ def match_via_info(actual, expected_options):
 
 
 def build_warning_message(router, route, field, expected, actual):
+    if field == "via_info":
+        if (actual is not None):
+            return (
+                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+                f"Posibles: {format_via_info(expected)}. Actual: {format_via_info(actual)}"
+            )
+        else:
+            return (
+                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+                f"Posibles: {format_via_info(expected)}. Actual: la dirección IP es inválida o no está asignada."
+            )
+
     return (
-        f"[{router}] La ruta '{route}' tiene un valor inválido para el campo '{field}'. "
-        f"Esperado: {expected} | Actual: {actual}"
+        f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+        f"Esperado: {expected}. Actual: {actual}"
     )

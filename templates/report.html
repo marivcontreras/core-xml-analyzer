@@ -35,7 +35,7 @@
         th,
         td {
             text-align: left;
-            padding: 5px;
+            padding: 3px;
             border-bottom: 1px solid #ddd;
             vertical-align: top;
         }
@@ -75,8 +75,8 @@
 
         .routing-cell {
             vertical-align: top;
-            min-width: 220px;
-            padding: 8px;
+            min-width: 100px;
+            padding: 4px;
         }
 
         .route-entry {
@@ -207,6 +207,38 @@
             flex-direction: column;
             gap: 2px;
         }
+
+        .warning-group {
+            margin-bottom: 24px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .warning-group-title {
+            font-size: 18px;
+        }
+
+        .warning-subgroup {
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 3px solid #ddd;
+        }
+
+        .warning-subgroup-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .warning-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .warning-item {
+            margin-bottom: 6px;
+        }
     </style>
 </head>
 
@@ -287,13 +319,13 @@
             <p>Equipos: {{ net.members | join(", ") }} | Prefijos: {{ net.prefixes | join(", ") }}</p>
 
             {% for type, items in net_warnings.items() %}
-            <div class="warning-group {{ type }}">
-                <strong>
+            <div class="warning-subgroup">
+                <div class="warning-subgroup-title">
                     {{ TYPE_LABELS[type] if type in TYPE_LABELS else type }}
-                </strong>
-                <ul>
+                </div>
+                <ul class="warning-list">
                     {% for w in items %}
-                    <li>{{ w.message }}</li>
+                    <li class="warning-item">{{ w.message }}</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -310,15 +342,15 @@
         <h2>Configuración de Routers</h2>
 
         {% for node, types in router_warnings.items() %}
-        <div class="router-block">
-            <h3>{{ node }}</h3>
+        <details class="warning-group">
+            <summary class="warning-group-title">{{ node }}</summary>
 
             {% for type, warnings in types.items() %}
-            <div class="warning-group">
-                <strong>{{ TYPE_LABELS[type] }}</strong>
-                <ul>
+            <div class="warning-subgroup">
+                <div class="warning-subgroup-title">{{ TYPE_LABELS[type] }}</div>
+                 <ul class="warning-list">
                     {% for w in warnings %}
-                    <li>
+                    <li class="warning-item">
                         {{ w.message }}
                         {% if w.interface %} ({{ w.interface }}) {% endif %}
                     </li>
@@ -327,7 +359,7 @@
             </div>
             {% endfor %}
 
-        </div>
+        </details>
         {% endfor %}
     </div>
     {% endif %}
@@ -335,8 +367,8 @@
     <div class="card">
         <h2>Matriz de Routing</h2>
         <div>
-            <h5> NOTA: Esta tabla explica como se llega a cada red desde cada router (ver comandos interpretados por
-                router en la siguientes secciones) </h5>
+            <h5>NOTA: Esta tabla explica como se llega a cada red desde cada router (por cada par router-red elige la
+                ruta más especifica) </h5>
         </div>
         <table class="routing-table">
             <thead>
@@ -351,8 +383,26 @@
             <tbody>
                 {% for row in data.routing_matrix_table.rows %}
                 <tr>
-                    <td>
-                        <strong>{{ row.network }}</strong>
+                    <td class="network-cell">
+
+                        <div class="network-name">
+                            <strong> {{ row.network }} </strong>
+                        </div>
+
+                        {% if row.prefixes %}
+                        <div class="network-prefixes">
+
+                            {% for prefix in row.prefixes %}
+
+                            <div class="network-prefix">
+                                {{ prefix }}
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+                        {% endif %}
+
                     </td>
 
                     {% for router in data.routing_matrix_table.routers %}
@@ -360,7 +410,7 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
+                    <td class="routing-cell {% if not validation[" exists"] %} routing-missing {% endif %} {% if not
                         validation["valid"] %} routing-invalid {% endif %}">
 
                         {% if routes %}
@@ -377,14 +427,14 @@
                                 {% elif net_prefix == 'both' %}
                                     route-entry-direct
                                 {% endif %}
-                            {% endif %}
-                        ">
+                            {% endif %}">
 
                             {% for field_name, field_value in route.items() %}
-                            {% set field_validation = validation["field_validation"].get(field_name) %}
+                            {% set field_validation = route.get("_field_validation", {}).get(field_name) %}
 
                             {% if field_value != None and field_name != "score" and field_name != "is_default"
-                            and field_name != "is_policy" %}
+                            and field_name != "is_policy" and field_name != "net_prefix" and field_name !=
+                            "_field_validation" %}
                             <div class="route-field {% if field_validation and not field_validation.valid %}
                                     route-field-invalid {% endif %}">
                                 <span class="route-field-name">
@@ -395,7 +445,10 @@
                                 <span class="route-field-value">
                                     {{ field_value }}
                                 </span>
-
+                                {% elif field_value["node"] == None or field_value["interface"] == None %}
+                                <span class="route-field-value">
+                                    Desconocido
+                                </span>
                                 {% else %}
                                 <span class="route-field-value">
                                     {{ field_value["node"] }}-{{ field_value["interface"] }}
@@ -427,50 +480,50 @@
 
         </table>
 
-        {% if data.routing_matrix_table.warnings %}
+        {% if data.routing_matrix_table.grouped_warnings %}
         <div class="routing-warnings">
 
-            <h3>Warnings</h3>
+            <h3>Warnings por Router</h3>
 
-            <ul class="warning-list">
+            {% for router, router_warnings in data.routing_matrix_table.grouped_warnings.items() %}
 
-                {% for warning in data.routing_matrix_table.warnings %}
+            <details class="warning-group">
+                <summary class="warning-group-title">
+                      {{ router }}
+                </summary>
+        
+                {% for route, route_warnings in router_warnings.items() %}
 
-                <li class=" warning-item warning-{{ warning.severity }} ">
+                <div class="warning-subgroup">
 
-                    <div class="warning-header">
-                        <strong>{{ warning.router }}</strong> / <strong>{{ warning.route }}</strong>
+                    <div class="warning-subgroup-title">
+                        {{ route }}
                     </div>
 
-                    <div class="warning-message">
-                        {{ warning.message }}
-                    </div>
+                    <ul class="warning-list">
 
-                    {% if warning.field %}
+                        {% for warning in route_warnings %}
 
-                    <div class="warning-details">
+                        <li class="warning-item warning-{{ warning.severity }}">
 
-                        <div>
-                            <strong>Field:</strong>
-                            {{ warning.field }}
-                        </div>
+                            <div class="warning-message">
+                                {{ warning.message }}
+                            </div>
 
-                        <div>
-                            <strong>Expected:</strong>
-                            {{ warning.expected }}
-                        </div>
+                        </li>
 
-                        <div>
-                            <strong>Actual:</strong>
-                            {{ warning.actual }}
-                        </div>
+                        {% endfor %}
 
-                    </div>
+                    </ul>
 
-                    {% endif %}
-                </li>
+                </div>
+
                 {% endfor %}
-            </ul>
+
+            </details>
+
+            {% endfor %}
+
         </div>
         {% endif %}
     </div>

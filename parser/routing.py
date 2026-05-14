@@ -275,7 +275,12 @@ def resolve_ip_owner(ip_str, data):
                         "type": "neighbor"
                     }
 
-    return None
+    return {
+                "node": None,
+                "interface": None,
+                "network": None,
+                "type": None
+            }
 
 def build_routing_matrix(data):
     matrix = {}
