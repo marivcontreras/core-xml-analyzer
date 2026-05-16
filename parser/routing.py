@@ -1,7 +1,7 @@
 
 import ipaddress
 
-from analyzer.classification import classify_prefix, classify_prefix_type
+from analyzer.classification import classify_prefix_type
 from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.l2 import get_node
 from report.formatters import is_intranet_network
