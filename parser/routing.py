@@ -262,7 +262,7 @@ def resolve_ip_owner(ip_str, data):
             node_id = member["node"]
             iface = member["iface"]
 
-            addrs = get_staticroute_interface_addresses(node_id, iface, data)
+            addrs = get_staticroute_interface_addresses(data, node_id, iface)
 
             for addr in addrs:
                 if addr.ip == ip:

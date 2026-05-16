@@ -1,8 +1,11 @@
-
 import ipaddress
 import re
 
-
+# ----------------------------------------------------------
+# Obtains net prefixes for a given node interface:
+# looks up static route and radvd first,
+# then defaults to visually configurated ones if none present.
+# ----------------------------------------------------------
 def get_prefixes_for_interface(node_id, iface, data):
     if not iface:
         return set()
@@ -14,7 +17,7 @@ def get_prefixes_for_interface(node_id, iface, data):
     prefixes.update(get_prefixes_from_staticroute(node_id, iface_name, data))
 
     # 2. RADVD
-    prefixes.update(get_prefixes_from_radvd(node_id, iface_name, data))
+    prefixes.update(get_radvd_interfaces(data, node_id, iface_name))
 
     # 3. Fallback (only if nothing found)
     if not prefixes:
@@ -22,7 +25,9 @@ def get_prefixes_for_interface(node_id, iface, data):
 
     return prefixes
 
-
+# ----------------------------------------------------------------------------
+# Gets prefixes for a given node interface from static route ip addr commands
+# ----------------------------------------------------------------------------
 def get_prefixes_from_staticroute(node_id, iface_name, data):
     prefixes = set()
     services = data["services"].get(node_id, {})
@@ -45,13 +50,15 @@ def get_prefixes_from_staticroute(node_id, iface_name, data):
 
     return prefixes
 
-def get_prefixes_from_radvd(node_id, iface_name, data):
-    prefixes = set()
+# ------------------------------------------------------------------------------
+# Gets prefixes configurated for a given router interface/s from radvd configuration
+# ------------------------------------------------------------------------------
+def get_radvd_interfaces(data, node_id, iface_name=None):
+    result = {}
+
     services = data["services"].get(node_id, {})
     text = services.get("radvd", "")
 
-    # Match full interface blocks (including inner braces)
-    
     iface_blocks = re.findall(
         r'interface\s+(\S+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
         text,
@@ -59,23 +66,33 @@ def get_prefixes_from_radvd(node_id, iface_name, data):
     )
 
     for iface, body in iface_blocks:
-        if iface != iface_name:
+        if iface_name != None and iface != iface_name:
             continue
+
+        prefixes = set()
 
         matches = re.findall(
             r'prefix\s+([0-9a-fA-F:]+)/(\d+)',
             body
-        )       
+        )
 
         for addr, mask in matches:
             try:
                 net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
-                prefixes.add(str(net))
+                prefixes.append(net)
             except:
                 pass
 
-    return prefixes
+        if iface_name == None and prefixes:
+            result[iface] = prefixes
+        elif iface_name != None:
+            result = prefixes
 
+    return result
+
+# ----------------------------------------------------------------------------
+# Gets prefixes for a given interface xml element
+# ----------------------------------------------------------------------------
 def get_prefixes_from_link_iface(iface):
     prefixes = set()
 
@@ -104,7 +121,10 @@ def get_prefixes_from_link_iface(iface):
 
     return prefixes
 
-def get_staticroute_interface_addresses(node_id, iface_name, data):
+# ----------------------------------------------------------------------------
+# Gets IP address for a given node interface from static route ip addr commands
+# ----------------------------------------------------------------------------
+def get_staticroute_interface_addresses(data, node_id, iface_name = None):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
@@ -117,7 +137,7 @@ def get_staticroute_interface_addresses(node_id, iface_name, data):
     result = []
 
     for addr, mask, dev in matches:
-        if dev == iface_name:
+        if iface_name == None or dev == iface_name:
             try:
                 ip = ipaddress.ip_interface(f"{addr}/{mask}")
                 result.append(ip)
@@ -126,58 +146,3 @@ def get_staticroute_interface_addresses(node_id, iface_name, data):
 
     return result
 
-def get_radvd_interfaces(node_id, data):
-    result = {}
-
-    services = data["services"].get(node_id, {})
-    text = services.get("radvd", "")
-
-    iface_blocks = re.findall(
-        r'interface\s+(\S+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
-        text,
-        re.DOTALL
-    )
-
-    for iface, body in iface_blocks:
-        prefixes = []
-
-        matches = re.findall(
-            r'prefix\s+([0-9a-fA-F:]+)/(\d+)',
-            body
-        )
-
-        for addr, mask in matches:
-            try:
-                net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
-                prefixes.append(net)
-            except:
-                pass
-
-        if prefixes:
-            result[iface] = prefixes
-
-    return result
-
-def get_staticroute_addresses(node_id, data):
-    result = {}
-
-    services = data["services"].get(node_id, {})
-    text = services.get("StaticRoute", "")
-
-    matches = re.findall(
-        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
-        text
-    )
-
-    for addr, mask, iface in matches:
-        try:
-            ip = ipaddress.ip_interface(f"{addr}/{mask}")
-        except:
-            continue
-
-        if iface not in result:
-            result[iface] = []
-
-        result[iface].append(ip)
-
-    return result

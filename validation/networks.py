@@ -149,7 +149,7 @@ def check_p2p_consistency(net, data):
         node_id = m["node"]
         iface = m["iface"]
 
-        addrs = get_staticroute_interface_addresses(node_id, iface, data)
+        addrs = get_staticroute_interface_addresses(data, node_id, iface)
         #data["warnings"].append(f"node {node_id} for {iface}: found {addrs} IP addresses")
 
         global_ip = None

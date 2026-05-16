@@ -2,6 +2,9 @@ from analyzer.prefixes import get_prefixes_for_interface
 from parser.l2 import get_node
 from utils.warning import add_warning
 
+# -----------------------------------------------------------------
+# Infers networks from level 2 nodes, p2p links and their addresses
+# -----------------------------------------------------------------
 
 def infer_networks(data):
     net_counter = 1

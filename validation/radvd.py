@@ -1,5 +1,5 @@
 
-from analyzer.prefixes import get_radvd_interfaces, get_staticroute_addresses
+from analyzer.prefixes import get_radvd_interfaces, get_staticroute_interface_addresses
 from utils.warning import add_warning
 
 
@@ -11,8 +11,8 @@ def validate_radvd_interfaces(data):
         node = data["devices"].get(node_id, {"name": f"node{node_id}"})
         node_name = node["name"]
 
-        radvd_map = get_radvd_interfaces(node_id, data)
-        addr_map = get_staticroute_addresses(node_id, data)
+        radvd_map = get_radvd_interfaces(data, node_id)
+        addr_map = get_staticroute_interface_addresses(data, node_id)
        
         for iface, prefixes in radvd_map.items():
             assigned_ips = addr_map.get(iface, [])
