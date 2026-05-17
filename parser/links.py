@@ -1,3 +1,6 @@
+# --------------------------------------------
+# Parses links from links section
+# --------------------------------------------
 def parse_links(root, data):
     links = root.find("links")
     if links is None:
@@ -19,7 +22,9 @@ def parse_links(root, data):
 
         data["links"].append(lnk)
 
-
+# --------------------------------------------
+# Parse interface from link
+# --------------------------------------------
 def iface_to_dict(iface):
     if iface is None:
         return None

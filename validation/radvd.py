@@ -2,7 +2,11 @@
 from analyzer.prefixes import get_radvd_interfaces, get_staticroute_interface_addresses
 from utils.warning import add_warning
 
-
+# -------------------------------------------------------------
+# Creates a list of warnings related to radvd configuration issues, such as:
+# - Missing IP addresses for configured interfaces
+# - Router IP addresses outside of announced prefixes
+# -------------------------------------------------------------
 def validate_radvd_interfaces(data):
     for node_id, services in data["services"].items():
         if "radvd" not in services:

@@ -239,6 +239,13 @@
         .warning-item {
             margin-bottom: 6px;
         }
+
+        .summary-warning {
+            color: #c62828;
+            background: #ffebee;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 
@@ -348,7 +355,7 @@
             {% for type, warnings in types.items() %}
             <div class="warning-subgroup">
                 <div class="warning-subgroup-title">{{ TYPE_LABELS[type] }}</div>
-                 <ul class="warning-list">
+                <ul class="warning-list">
                     {% for w in warnings %}
                     <li class="warning-item">
                         {{ w.message }}
@@ -410,7 +417,7 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation[" exists"] %} routing-missing {% endif %} {% if not
+                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
                         validation["valid"] %} routing-invalid {% endif %}">
 
                         {% if routes %}
@@ -489,9 +496,9 @@
 
             <details class="warning-group">
                 <summary class="warning-group-title">
-                      {{ router }}
+                    {{ router }}
                 </summary>
-        
+
                 {% for route, route_warnings in router_warnings.items() %}
 
                 <div class="warning-subgroup">
@@ -530,7 +537,10 @@
 
     {% for node_id, routing in data.routing.items() %}
     <details class="card">
-        <summary>
+        <summary class="
+        {% if routing.warnings %}
+            summary-warning
+        {% endif %}">
             Reglas configuradas (Router {{ data.devices[node_id].name if node_id in data.devices else node_id }})
         </summary>
         <!-- RULES -->
@@ -566,6 +576,24 @@
 
         <!-- ROUTES -->
         <h4>Rutas (ip route)</h4>
+        {% set router_warnings = routing.warnings %}
+
+        {% if router_warnings %}
+
+        <div class="routing-warnings">
+
+            {% for warning in router_warnings %}
+
+            <div class="warning-item warning-{{ warning.severity }}">
+                {{ warning.message }}
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
         {% if routing.routes %}
         <table>
             <thead>

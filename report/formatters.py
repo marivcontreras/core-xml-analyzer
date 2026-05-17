@@ -1,13 +1,21 @@
+from parser.devices import INTRANET_ROUTERS
+from collections import defaultdict
+
+# -------------------------------------------------
+# Sumarizes metrics and warnings for analysis panel
+# -------------------------------------------------
 def summarize(data):
     return {
         "devices_total": len(data["devices"]),
         "routers": len(data["routers"]),
         "links": len(data["links"]),
         "networks": len(data["networks"]),
-        "warnings": [w["message"] for w in data["warnings"]]  # 👈 mantiene compatibilidad
+        "warnings": [w["message"] for w in data["warnings"]]
     }
 
-
+# ------------------------------------
+# Formats networks for networks panel
+# ------------------------------------
 def pretty_networks(data):
     rows = []
 
@@ -21,6 +29,9 @@ def pretty_networks(data):
 
     return rows
 
+# --------------------------------------
+# Groups warnings by router
+# --------------------------------------
 def get_router_config_warnings(data):
     result = {}
 
@@ -38,6 +49,9 @@ def get_router_config_warnings(data):
 
     return result
 
+# --------------------------------------
+# Groups warnings by type
+# --------------------------------------
 def group_router_warnings_by_type(data):
     raw = get_router_config_warnings(data)
     grouped = {}
@@ -55,6 +69,9 @@ def group_router_warnings_by_type(data):
 
     return grouped
 
+# --------------------------------------
+# Groups warnings by network and type
+# --------------------------------------
 def group_warnings(data):
     grouped = {}
 
@@ -72,6 +89,10 @@ def group_warnings(data):
 
     return grouped
 
+# ---------------------------------------------------
+# Deletes comments from text, 
+# both full-line and inline comments starting with #
+# ---------------------------------------------------
 def strip_comments(text):
     lines = text.splitlines()
     cleaned = []
@@ -92,31 +113,9 @@ def strip_comments(text):
 
     return "\n".join(cleaned)
 
-def format_cell(cell):
-    if not cell:
-        return "-"
-
-    parts = []
-
-    parts = [cell.get("type", "-")]
-
-    if cell.get("via"):
-        via = cell["via"]
-
-        if cell.get("via_info"):
-            info = cell["via_info"]
-            via = f"{via} ({info['node']}-{info['interface']})"
-
-        parts.append(f"via {via}")
-
-
-    if cell.get("table"):
-        parts.append(f"table {cell['table']}")
-
-    return "<br>".join(parts)
-
-INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
-
+# -------------------------------------------------
+# Composses via information into a readable string
+# -------------------------------------------------
 def format_via_info(via_info):
     if not via_info:
         return "-"
@@ -144,6 +143,9 @@ def format_via_info(via_info):
 
     return " | ".join(formatted)
 
+# -------------------------------------------------
+# Composses route information into a readable string
+# -------------------------------------------------
 def format_route(route):
     if not route:
         return "-"
@@ -178,6 +180,9 @@ def format_route(route):
 
     return " | ".join(parts)
 
+# -------------------------------------------------
+# Reverses P2P network name if it contains "<>", e.g. "R1<>R2" -> "R2<>R1"
+# -------------------------------------------------
 def reverse_route_name(route_name):
     if "<>" in route_name:
         parts = [p.strip() for p in route_name.split("<>")]
@@ -185,6 +190,9 @@ def reverse_route_name(route_name):
             return f"{parts[1]}<>{parts[0]}"
     return route_name
 
+# -------------------------------------------------------------
+# Checks if a network name corresponds to an intranet network
+# -------------------------------------------------------------
 def is_intranet_network(net_name):
     # 1. incluir p2p SI ambos extremos son intranet
     if "<>" in net_name:
@@ -203,6 +211,9 @@ def is_intranet_network(net_name):
 
     return any(k in net_name for k in intranet_keywords)
 
+# -------------------------------------------------------------
+# Builds a matrix table for displaying network information
+# -------------------------------------------------------------
 def build_matrix_table(matrix, networks_data, validation_result=None):
     routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
 
@@ -213,6 +224,7 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
         validation_table = validation_result.get("validation_table", {})
         warnings = validation_result.get("warnings", [])
         grouped_warnings = validation_result.get("grouped_warnings", [])
+
     # ----------------------------------------------------------
     # collect networks
     # ----------------------------------------------------------
@@ -226,21 +238,12 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
     # filter networks
     # ----------------------------------------------------------
 
-    networks = sorted(
-        n for n in networks
-        if is_intranet_network(n)
-    )
-
+    networks = sorted(n for n in networks if is_intranet_network(n))
     network_prefixes = {}
 
     for net in networks_data.values():
-
         net_name = net.get("name")
-
-        network_prefixes[net_name] = [
-            p for p in net.get("prefixes", [])
-            if p != "-"
-        ]
+        network_prefixes[net_name] = [p for p in net.get("prefixes", []) if p != "-"]
 
     rows = []
 
@@ -255,16 +258,9 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
         has_data = False
 
         for router in routers:
-
             cell = matrix.get(router, {}).get(net)
+            validation = (validation_table.get(router, {}).get(net, build_empty_validation()))
 
-            validation = (
-                validation_table
-                    .get(router, {})
-                    .get(net, build_empty_validation())
-            )
-
-            #print(f"Processing cell for router {router}, network {net}, validation: {validation}")
             # --------------------------------------------------
             # normalize routing entries to list
             # renderer should always receive same structure
@@ -293,7 +289,9 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
         "grouped_warnings": grouped_warnings
     }
 
-
+# --------------------------------------------
+# Builds an empty validation result structure
+# --------------------------------------------
 def build_empty_validation():
     return {
         "exists": True,
@@ -304,8 +302,9 @@ def build_empty_validation():
         "extra_routes": []
     }
 
-from collections import defaultdict
-
+# ---------------------------
+# Groups warnings by router
+# ---------------------------
 def group_warnings_by_router(warnings):
     grouped = defaultdict(list)
 

@@ -2,12 +2,11 @@ from parser.routing import build_routing_matrix
 from report.formatters import build_matrix_table
 from validation.ip_commands import validate_ip_addr_commands
 from validation.routingHelper import EXPECTED_ROUTING_MATRIX
-from validation.routingValidation import validate_routing_matrix
+from validation.routingValidation import propagate_routing_warnings, validate_isp_routes, validate_routing_matrix
 
-from .devices import parse_devices, parse_network_nodes
+from .devices import parse_devices, parse_l2_networks, parse_network_nodes
 from .links import parse_links
 from .services import parse_routing, parse_services
-from .l2 import parse_l2_networks
 
 from analyzer.networks import infer_networks
 from validation.networks import validate_networks
@@ -50,7 +49,11 @@ def parse_xml(xml_text):
 
     data["routing_validation"] = validate_routing_matrix(data["routing_matrix"], EXPECTED_ROUTING_MATRIX)
 
+    propagate_routing_warnings(data["routing"], validation_result=data["routing_validation"])
+
     data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["networks"], data["routing_validation"])
+
+    validate_isp_routes(data["routing"])
 
     #print(data["routing_validation"]);
 

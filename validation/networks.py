@@ -1,11 +1,16 @@
 
 import ipaddress
 
-from analyzer.classification import classify_prefix_type
 from analyzer.prefixes import get_staticroute_interface_addresses
-from utils.ip import same_block
+from utils.ip import same_block, classify_prefix_type
 from utils.warning import add_warning
 
+# -------------------------------------------------------------
+# Creates a list of warnings related to network design and configuration issues, such as:
+# - Too many prefixes
+# - Wrong prefix length
+# - Missing addresses
+# -------------------------------------------------------------
 def validate_networks(data):
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
@@ -40,9 +45,7 @@ def validate_networks(data):
                 network=net["name"],
                 code="invalid_prefixes",
                 details={"prefixes": prefixes}
-            )
-
-        
+            )        
         
         # ----------------------------------
         # 1. Too many prefixes
@@ -134,6 +137,11 @@ def validate_networks(data):
         if net["kind"] == "point-to-point":
             check_p2p_consistency(net, data)
 
+# -------------------------------------------------------------
+# Creates a list of warnings related to p2p network design and configuration issues, such as:
+# - IPv6 addresses of different blocks on the two endpoints
+# - Missing addresses
+# -------------------------------------------------------------
 def check_p2p_consistency(net, data):
     # only applies to p2p
     if net["kind"] != "point-to-point":

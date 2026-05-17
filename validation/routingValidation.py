@@ -1,6 +1,12 @@
 from report.formatters import format_route, format_via_info, reverse_route_name
 from validation.routingHelper import ANY
 
+# -------------------------------------------------------------
+# Creates a validation table and a list of warnings related to routing configuration.
+# Validations include:
+# - Missing or wrong parameters (e.g. via_info mismatch, wrong table, etc)
+# - Missing routes
+# -------------------------------------------------------------
 def validate_routing_matrix(interpreted_matrix, expected_matrix):
     warnings = []
     validation_table = {}
@@ -10,13 +16,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
         validation_table.setdefault(router_name, {})
 
         interpreted_routes = interpreted_matrix.get(router_name, {})
-
-        #print(
-        #    f"Validating {router_name}: "
-        #    f"interpreted_routes={interpreted_routes.keys()} "
-        #    f"expected_routes={expected_routes.keys()}"
-        #)
-
         for route_name, expected in expected_routes.items():
 
             interpreted = interpreted_routes.get(route_name)
@@ -211,7 +210,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                                     "severity": "error",
                                     "expected": field_result["expected"],
                                     "actual": field_result["actual"],
-                                    "message": build_warning_message(
+                                    "message": build_invalid_field_warning(
                                         router_name,
                                         route_name,
                                         field_name,
@@ -261,6 +260,38 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
         "validation_table": validation_table
     }
 
+# -------------------------------------------------------------
+# Propagate routing validation warnings into the main routing data structure 
+# for easier access when rendering the report.
+# -------------------------------------------------------------
+def propagate_routing_warnings(routing_data, validation_result):
+
+    warnings = validation_result.get(
+        "warnings",
+        []
+    )
+
+    for warning in warnings:
+
+        router = warning.get("router")
+
+        if not router:
+            continue
+
+        router_data = routing_data.get(router)
+
+        if not router_data:
+            continue
+
+        router_data.setdefault(
+            "warnings",
+            []
+        ).append(warning)
+
+# -------------------------------------------------------------
+# Validate a single field of a route, supporting special rules for certain fields  
+# and generic allowed values validation.
+# -------------------------------------------------------------
 def validate_route_field(field_name, actual, expected):
     result = {
         "valid": True,
@@ -314,6 +345,9 @@ def validate_route_field(field_name, actual, expected):
 
     return result
 
+# -------------------------------------------------------------
+# Validate the via_info field against a list of posible destination defined by node and interface.
+# -------------------------------------------------------------
 def match_via_info(actual, expected_options):
     if actual is None:
         return False
@@ -327,8 +361,11 @@ def match_via_info(actual, expected_options):
 
     return False
 
-
-def build_warning_message(router, route, field, expected, actual):
+# -------------------------------------------------------------
+# Creates a human-friendly warning message for an invalid field, 
+# with special formatting for certain fields like via_info.
+# -------------------------------------------------------------
+def build_invalid_field_warning(router, route, field, expected, actual):
     if field == "via_info":
         if (actual is not None):
             return (
@@ -345,3 +382,62 @@ def build_warning_message(router, route, field, expected, actual):
         f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
         f"Esperado: {expected}. Actual: {actual}"
     )
+
+
+def validate_isp_routes(routing_data):
+
+    warnings_by_router = {}
+
+    ISP_ROUTERS = ["ISP-Intranet", "ISP-Casa"]
+
+    for router in ISP_ROUTERS:
+
+        router_data = routing_data.get(router)
+
+        if not router_data:
+            continue
+
+        routes = router_data.get("routes", [])
+
+        router_warnings = []
+
+        # ----------------------------------
+        # indirect routes
+        # ----------------------------------
+
+        indirect_routes = [
+            route
+            for route in routes
+            if (route.get("via") is not None and route.get("type") == "unicast")
+        ]
+
+        if not indirect_routes:
+            router_warnings.append({
+                "severity": "warning",
+                "message": (
+                    "No se encontraron las rutas indirectas necesarias para alcanzar las redes publicas IPv4."
+                )
+            })
+
+        # ----------------------------------
+        # default routes
+        # ----------------------------------
+
+        default_routes = [
+            route
+            for route in routes
+            if route.get("dst") == "default"
+        ]
+
+        for route in default_routes:
+
+            router_warnings.append({
+                "severity": "warning",
+                "message": (
+                    f"Ruta default inesperada: "
+                    f"{format_route(route)}"
+                )
+            })
+
+        if router_warnings:
+            router_data["warnings"] = router_warnings

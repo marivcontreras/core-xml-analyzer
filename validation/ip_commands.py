@@ -78,9 +78,10 @@ def validate_ip_addr_commands(node_id, data):
                 interface=iface,
                 code="invalid_ipv6"
             )
-        
-        
-
+       
+# -------------------------------------------------------------
+# Checks if a network name corresponds to an intranet network
+# -------------------------------------------------------------
 def interface_exists(node_id, iface, data):
     for link in data["links"]:
         if link["node1"] == node_id and link["iface1"] and link["iface1"]["name"] == iface:
