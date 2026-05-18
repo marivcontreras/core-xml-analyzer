@@ -33,7 +33,7 @@ def parse_xml(xml_text):
     parse_network_nodes(root, data)
     parse_links(root, data)
     parse_services(root, data)
-    parse_routing(data)
+   
     
     
     for node_id in data["services"]:
@@ -42,6 +42,9 @@ def parse_xml(xml_text):
     parse_l2_networks(root, data)
 
     infer_networks(data)
+
+    parse_routing(data)
+    
     validate_networks(data)
     validate_radvd_interfaces(data)
 
@@ -49,7 +52,7 @@ def parse_xml(xml_text):
 
     data["routing_validation"] = validate_routing_matrix(data["routing_matrix"], EXPECTED_ROUTING_MATRIX)
 
-    propagate_routing_warnings(data["routing"], validation_result=data["routing_validation"])
+    propagate_routing_warnings(data, data["routing_validation"])
 
     data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["networks"], data["routing_validation"])
 

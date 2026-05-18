@@ -1,3 +1,4 @@
+from parser.devices import get_node_id
 from report.formatters import format_route, format_via_info, reverse_route_name
 from validation.routingHelper import ANY
 
@@ -250,9 +251,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             router = warning.get("router", "Unknown")
             route = warning.get("route", "Unknown")
 
-            grouped_warnings[router][route].append(
-                warning
-            )
+            grouped_warnings[router][route].append(warning)
 
     return {
         "warnings": warnings,
@@ -264,29 +263,43 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 # Propagate routing validation warnings into the main routing data structure 
 # for easier access when rendering the report.
 # -------------------------------------------------------------
-def propagate_routing_warnings(routing_data, validation_result):
-
-    warnings = validation_result.get(
-        "warnings",
-        []
+def propagate_routing_warnings(data, validation_result):
+    routing_data = data.get("routing", {})
+    grouped_warnings = validation_result.get(
+        "grouped_warnings",
+        {}
     )
 
-    for warning in warnings:
-
-        router = warning.get("router")
-
-        if not router:
-            continue
-
-        router_data = routing_data.get(router)
+    for router, route_warnings in grouped_warnings.items():
+        node_id = get_node_id(data, router)
+        router_data = routing_data.get(node_id)
 
         if not router_data:
             continue
 
-        router_data.setdefault(
-            "warnings",
-            []
-        ).append(warning)
+        router_data.setdefault("warnings", [])
+
+        existing_messages = {
+            warning.get("message")
+            for warning in router_data["warnings"]
+        }
+
+        for route_name, warnings in route_warnings.items():
+
+            for warning in warnings:
+
+                message = warning.get("message")
+
+                if message in existing_messages:
+                    continue
+
+                router_data["warnings"].append({
+                    "route": route_name,
+                    "severity": warning.get("severity","warning"),
+                    "message": message
+                })
+
+                existing_messages.add(message)
 
 # -------------------------------------------------------------
 # Validate a single field of a route, supporting special rules for certain fields  

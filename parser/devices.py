@@ -80,3 +80,20 @@ def get_node(data, node_id):
         return data["l2nodes"][node_id]
 
     return {"id": node_id, "name": f"node{node_id}", "type": "unknown"}
+
+# --------------------------------------------
+# Gets a node id using the node name.
+# --------------------------------------------
+def get_node_id(data, node_name):
+
+    for node_id, node in data["devices"].items():
+
+        if node.get("name") == node_name:
+            return node_id
+
+    for node_id, node in data.get("l2nodes", {}).items():
+
+        if node.get("name") == node_name:
+            return node_id
+
+    return None

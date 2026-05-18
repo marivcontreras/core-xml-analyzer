@@ -19,8 +19,6 @@ def validate_networks(data):
             continue
 
         kinds = [classify_prefix_type(p) for p in prefixes]
-        
-        print(kinds)
 
         if "ipv4" in kinds and len(kinds) <= 1:
             continue

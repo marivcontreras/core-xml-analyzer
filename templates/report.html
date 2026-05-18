@@ -242,9 +242,6 @@
 
         .summary-warning {
             color: #c62828;
-            background: #ffebee;
-            padding: 4px 8px;
-            border-radius: 6px;
         }
     </style>
 </head>
@@ -576,8 +573,37 @@
 
         <!-- ROUTES -->
         <h4>Rutas (ip route)</h4>
-        {% set router_warnings = routing.warnings %}
+        
+        {% if routing.routes %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Destino</th>
+                    <th>Redes</th>
+                    <th>Via</th>
+                    <th>Interfaz</th>
+                    <th>Tabla</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for route in routing.routes %}
+                <tr>
+                    <td>{{ route.type }}</td>
+                    <td>{{ route.dst }}</td>
+                    <td>{{ route.networks | join(", ") }}</td>
+                    <td>{{ route.via if route.via else "-" }}</td>
+                    <td>{{ route.dev if route.dev else "-" }}</td>
+                    <td>{{ route.table }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay rutas</p>
+        {% endif %}
 
+        {% set router_warnings = routing.warnings %}
         {% if router_warnings %}
 
         <div class="routing-warnings">
@@ -592,33 +618,6 @@
 
         </div>
 
-        {% endif %}
-
-        {% if routing.routes %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Destino</th>
-                    <th>Via</th>
-                    <th>Interfaz</th>
-                    <th>Tabla</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for route in routing.routes %}
-                <tr>
-                    <td>{{ route.type }}</td>
-                    <td>{{ route.dst }}</td>
-                    <td>{{ route.via if route.via else "-" }}</td>
-                    <td>{{ route.dev if route.dev else "-" }}</td>
-                    <td>{{ route.table }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No hay rutas</p>
         {% endif %}
 
         <!-- IPTABLES -->

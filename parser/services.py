@@ -1,5 +1,7 @@
 import re
+import ipaddress
 from report.formatters import strip_comments
+from utils.ip import classify_prefix_type
 
 # ---------------------------------------------------------------------
 # Extracts service data into a structured format for later validation.
@@ -37,7 +39,7 @@ def parse_routing(data):
         text = services["StaticRoute"]
 
         data["routing"][node_id] = {
-            "routes": parse_routes(text),
+            "routes": parse_routes(text, data),
             "rules": parse_rules(text),
             "iptables": parse_ip6tables(text),
             "warnings": []
@@ -46,7 +48,7 @@ def parse_routing(data):
 # --------------
 # Route parser
 # --------------
-def parse_routes(text):
+def parse_routes(text, data):
     routes = []
 
     matches = re.findall(
@@ -85,6 +87,7 @@ def parse_routes(text):
         if dst:
             route["dst"] = dst.group(1)
 
+        route["networks"] = resolve_route_networks(route["dst"], data)
         # ----------------------------------
         # VIA (next-hop)
         # ----------------------------------
@@ -224,3 +227,62 @@ def parse_ip6tables(text):
         rules.append(rule)
 
     return rules
+
+def resolve_route_networks(route_dst, data):
+
+    if not route_dst:
+        return ["unknown"]
+
+    if route_dst == "default":
+        return ["all"]
+
+    try:
+        route_network = ipaddress.ip_network(route_dst, strict=False)
+    except Exception:
+        return ["unknown"]
+    
+    print(f"Comparing route {route_dst} with networks...")
+    matched_networks = []
+
+    for net in data["networks"].values():
+        prefixes = [p for p in net["prefixes"] if p != "-"]
+        network_name = net["name"]
+        print(f"Comparing route {route_dst} with network {net['name']} ({prefixes})")
+        if not isinstance(prefixes, list):
+            prefixes = [prefixes]
+
+        for prefix in prefixes:
+
+            try:
+                candidate_network = ipaddress.ip_network(prefix, strict=False)
+
+            except Exception:
+                continue
+
+            # different IP family
+            if route_network.version != candidate_network.version:
+                continue
+
+            # exact
+            if route_network == candidate_network:
+                matched_networks.append(network_name)
+                break
+
+            # route contains candidate
+            elif candidate_network.subnet_of(route_network):
+                matched_networks.append(network_name)
+                break
+
+            # route more specific than candidate
+            elif route_network.subnet_of(candidate_network):
+                matched_networks.append(network_name)
+                break
+
+    if matched_networks:
+        if(classify_prefix_type(route_dst) == "site" and len(matched_networks) == 13):
+            return ["all"]
+        if(classify_prefix_type(route_dst) == "global" and len(matched_networks) == 11):
+            return ["all"]
+        return matched_networks
+
+    return ["unknown"]
