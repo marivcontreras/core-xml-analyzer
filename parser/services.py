@@ -42,6 +42,7 @@ def parse_routing(data):
             "routes": parse_routes(text, data),
             "rules": parse_rules(text),
             "iptables": parse_ip6tables(text),
+            "tunnels": parse_tunnels(text),
             "warnings": []
         }
 
@@ -227,6 +228,74 @@ def parse_ip6tables(text):
         rules.append(rule)
 
     return rules
+
+def parse_tunnels(text):
+
+    tunnels = []
+
+    matches = re.findall(
+        r'ip\s+tunnel\s+add\s+(.+)',
+        text
+    )
+
+    for line in matches:
+
+        tunnel = {
+            "name": None,
+            "mode": None,
+            "local": None,
+            "remote": None,
+            "dev": None
+        }
+
+        # ------------------------------
+        # tunnel name
+        # ------------------------------
+
+        name = re.match(r'(\S+)', line)
+
+        if name:
+            tunnel["name"] = name.group(1)
+
+        # ------------------------------
+        # mode
+        # ------------------------------
+
+        mode = re.search(r'\bmode\s+(\S+)', line)
+
+        if mode:
+            tunnel["mode"] = mode.group(1)
+
+        # ------------------------------
+        # local
+        # ------------------------------
+
+        local = re.search(r'\blocal\s+(\S+)', line)
+
+        if local:
+            tunnel["local"] = local.group(1)
+
+        # ------------------------------
+        # remote
+        # ------------------------------
+
+        remote = re.search(r'\bremote\s+(\S+)', line)
+
+        if remote:
+            tunnel["remote"] = remote.group(1)
+
+        # ------------------------------
+        # dev
+        # ------------------------------
+
+        dev = re.search(r'\bdev\s+(\S+)', line)
+
+        if dev:
+            tunnel["dev"] = dev.group(1)
+
+        tunnels.append(tunnel)
+
+    return tunnels
 
 def resolve_route_networks(route_dst, data):
 

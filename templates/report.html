@@ -414,8 +414,8 @@
                     {% set routes = row["values"][router] %}
                     {% set validation = row["validation"][router] %}
 
-                    <td class="routing-cell {% if not validation["exists"] %} routing-missing {% endif %} {% if not
-                        validation["valid"] %} routing-invalid {% endif %}">
+                    <td class="routing-cell {% if not validation['exists'] %} routing-missing {% endif %} {% if not
+                        validation['valid'] %} routing-invalid {% endif %}">
 
                         {% if routes %}
                         {% for route in routes %}
@@ -573,7 +573,7 @@
 
         <!-- ROUTES -->
         <h4>Rutas (ip route)</h4>
-        
+
         {% if routing.routes %}
         <table>
             <thead>
@@ -617,6 +617,44 @@
             {% endfor %}
 
         </div>
+
+        {% endif %}
+
+        <!-- TUNNELS -->
+        <h4>Túneles</h4>
+
+        {% if routing.tunnels %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Interfaz</th>
+                    <th>Modo</th>
+                    <th>Local</th>
+                    <th>Remote</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for tunnel in routing.tunnels %}
+
+                <tr>
+                    <td>{{ tunnel.name if tunnel.name else "-" }}</td>
+                    <td>{{ tunnel.dev if tunnel.dev else "-" }}</td>
+                    <td>{{ tunnel.mode if tunnel.mode else "-" }}</td>
+                    <td>{{ tunnel.local if tunnel.local else "-" }}</td>
+                    <td>{{ tunnel.remote if tunnel.remote else "-" }}</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+        <p>No hay túneles</p>
 
         {% endif %}
 
