@@ -4,14 +4,7 @@ from fastapi.responses import HTMLResponse
 
 from parser.parser import parse_xml
 from report.formatters import group_router_warnings_by_type, group_warnings, pretty_networks, summarize
-
-TYPE_LABELS = {
-    "syntax": "Sintaxis",
-    "missing": "Faltante",
-    "invalid": "Inválido",
-    "design": "Diseño",
-    "inconsistent": "Inconsistente"
-}
+from report.report_renderer import render_report_html
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -31,24 +24,6 @@ async def analyze(request: Request, file: UploadFile = File(...)):
     content = await file.read()
     text = content.decode("utf-8", errors="ignore")
 
-    result = parse_xml(text)
-    summary = summarize(result)
-    networks = pretty_networks(result)
-    grouped_warnings = group_warnings(result)
+    html = render_report_html(text, file.filename)
 
-    router_warnings = group_router_warnings_by_type(result)
-
-    return templates.TemplateResponse(
-        request=request,
-        name="report.html",
-        context={
-            "filename": file.filename,
-            "summary": summary,
-            "networks": networks,
-            "warnings": grouped_warnings,
-            "router_warnings": router_warnings,
-            "data": result,
-            "TYPE_LABELS": TYPE_LABELS
-        }
-    )
-
+    return HTMLResponse(content=html)

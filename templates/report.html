@@ -535,7 +535,7 @@
     {% for node_id, routing in data.routing.items() %}
     <details class="card">
         <summary class="
-        {% if routing.warnings %}
+        {% if routing.warnings['routing'] or routing.warnings['tunnels'] or routing.warnings['isp'] %}
             summary-warning
         {% endif %}">
             Reglas configuradas (Router {{ data.devices[node_id].name if node_id in data.devices else node_id }})
@@ -603,12 +603,29 @@
         <p>No hay rutas</p>
         {% endif %}
 
-        {% set router_warnings = routing.warnings %}
-        {% if router_warnings %}
+        {% set routing_warnings = routing.warnings["routing"] %}
+        {% if routing_warnings %}
 
         <div class="routing-warnings">
 
-            {% for warning in router_warnings %}
+            {% for warning in routing_warnings %}
+
+            <div class="warning-item warning-{{ warning.severity }}">
+                {{ warning.message }}
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+        {% set isp_warnings = routing.warnings["isp"] %}
+        {% if isp_warnings %}
+
+        <div class="routing-warnings">
+
+            {% for warning in isp_warnings %}
 
             <div class="warning-item warning-{{ warning.severity }}">
                 {{ warning.message }}
@@ -655,6 +672,23 @@
         {% else %}
 
         <p>No hay túneles</p>
+
+        {% endif %}
+
+        {% set tunnel_warnings = routing.warnings["tunnels"] %}
+        {% if tunnel_warnings %}
+
+        <div class="routing-warnings">
+
+            {% for warning in tunnel_warnings %}
+
+            <div class="warning-item warning-{{ warning.severity }}">
+                {{ warning.message }}
+            </div>
+
+            {% endfor %}
+
+        </div>
 
         {% endif %}
 

@@ -1,6 +1,8 @@
-from parser.devices import get_node_id
+from parser.devices import get_node, get_node_id
+from parser.routing import resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
-from validation.routingHelper import ANY
+from utils.warning import add_routing_warning
+from validation.routingHelper import ANY, ISP_EXPECTED
 
 # -------------------------------------------------------------
 # Creates a validation table and a list of warnings related to routing configuration.
@@ -271,6 +273,7 @@ def propagate_routing_warnings(data, validation_result):
     )
 
     for router, route_warnings in grouped_warnings.items():
+        print(f"Propagando warning para {router}: {route_warnings}")
         node_id = get_node_id(data, router)
         router_data = routing_data.get(node_id)
 
@@ -280,25 +283,26 @@ def propagate_routing_warnings(data, validation_result):
         router_data.setdefault("warnings", [])
 
         existing_messages = {
-            warning.get("message")
-            for warning in router_data["warnings"]
+            warn
+            for warn in router_data["warnings"]
         }
 
-        for route_name, warnings in route_warnings.items():
+        for net, warnings in route_warnings.items():
 
             for warning in warnings:
-
+                print(f"Propagando warning para {router}: {warning}")
                 message = warning.get("message")
 
                 if message in existing_messages:
                     continue
 
-                router_data["warnings"].append({
-                    "route": route_name,
-                    "severity": warning.get("severity","warning"),
-                    "message": message
-                })
-
+                add_routing_warning(
+                    router_data,
+                    "routing",
+                    warning.get("severity","warning"),
+                    message
+                )
+                
                 existing_messages.add(message)
 
 # -------------------------------------------------------------
@@ -396,61 +400,298 @@ def build_invalid_field_warning(router, route, field, expected, actual):
         f"Esperado: {expected}. Actual: {actual}"
     )
 
-
-def validate_isp_routes(routing_data):
-
-    warnings_by_router = {}
-
-    ISP_ROUTERS = ["ISP-Intranet", "ISP-Casa"]
-
-    for router in ISP_ROUTERS:
-
-        router_data = routing_data.get(router)
-
+def validate_isp_routes(data):
+    routing_data = data["routing"]
+    for router, expected_routes in ISP_EXPECTED.items():
+        node = get_node_id(data, router)
+        router_data = routing_data.get(node)
+        print(f"Validando rutas ISP para {router}: {router_data}")
         if not router_data:
             continue
 
-        routes = router_data.get("routes", [])
-
-        router_warnings = []
+        interpreted_routes = router_data.get("routes", [])
 
         # ----------------------------------
-        # indirect routes
+        # indirect routes existence
         # ----------------------------------
 
         indirect_routes = [
-            route
-            for route in routes
+            route for route in interpreted_routes
             if (route.get("via") is not None and route.get("type") == "unicast")
         ]
 
         if not indirect_routes:
-            router_warnings.append({
-                "severity": "warning",
-                "message": (
-                    "No se encontraron las rutas indirectas necesarias para alcanzar las redes publicas IPv4."
-                )
-            })
+            add_routing_warning(
+                router_data,
+                "isp",
+                "warning",
+                ("No se encontraron las rutas indirectas necesarias para alcanzar las redes publicas IPv4.")
+            )
 
         # ----------------------------------
-        # default routes
+        # validate expected ISP routes
+        # ----------------------------------
+
+        for route_name, expected in expected_routes.items():
+
+            expected_routes_list = expected
+
+            if not isinstance(expected_routes_list, list):
+                expected_routes_list = [expected_routes_list]
+
+            matched = False
+            best_errors = []
+
+            for expected_route in expected_routes_list:
+
+                for interpreted_route in interpreted_routes:
+
+                    field_errors = []
+
+                    # ----------------------------------
+                    # normal field validation
+                    # ----------------------------------
+
+                    for field_name, expected_value in expected_route.items():
+
+                        interpreted_value = interpreted_route.get(field_name)
+
+                        field_result = validate_route_field(field_name, interpreted_value, expected_value)
+
+                        if not field_result["valid"]:
+
+                            field_errors.append({
+                                "field": field_name,
+                                "expected": field_result["expected"],
+                                "actual": field_result["actual"]
+                            })
+
+                    # ----------------------------------
+                    # explicit via ownership validation
+                    # ----------------------------------
+
+                    via_ip = interpreted_route.get("via")
+
+                    if via_ip:
+
+                        resolved_owner = resolve_ip_owner(via_ip, data)
+
+                        expected_vias = expected_route.get("via_info",[])
+
+                        via_valid = False
+
+                        for expected_via in expected_vias:
+
+                            if (
+                                resolved_owner.get("node") == expected_via.get("node")
+                                and resolved_owner.get("interface") == expected_via.get("interface")
+                            ):
+                                via_valid = True
+                                break
+
+                        if not via_valid:
+
+                            field_errors.append({
+                                "field": "via",
+                                "expected": (
+                                    ", ".join(
+                                        format_via_info(v)
+                                        for v in expected_vias
+                                    )
+                                ),
+                                "actual": format_via_info(resolved_owner)
+                            })
+
+                    # ----------------------------------
+                    # matched
+                    # ----------------------------------
+
+                    if not field_errors:
+                        matched = True
+                        break
+
+                    if (
+                        not best_errors
+                        or len(field_errors) < len(best_errors)
+                    ):
+                        best_errors = field_errors
+
+                if matched:
+                    break
+
+            if not matched:
+
+                add_routing_warning(
+                    router_data,
+                    "isp",
+                    "warning",
+                    (
+                        f"No se encontró una ruta ISP válida "
+                        f"hacia {route_name}"
+                    )
+                )
+
+                for error in best_errors:
+
+                    add_routing_warning(
+                        router_data,
+                        "isp",
+                        "warning",
+                        (
+                            f"Error en {error['field']} para "
+                            f"{route_name}: "
+                            f"esperado={error['expected']} "
+                            f"actual={error['actual']}"
+                        )
+                    )
+
+                    expected_routes_list = expected
+
+                    if not isinstance(expected_routes_list, list):
+                        expected_routes_list = [expected_routes_list]
+
+                    matched = False
+
+                    for expected_route in expected_routes_list:
+
+                        for interpreted_route in interpreted_routes:
+
+                            field_errors = []
+
+                            for field_name, expected_value in expected_route.items():
+
+                                interpreted_value = interpreted_route.get(field_name)
+
+                                field_result = validate_route_field(
+                                    field_name,
+                                    interpreted_value,
+                                    expected_value
+                                )
+
+                                if not field_result["valid"]:
+
+                                    field_errors.append({
+                                        "field": field_name,
+                                        "expected": field_result["expected"],
+                                        "actual": field_result["actual"]
+                                    })
+
+                            if not field_errors:
+                                matched = True
+                                break
+
+                        if matched:
+                            break
+
+                    if not matched:
+
+                        add_routing_warning(
+                            router_data,
+                            "isp",
+                            "warning",
+                            (
+                                f"No se encontró una ruta ISP válida "
+                                f"hacia {route_name}"
+                            )
+                        )
+
+                        for error in field_errors:
+
+                            add_routing_warning(
+                                router_data,
+                                "isp",
+                                "warning",
+                                (
+                                    f"Error en {error['field']} para "
+                                    f"{route_name}: "
+                                    f"esperado={error['expected']} "
+                                    f"actual={error['actual']}"
+                                )
+                            )
+
+        # ----------------------------------
+        # invalid default routes
         # ----------------------------------
 
         default_routes = [
             route
-            for route in routes
+            for route in interpreted_routes
             if route.get("dst") == "default"
         ]
 
         for route in default_routes:
 
-            router_warnings.append({
-                "severity": "warning",
-                "message": (
-                    f"Ruta default inesperada: "
+            add_routing_warning(
+                router_data,
+                "isp",
+                "warning",
+                (
+                    f"Error de concepto: "
+                    f"Ruta default invalida en "
                     f"{format_route(route)}"
                 )
-            })
+            )
 
-        if router_warnings:
-            router_data["warnings"] = router_warnings
+def validate_tunnels(data):
+
+    expected_tunnels = {
+        "R2": { "remote_router": "R-Casa" },
+        "R-Casa": { "remote_router": "R2" }
+    }
+
+    for router_name, expected in expected_tunnels.items():
+
+        node_id = get_node_id(data, router_name)
+
+        if node_id is None:
+            continue
+
+        routing = data["routing"].get(node_id)
+
+        if routing is None:
+            continue
+
+        tunnels = routing.get("tunnels", [])
+
+        if not tunnels:
+            add_routing_warning(
+                routing,
+                "tunnels",
+                "error",
+                (f"No se encontró el túnel configurado en {router_name}")
+            )
+
+            continue
+
+        expected_remote = expected["remote_router"]
+
+        remote_node_id = get_node_id(data, expected_remote)
+
+        remote_node = get_node(data, remote_node_id)
+
+        remote_wan_ips = []
+
+        for iface in remote_node.get("interfaces", []):
+
+            ipv6 = iface.get("ipv6")
+
+            if ipv6 and ipv6.startswith("2001:"):
+                remote_wan_ips.append(ipv6.split("/")[0])
+
+        matched = False
+
+        for tunnel in tunnels:
+
+            remote_ip = tunnel.get("remote")
+
+            if remote_ip in remote_wan_ips:
+                matched = True
+                break
+
+        if not matched:
+            add_routing_warning(
+                routing,
+                "tunnels",
+                "error",
+                (f"El túnel no apunta a la dirección IPv6 de "f"{expected_remote}")
+            )

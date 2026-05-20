@@ -20,3 +20,17 @@ def add_warning(data, message, *, wtype="generic", scope="network",
         warning["details"] = details
 
     data["warnings"].append(warning)
+
+
+def add_routing_warning(routing, category, severity, message, **extra):
+
+    warning = {
+        "severity": severity,
+        "message": message
+    }
+
+    warning.update(extra)
+
+    routing["warnings"][category].append(
+        warning
+    )

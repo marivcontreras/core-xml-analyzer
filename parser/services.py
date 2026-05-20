@@ -43,7 +43,11 @@ def parse_routing(data):
             "rules": parse_rules(text),
             "iptables": parse_ip6tables(text),
             "tunnels": parse_tunnels(text),
-            "warnings": []
+            "warnings": {
+                "isp": [],
+                "tunnels": [],
+                "routing": []
+            }
         }
 
 # --------------

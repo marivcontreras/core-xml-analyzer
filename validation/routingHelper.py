@@ -53,6 +53,35 @@ def default(iface, via, onlySite=False):
         clone_with_prefix_type(base_route, "site")
     ]
 
+def indirectISP(vias, devs=None, onlySite = False):
+    normalized_vias = []
+
+    for via in vias:
+        node, interface = via.rsplit("-", 1)
+
+        normalized_vias.append({
+            "node": node,
+            "interface": interface,
+            "type": "neighbor"
+        })
+
+    base_route = {
+        "type": "indirect",
+        "via": AUTO,
+        "via_info": normalized_vias,
+        "dev": devs if devs else ANY,
+        "table": "main",
+        "dst": AUTO,
+        "score": ANY,
+        "is_default": ANY,
+        "is_policy": False,
+        "prefix_type": "ipv4"
+    }
+
+    return [base_route]
+
+    
+
 def indirect(vias, devs=None, onlySite = False):
     normalized_vias = []
 
@@ -74,7 +103,7 @@ def indirect(vias, devs=None, onlySite = False):
         "dst": AUTO,
         "score": ANY,
         "is_default": ANY,
-        "is_policy": False
+        "is_policy": ANY
     }
 
     if onlySite:
@@ -86,6 +115,7 @@ def indirect(vias, devs=None, onlySite = False):
         clone_with_prefix_type(base_route, "global"),
         clone_with_prefix_type(base_route, "site")
     ]
+
 
 def policy_default(table, iface, via, onlySite = False):
     normalized_vias = []
@@ -242,3 +272,15 @@ EXPECTED_ROUTING_MATRIX = {
         "R2<>R4": direct("eth0")
     }
 }
+
+ISP_EXPECTED = {
+        "ISP-Intranet": {
+            "ISP-Casa<>R-Casa": indirect(["ISP-Casa-eth1"], devs=["eth1"]),
+        },
+
+        "ISP-Casa": {
+            "R2<>ISP-Intranet": indirect(["ISP-Intranet-eth1"], devs=["eth0"]),
+        }
+    }
+
+
