@@ -633,7 +633,6 @@ def validate_isp_routes(data):
             )
 
 def validate_tunnels(data):
-
     expected_tunnels = {
         "R2": { "remote_router": "R-Casa" },
         "R-Casa": { "remote_router": "R2" }
