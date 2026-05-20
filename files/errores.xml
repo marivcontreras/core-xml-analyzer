@@ -1,0 +1,638 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario>
+  <networks>
+    <network id="10" name="SwVentas" icon="" canvas="1" type="SWITCH">
+      <position x="612.7171630859375" y="616.80810546875" lat="47.57355953641105" lon="-122.12406802086333" alt="2.0"/>
+    </network>
+    <network id="11" name="SwAdmin" icon="" canvas="1" type="SWITCH">
+      <position x="706.0560913085938" y="360.368896484375" lat="47.57589067926539" lon="-122.12281030407597" alt="2.0"/>
+    </network>
+    <network id="12" name="SwOfiAdmin" icon="" canvas="1" type="SWITCH">
+      <position x="828.4851684570312" y="318.9634094238281" lat="47.57626706324473" lon="-122.12116060540761" alt="2.0"/>
+    </network>
+    <network id="13" name="SwDataCenter" icon="" canvas="1" type="SWITCH">
+      <position x="139.15850830078125" y="596.2361450195312" lat="47.57374654822022" lon="-122.13044909552616" alt="2.0"/>
+    </network>
+    <network id="14" name="WVentas" icon="" canvas="1" type="WIRELESS_LAN">
+      <position x="431.646484375" y="620.7777709960938" lat="47.573523449626066" lon="-122.12650789923623" alt="2.0"/>
+    </network>
+    <network id="15" name="WGuest" icon="" canvas="1" type="WIRELESS_LAN">
+      <position x="372.78399658203125" y="400.9732666015625" lat="47.575521574968356" lon="-122.1273010553229" alt="2.0"/>
+    </network>
+  </networks>
+  <devices>
+    <device id="1" name="R1-DC" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="142.43646240234375" y="481.177978515625" lat="47.57479248560775" lon="-122.13040492598209" alt="2.0"/>
+      <services>
+        <service name="radvd"/>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="2" name="R2" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="451.8561706542969" y="171.24415588378906" lat="47.57760983812047" lon="-122.12623557918515" alt="2.0"/>
+      <services>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="3" name="R3" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="631.6213989257812" y="267.3256530761719" lat="47.576736456763086" lon="-122.12381329140351" alt="2.0"/>
+      <services>
+        <service name="radvd"/>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="4" name="R4" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="247.89764404296875" y="262.3845520019531" lat="47.57678137175537" lon="-122.12898386511188" alt="2.0"/>
+      <services>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="5" name="R5" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="458.8290100097656" y="354.76593017578125" lat="47.57594161148377" lon="-122.12614162206265" alt="2.0"/>
+      <services>
+        <service name="radvd"/>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="6" name="R6" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="534.2706298828125" y="529.537109375" lat="47.574352879000934" lon="-122.12512506665979" alt="2.0"/>
+      <services>
+        <service name="radvd"/>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="7" name="ISP-Intranet" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="597.1970825195312" y="47.1351432800293" lat="47.578737968190275" lon="-122.1242771497471" alt="2.0"/>
+      <services>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="8" name="ISP-Casa" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="883.468017578125" y="49.2824592590332" lat="47.57871844965549" lon="-122.12041972640165" alt="2.0"/>
+      <services>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="9" name="R-Casa" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+      <position x="1109.3719482421875" y="99.35840606689453" lat="47.57826327046905" lon="-122.11737573209679" alt="2.0"/>
+      <services>
+        <service name="IPForward"/>
+        <service name="StaticRoute"/>
+      </services>
+    </device>
+    <device id="16" name="PC-W-VTAS" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="398.0505065917969" y="714.2929077148438" lat="47.57267333034952" lon="-122.12696059594114" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="17" name="PC-VTAS" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="545.565673828125" y="720.4141235351562" lat="47.57261768365156" lon="-122.12497286900062" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="18" name="S-VTAS" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="674.9090576171875" y="719.3030395507812" lat="47.57262778428901" lon="-122.12323000192227" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="19" name="PC-DC" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="45.90911865234375" y="718.2929077148438" lat="47.572636967189425" lon="-122.13170560580551" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="20" name="S-DNS" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="145.0" y="723.0" lat="47.572594175969485" lon="-122.13037038300702" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="21" name="S-WEB" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="247.98992919921875" y="724.2322998046875" lat="47.572582973376484" lon="-122.12898262159439" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="22" name="PC-GUEST" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="301.63671875" y="423.1484375" lat="47.5753199957924" lon="-122.12825974562942" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="23" name="PC-ADM" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="686.7279663085938" y="462.34344482421875" lat="47.574963699130606" lon="-122.12307074532748" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="24" name="S-ADM" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="818.8565063476562" y="465.16473388671875" lat="47.57493805250851" lon="-122.1212903490227" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="25" name="PC-OFI-ADM" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="937.8289794921875" y="452.49493408203125" lat="47.57505322585043" lon="-122.11968722715746" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+    <device id="26" name="PC-CASA" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+      <position x="1136.76904296875" y="294.40191650390625" lat="47.57649033074296" lon="-122.1170065636628" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+      </services>
+    </device>
+  </devices>
+  <links>
+    <link node1="10" node2="17">
+      <iface1 id="1" name="veth10.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:c2"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="4" node2="2">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:18"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:19"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="7" node2="8">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:1e" ip4="162.120.0.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:1f" ip4="162.120.0.2" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="6" node2="10">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:c1"/>
+      <iface2 id="0" name="veth10.0.1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="6" node2="14">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:b1"/>
+    </link>
+    <link node1="16" node2="14">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:b2"/>
+    </link>
+    <link node1="22" node2="15">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:02"/>
+    </link>
+    <link node1="5" node2="15">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:01"/>
+    </link>
+    <link node1="5" node2="4">
+      <iface1 id="3" name="eth2" mac="00:00:00:00:00:12"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:13"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="10" node2="18">
+      <iface1 id="2" name="veth10.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:c3"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="8" node2="9">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:20" ip4="100.64.1.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:21" ip4="100.64.1.2" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="6" node2="5">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:03"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="11" node2="3">
+      <iface1 id="2" name="veth11.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="11" node2="24">
+      <iface1 id="1" name="veth11.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d3"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="3" node2="2">
+      <iface1 id="3" name="eth3" mac="00:00:00:00:00:1a"/>
+      <iface2 id="1" name="eth1" mac="00:00:00:00:00:1b"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="11" node2="23">
+      <iface1 id="0" name="veth11.0.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d2"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="13" node2="20">
+      <iface1 id="2" name="veth13.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a3"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="4" node2="3">
+      <iface1 id="3" name="eth3" mac="00:00:00:00:00:05"/>
+      <iface2 id="4" name="eth4" mac="00:00:00:00:00:06"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="9" node2="26">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:22" ip6="2001:1::1" ip6_mask="64"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:23" ip6="2001:1::2" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="3" node2="12">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:e1"/>
+      <iface2 id="0" name="veth12.0.1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="13" node2="19">
+      <iface1 id="1" name="veth13.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a2"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="13" node2="21">
+      <iface1 id="3" name="veth13.3.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a4"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="12" node2="25">
+      <iface1 id="1" name="veth12.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:e2"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="1" node2="13">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:a1"/>
+      <iface2 id="0" name="veth13.0.1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="2" node2="7">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:1c" ip4="100.64.0.2" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:1d" ip4="100.64.0.1" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="5" node2="3">
+      <iface1 id="4" name="eth3" mac="00:00:00:00:00:14"/>
+      <iface2 id="2" name="eth2" mac="00:00:00:00:00:15"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="4" node2="1">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:16"/>
+      <iface2 id="1" name="eth1" mac="00:00:00:00:00:17"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+  </links>
+  <mobility_configurations>
+    <mobility_configuration node="14" model="basic_range">
+      <configuration name="range" value="275"/>
+      <configuration name="bandwidth" value="54000000"/>
+      <configuration name="jitter" value="0"/>
+      <configuration name="delay" value="5000"/>
+      <configuration name="error" value="0.0"/>
+      <configuration name="promiscuous" value="0"/>
+    </mobility_configuration>
+    <mobility_configuration node="15" model="basic_range">
+      <configuration name="range" value="275"/>
+      <configuration name="bandwidth" value="54000000"/>
+      <configuration name="jitter" value="0"/>
+      <configuration name="delay" value="5000"/>
+      <configuration name="error" value="0.0"/>
+      <configuration name="promiscuous" value="0"/>
+    </mobility_configuration>
+  </mobility_configurations>
+  <service_configurations>
+    <service name="radvd" node="1">
+      <templates>
+        <template name="/etc/radvd/radvd.conf"><![CDATA[# auto-generated by RADVD service (utility.py)
+
+interface eth0 {
+        AdvSendAdvert on;
+        MinRtrAdvInterval 3;
+        MaxRtrAdvInterval 10;
+
+    prefix 2001::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+
+    prefix fd00::/63 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="1">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+ip -6 addr add 2001:0:0:0::1/64 dev eth0
+ip -6 addr add FD00:0:0:0::1/64 dev eth0
+ip -6 addr add 2001:0:0:FF::B/127 dev eth1
+ip -6 addr add FD00:0:0:FF::B/127 dev eth1
+
+ip -6 route add default via 2001:0:0:FF::A dev eth1]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="2">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+#ip route add 10.9.8.0/24 via 100.64.0.1
+
+ip -6 addr add 2001:0:0:FF::2/127 dev eth0
+ip -6 addr add FD00:0:0:FF::2/127 dev eth0
+ip -6 addr add 2001:0:0:FF::4/127 dev eth1
+ip -6 addr add FD00:0:0:FF::4/127 dev eth1
+
+# default hacia internet, bloques internos hacia R4
+ip route add default via 100.64.0.1 dev eth2
+ip -6 route add 2001::/56 via 2001:0:0:ff::3 dev eth0
+ip -6 route add FD00::/48 via FD00:0:0:ff::3 dev eth0
+
+ip6tables -t filter -A FORWARD -o eth2 -s fd00::/48 -j DROP
+
+ip tunnel add tnl mode sit local 100.64.0.2 remote 100.64.1.2 dev eth2
+sudo ip link set tnl up
+ip -6 route add default dev tnl]]></template>
+      </templates>
+    </service>
+    <service name="radvd" node="3">
+      <templates>
+        <template name="/etc/radvd/radvd.conf"><![CDATA[# auto-generated by RADVD service (utility.py)
+
+interface eth0 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 10;
+    MaxRtrAdvInterval 30;   
+    prefix FD00:0:0:4::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};
+
+
+interface eth1 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 10;
+    MaxRtrAdvInterval 30;
+    prefix FD00:0:0:5::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="3">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+ip -6 addr add FD00:0:0:4::1/64 dev eth0
+ip -6 addr add FD00:0:0:5::1/64 dev eth1
+ip -6 addr add 2001:0:0:FF::C/127 dev eth2
+ip -6 addr add FD00:0:0:FF::C/127 dev eth2
+ip -6 addr add 2001:0:0:FF::6/127 dev eth3
+ip -6 addr add FD00:0:0:FF::6/127 dev eth3
+ip -6 addr add 2001:0:0:FF::7/127 dev eth4
+ip -6 addr add FD00:0:0:FF::7/127 dev eth4
+
+# default hacia R2, redes dc, guest y ventas hacia R5, redes infra a las que no esta conectado hacia R5
+ip -6 route add default via 2001:0:0:FF::4 dev eth3
+ip -6 route add 2001::/62 via 2001:0:0:FF::6 dev eth4
+ip -6 route add FD00::/62 via FD00:0:0:FF::6 dev eth4
+ip -6 route add 2001:0:0:FF::/64 via 2001:0:0:FF::D dev eth2
+ip -6 route add FD00:0:0:FF::/64 via FD00:0:0:FF::D dev eth2]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="4">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+ip -6 addr add 2001:0:0:FF::8/127 dev eth0
+ip -6 addr add FD00:0:0:FF::8/127 dev eth0
+ip -6 addr add 2001:0:0:FF::A/127 dev eth1
+ip -6 addr add FD00:0:0:FF::A/127 dev eth1
+ip -6 addr add 2001:0:0:FF::2/127 dev eth2
+ip -6 addr add FD00:0:0:FF::2/127 dev eth2
+ip -6 addr add 2001:0:0:FF::6/127 dev eth3
+ip -6 addr add FD00:0:0:FF::6/127 dev eth3
+
+# default hacia R2, redes infra a las que no esta conectado hacia R5, dc hacia R1, demás redes hacia r5
+ip -6 route add default via 2001:0:0:FF::2 dev eth2
+ip -6 route add 2001:0:0:FF::/64 via 2001:0:0:FF::9 dev eth0
+ip -6 route add FD00:0:0:FF::/64 via FD00:0:0:FF::9 dev eth0
+ip -6 route add 2001::/64 via 2001:0:0:ff::B dev eth1
+ip -6 route add FD00::/64 via FD00:0:0:ff::B dev eth1
+ip -6 route add 2001::/64 via 2001:0:0:ff::B dev eth1
+ip -6 route add FD00::/64 via FD00:0:0:ff::B dev eth1
+ip -6 route add 2001:0:0:1::/64 via 2001:0:0:ff::9 dev eth0
+ip -6 route add FD00:0:0:1::/64 via FD00:0:0:ff::9 dev eth0
+ip -6 route add 2001:0:0:2::/63 via 2001:0:0:ff::9 dev eth0
+ip -6 route add FD00:0:0:2::/63 via FD00:0:0:ff::9 dev eth0
+ip -6 route add FD00:0:0:4::/63 via FD00:0:0:ff::9 dev eth0
+
+# DEFAULT HACIA R3 SI LOS PAQUETES SON TCP, CONFIGURO TABLA NRO 3
+ip -6 route add default via 2001:0:0:FF::7 dev eth3 table 3
+# destino intranet uso main
+ip -6 rule add pri 29 to 2001::/56 table main
+# destinos fuera de intranet protocolo tcp uso tabla 3
+ip -6 rule add pri 30 ipproto tcp table 3]]></template>
+      </templates>
+    </service>
+    <service name="radvd" node="5">
+      <templates>
+        <template name="/etc/radvd/radvd.conf"><![CDATA[# auto-generated by RADVD service (utility.py)
+
+interface eth1 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 10;
+    MaxRtrAdvInterval 30;
+    prefix 2001:0:0:1::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+
+    prefix FD00:0:0:1::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="5">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+ip -6 addr add 2001:0:0:FF::E/127 dev eth0
+ip -6 addr add FD00:0:0:FF::E/127 dev eth0
+ip -6 addr add 2001:0:0:1::1/64 dev eth1
+ip -6 addr add FD00:0:0:1::1/64 dev eth1
+ip -6 addr add 2001:0:0:FF::9/127 dev eth2
+ip -6 addr add FD00:0:0:FF::9/127 dev eth2
+ip -6 addr add 2001:0:0:FF::D/127 dev eth3
+ip -6 addr add FD00:0:0:FF::D/127 dev eth3
+
+# default hacia R4, ventas hacia R6, admin hacia R3
+ip -6 route add default via 2001:0:0:FF::8 dev eth2
+ip -6 route add 2001:0:0:2::/63 via 2001:0:0:ff::f dev eth0
+ip -6 route add FD00:0:0:2::/63 via FD00:0:0:ff::f dev eth0
+ip -6 route add FD00:0:0:4::/63 via FD00:0:0:ff::c dev eth3
+
+ip -6 route add 2001:0:0:FF::4/127 via 2001:0:0:FF::c dev eth3
+ip -6 route add FD00:0:0:FF::4/127 via FD00:0:0:FF::c dev eth3
+
+# origen wguest uso tabla 5
+ip -6 rule add priority 10 from 2001:0:0:1::/64 table 5
+ip -6 rule add priority 20 from fd00:0:0:1::/64 table 5
+
+#tabla 5 (origen w-guest)
+#dest dns y web en dc por R4
+ip -6 route add 2001::200:ff:fe00:a3/128 via 2001:0:0:FF::8 dev eth2 table 5
+ip -6 route add 2001::200:ff:fe00:a4/128 via 2001:0:0:FF::8 dev eth2 table 5
+
+#resto de destinos intranet se impide
+ip -6 route add prohibit 2001::/56 table 5
+ip -6 route add prohibit fd00::/48 table 5
+
+#envio paquetes por defecto hacia r3
+ip -6 route add default via 2001:0:0:FF::C dev eth3 table 5]]></template>
+      </templates>
+    </service>
+    <service name="radvd" node="6">
+      <templates>
+        <template name="/etc/radvd/radvd.conf"><![CDATA[# auto-generated by RADVD service (utility.py)
+
+interface eth0 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 10;
+    MaxRtrAdvInterval 30;
+    prefix 2001:0:0:2::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+
+    prefix FD00:0:0:2::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};
+
+
+interface eth1 {
+    AdvSendAdvert on;
+    MinRtrAdvInterval 10;
+    MaxRtrAdvInterval 30;
+    prefix 2001:0:0:3::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+
+    prefix FD00:0:0:3::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+    };
+};]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="6">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+ip -6 addr add 2001:0:0:2::1/64 dev eth0
+ip -6 addr add FD00:0:0:2::1/64 dev eth0
+ip -6 addr add 2001:0:0:3::1/64 dev eth1
+ip -6 addr add FD00:0:0:3::1/64 dev eth1
+ip -6 addr add 2001:0:0:FF::F/127 dev eth2
+ip -6 addr add FD00:0:0:FF::F/127 dev eth2
+
+ip -6 route add default via 2001:0:0:FF::E dev eth2]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="7">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+#ip route add 10.9.8.0/24 via 100.64.0.1
+#ip route add 10.9.8.0/24 via 162.120.0.1
+
+ip route add 100.64.1.0/24 via 162.120.0.2 dev eth1]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="8">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+#ip route add 10.9.8.0/24 via 162.120.0.1
+
+ip route add 100.64.0.0/24 via 162.120.0.1 dev eth0]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="9">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+# auto-generated by StaticRoute service (utility.py)
+# NOTE: this service must be customized to be of any use
+#       Below are samples that you can uncomment and edit.
+
+#ip route add 3ffe:4::/64 via 2001:1::1
+
+ip route add default via 100.64.1.1 dev eth0
+
+ip tunnel add tnl mode sit local 100.64.1.2 remote 100.64.0.2 dev eth0
+sudo ip link set tnl up
+ip -6 route add default dev tnl]]></template>
+      </templates>
+    </service>
+  </service_configurations>
+  <session_origin lat="47.579166412353516" lon="-122.13232421875" alt="2.0" scale="150.0"/>
+  <session_options>
+    <configuration name="controlnet" value=""/>
+    <configuration name="controlnet0" value=""/>
+    <configuration name="controlnet1" value=""/>
+    <configuration name="controlnet2" value=""/>
+    <configuration name="controlnet3" value=""/>
+    <configuration name="controlnet_updown_script" value=""/>
+    <configuration name="enablerj45" value="1"/>
+    <configuration name="preservedir" value="0"/>
+    <configuration name="enablesdt" value="0"/>
+    <configuration name="sdturl" value="tcp://127.0.0.1:50000/"/>
+    <configuration name="ovs" value="0"/>
+    <configuration name="platform_id_start" value="1"/>
+    <configuration name="nem_id_start" value="1"/>
+    <configuration name="link_enabled" value="1"/>
+    <configuration name="loss_threshold" value="30"/>
+    <configuration name="link_interval" value="1"/>
+    <configuration name="link_timeout" value="4"/>
+    <configuration name="mtu" value="0"/>
+    <configuration name="checksums" value="0"/>
+  </session_options>
+  <session_metadata>
+    <configuration name="shapes" value="[{&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [627.2947658402206, 548.9651056014691], &quot;label&quot;: &quot;Ventas&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [51.90030999815596, 497.8003990267784], &quot;label&quot;: &quot;DC&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [410.7070707070707, 460.57759412304875], &quot;label&quot;: &quot;Invitados&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [918.3201934903541, 272.01943583660983], &quot;label&quot;: &quot;Administraci\u00f3n&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [817.2295684113864, 535.3847566574841], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;rectangle&quot;, &quot;iconcoords&quot;: [324.4043989097513, 533.137728507047, 734.4043989097513, 773.1377285070458], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#59cd90&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;rectangle&quot;, &quot;iconcoords&quot;: [635.4576980920648, 250.87955406237998, 1023.4576980920646, 513.8795540623795], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#fac05e&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;oval&quot;, &quot;iconcoords&quot;: [252.24139800121057, 177.78369990914592, 652.2413980012104, 362.7836999091457], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#d6d0cc&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;rectangle&quot;, &quot;iconcoords&quot;: [250.9717987280433, 359.4119546723682, 459.97179872804287, 474.411954672368], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#ff9170&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;rectangle&quot;, &quot;iconcoords&quot;: [8.74236557046852, 473.92182663986813, 294.57288692117453, 776.7805492625306], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#cc6dab&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;rectangle&quot;, &quot;iconcoords&quot;: [535.7514046377177, 14.890793023862804, 949.2934355281005, 96.38289911108554], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;#cfa0ff&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 0, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [397.0000000000001, 125.0000000000002], &quot;label&quot;: &quot;100.64.0.2/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [509.9999999999999, 63.0], &quot;label&quot;: &quot;100.64.0.1/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [660.0, 169.00000000000028], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [675.0, 30.000000000000117], &quot;label&quot;: &quot;162.120.0.1/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [808.9999999999999, 67.00000000000009], &quot;label&quot;: &quot;162.120.0.2/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [1009.9999999999998, 33.99999999999995], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [955.0000000000001, 38.999999999999865], &quot;label&quot;: &quot;100.64.1.1/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [1087.0, 67.00000000000009], &quot;label&quot;: &quot;100.64.1.2/24&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [385.00000000000006, 171.00000000000009], &quot;label&quot;: &quot;FF::2&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [248.99999999999997, 226.00000000000017], &quot;label&quot;: &quot;FF::3&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [529.0000000000001, 174.99999999999994], &quot;label&quot;: &quot;FF::4&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [621.9999999999998, 232.00000000000006], &quot;label&quot;: &quot;FF::5&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [340.0, 253.99999999999991], &quot;label&quot;: &quot;FF::6&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [554.0000000000001, 253.99999999999991], &quot;label&quot;: &quot;FF::7&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [285.9999999999997, 302.00000000000006], &quot;label&quot;: &quot;FF::8&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [400.9999999999998, 313.99999999999994], &quot;label&quot;: &quot;FF::9&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [193.00000000000017, 299.0000000000001], &quot;label&quot;: &quot;FF::A&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [128.99999999999991, 428.99999999999983], &quot;label&quot;: &quot;FF::B&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [589.9999999999999, 312.0000000000001], &quot;label&quot;: &quot;FF::C&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [520.0, 362.9999999999998], &quot;label&quot;: &quot;FF::D&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [506.00000000000006, 397.99999999999994], &quot;label&quot;: &quot;FF::E&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [550.9999999999999, 488.0], &quot;label&quot;: &quot;FF::F&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [35.999999999999986, 542.0000000000002], &quot;label&quot;: &quot;0&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [319.0, 382.00000000000006], &quot;label&quot;: &quot;1&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [372.9999999999999, 561.9999999999999], &quot;label&quot;: &quot;2&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [694.0, 567.9999999999998], &quot;label&quot;: &quot;3&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [653.0, 361.00000000000017], &quot;label&quot;: &quot;4&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [769.0000000000001, 270.00000000000006], &quot;label&quot;: &quot;5&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 14, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: true, &quot;italic&quot;: false, &quot;underline&quot;: false}, {&quot;canvas&quot;: 1, &quot;type&quot;: &quot;text&quot;, &quot;iconcoords&quot;: [750.0, 174.99999999999994], &quot;label&quot;: &quot;&quot;, &quot;fontfamily&quot;: &quot;Arial&quot;, &quot;fontsize&quot;: 12, &quot;labelcolor&quot;: &quot;#000000&quot;, &quot;color&quot;: &quot;&quot;, &quot;border&quot;: &quot;#000000&quot;, &quot;width&quot;: 1, &quot;bold&quot;: false, &quot;italic&quot;: false, &quot;underline&quot;: false}]"/>
+    <configuration name="edges" value="[]"/>
+    <configuration name="hidden" value="[]"/>
+    <configuration name="canvas" value="{&quot;gridlines&quot;: true, &quot;canvases&quot;: [{&quot;id&quot;: 1, &quot;wallpaper&quot;: null, &quot;wallpaper_style&quot;: 1, &quot;fit_image&quot;: false, &quot;dimensions&quot;: [1200, 800]}]}"/>
+  </session_metadata>
+</scenario>
