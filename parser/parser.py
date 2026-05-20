@@ -2,7 +2,7 @@ from parser.routing import build_routing_matrix
 from report.formatters import build_matrix_table
 from validation.ip_commands import validate_ip_addr_commands
 from validation.routingHelper import EXPECTED_ROUTING_MATRIX
-from validation.routingValidation import propagate_routing_warnings, validate_isp_routes, validate_routing_matrix, validate_tunnels
+from validation.routingValidation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
 
 from .devices import parse_devices, parse_l2_networks, parse_network_nodes
 from .links import parse_links
