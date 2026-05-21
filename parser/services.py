@@ -314,13 +314,11 @@ def resolve_route_networks(route_dst, data):
     except Exception:
         return ["unknown"]
     
-    print(f"Comparing route {route_dst} with networks...")
     matched_networks = []
 
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
         network_name = net["name"]
-        print(f"Comparing route {route_dst} with network {net['name']} ({prefixes})")
         if not isinstance(prefixes, list):
             prefixes = [prefixes]
 

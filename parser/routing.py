@@ -191,9 +191,9 @@ def resolve_ip_owner(ip_str, data):
         for member in net.get("member_interfaces", []):
             node_id = member["node"]
             iface = member["iface"]
-
+            print(f"Checking if IP {ip} belongs to interface {iface} of node {node_id} in network {net['name']}")
             addrs = get_staticroute_interface_addresses(data, node_id, iface)
-
+            print(f"Interface {iface} of node {node_id} has addresses: {addrs}")
             for addr in addrs:
                 if addr.ip == ip:
                     node = data["devices"].get(node_id, {"name": f"node{node_id}"})

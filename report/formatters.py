@@ -132,7 +132,7 @@ def format_via_info(via_info):
         network = item.get("network")
 
         if (node is None and interface is None and network is None):
-            return "Dirección IPv6 inexistente en la topología"
+            return "Dirección IP inexistente en la topología"
         
         text = f"{node}-{interface}"
 

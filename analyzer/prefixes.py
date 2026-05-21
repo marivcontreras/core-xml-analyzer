@@ -1,6 +1,8 @@
 import ipaddress
 import re
 
+from parser.devices import get_node
+
 # ----------------------------------------------------------
 # Obtains net prefixes for a given node interface:
 # looks up static route and radvd first,
@@ -128,6 +130,9 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
+    result = []
+    seen = set()
+
     matches = re.findall(
         r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
         text
@@ -140,9 +145,53 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
         if iface_name == None or dev == iface_name:
             try:
                 ip = ipaddress.ip_interface(f"{addr}/{mask}")
-                result.append(ip)
+                if ip not in seen:
+                    result.append(ip)
+                    seen.add(ip)
+
             except:
                 pass
+    
+    # ------------------------------------------------------------
+    # Recover from parsed links
+    # ------------------------------------------------------------
+
+    for link in data.get("links", []):
+
+        candidates = [
+            (link.get("node1"), link.get("iface1")),
+            (link.get("node2"), link.get("iface2"))
+        ]
+
+        for candidate_node_id, iface in candidates:
+
+            if iface is None:
+                continue
+
+            if candidate_node_id != node_id:
+                continue
+
+            dev = iface.get("name")
+
+            if iface_name is not None and dev != iface_name:
+                continue
+
+            for field in ["ip4", "ip6"]:
+
+                addr = iface.get(field)
+                mask = iface.get(f"{field}_mask")
+                if not addr:
+                    continue
+
+                try:
+                    ip = ipaddress.ip_interface(f"{addr}/{mask}")
+
+                    if ip not in seen:
+                        result.append(ip)
+                        seen.add(ip)
+
+                except:
+                    pass
 
     return result
 

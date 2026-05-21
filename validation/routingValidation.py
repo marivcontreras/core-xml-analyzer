@@ -633,9 +633,19 @@ def validate_isp_routes(data):
             )
 
 def validate_tunnels(data):
+
     expected_tunnels = {
-        "R2": { "remote_router": "R-Casa" },
-        "R-Casa": { "remote_router": "R2" }
+        "R2": {
+            "remote_router": "R-Casa",
+            "remote_interface": "eth0",
+            "local_interface": "eth2"
+        },
+
+        "R-Casa": {
+            "remote_router": "R2",
+            "remote_interface": "eth2",
+            "local_interface": "eth0"
+        }
     }
 
     for router_name, expected in expected_tunnels.items():
@@ -653,44 +663,67 @@ def validate_tunnels(data):
         tunnels = routing.get("tunnels", [])
 
         if not tunnels:
+
             add_routing_warning(
                 routing,
                 "tunnels",
                 "error",
-                (f"No se encontró el túnel configurado en {router_name}")
+                (f"No se encontró un túnel configurado en {router_name}")
             )
 
             continue
 
-        expected_remote = expected["remote_router"]
-
-        remote_node_id = get_node_id(data, expected_remote)
-
-        remote_node = get_node(data, remote_node_id)
-
-        remote_wan_ips = []
-
-        for iface in remote_node.get("interfaces", []):
-
-            ipv6 = iface.get("ipv6")
-
-            if ipv6 and ipv6.startswith("2001:"):
-                remote_wan_ips.append(ipv6.split("/")[0])
+        expected_remote_router = expected["remote_router"]
+        expected_remote_interface = expected["remote_interface"]
+        expected_local_interface = expected["local_interface"]
 
         matched = False
 
         for tunnel in tunnels:
 
+            local_ip = tunnel.get("local")
             remote_ip = tunnel.get("remote")
 
-            if remote_ip in remote_wan_ips:
+            local_owner = resolve_ip_owner(local_ip, data)
+            
+            remote_owner = resolve_ip_owner(remote_ip, data)
+            print(f"Validando túnel en {router_name}: local {local_ip} | {local_owner}, remote {remote_ip} | {remote_owner}")
+            local_valid = (local_owner.get("node") == router_name and local_owner.get("interface") == expected_local_interface)
+            
+            remote_valid = (remote_owner.get("node") == expected_remote_router and remote_owner.get("interface") == expected_remote_interface)
+
+            if local_valid and remote_valid:
                 matched = True
                 break
 
         if not matched:
+
             add_routing_warning(
                 routing,
                 "tunnels",
                 "error",
-                (f"El túnel no apunta a la dirección IPv6 de "f"{expected_remote}")
+                (
+                    f"El túnel configurado en {router_name} no apunta a "
+                    f"{expected_remote_router}-{expected_remote_interface}"
+                )
             )
+
+            for tunnel in tunnels:
+
+                local_ip = tunnel.get("local")
+                remote_ip = tunnel.get("remote")
+
+                local_owner = resolve_ip_owner(local_ip, data)
+
+                remote_owner = resolve_ip_owner(remote_ip,data)
+
+                add_routing_warning(
+                    routing,
+                    "tunnels",
+                    "warning",
+                    (
+                        f"Túnel interpretado: "
+                        f"local={format_via_info(local_owner)} "
+                        f"remote={format_via_info(remote_owner)}"
+                    )
+                )
