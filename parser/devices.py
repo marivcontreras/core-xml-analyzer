@@ -1,9 +1,14 @@
 import re
 
 INTRANET_ROUTERS = {"R1-DC", "R2", "R3", "R4", "R5", "R6"}
+INTERNET_ROUTERS = {"ISP-Intranet", "ISP-Casa"}
+
 
 def is_intranet_router(router):
     return router in INTRANET_ROUTERS
+
+def is_internet_router(router):
+    return router in INTERNET_ROUTERS
 
 # ----------------------------------------------------------
 # Infers devices/nodes from devices section (level 3 nodes)

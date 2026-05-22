@@ -1,5 +1,6 @@
+from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.devices import get_node, get_node_id
-from parser.routing import resolve_ip_owner
+from parser.routing import build_routing_matrix, resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
 from utils.warning import add_routing_warning
 from validation.routingHelper import ANY, ISP_EXPECTED
@@ -402,61 +403,124 @@ def build_invalid_field_warning(router, route, field, expected, actual):
 
 def validate_isp_routes(data):
     routing_data = data["routing"]
-    for router, expected_routes in ISP_EXPECTED.items():
-        node = get_node_id(data, router)
-        router_data = routing_data.get(node)
-        print(f"Validando rutas ISP para {router}: {router_data}")
-        if not router_data:
+    matrix = build_routing_matrix(data, intranet=False)
+
+    #print(f"Matriz de rutas interpretada para validación ISP: {matrix}")
+
+    for router_name, expected_routes in ISP_EXPECTED.items():
+
+        node_id = get_node_id(data, router_name)
+
+        if node_id is None:
             continue
 
-        interpreted_routes = router_data.get("routes", [])
+        router_data = routing_data.get(node_id)
 
-        # ----------------------------------
+        if router_data is None:
+            continue
+
+        interpreted_router_routes = matrix.get(router_name, {})
+        print(f"Validando rutas {interpreted_router_routes} para {router_name}")   
+        # --------------------------------------------------
         # indirect routes existence
-        # ----------------------------------
+        # --------------------------------------------------
 
-        indirect_routes = [
-            route for route in interpreted_routes
-            if (route.get("via") is not None and route.get("type") == "unicast")
-        ]
+        indirect_routes = []
+
+        for routes in interpreted_router_routes.values():
+            
+            if not isinstance(routes, list):
+                routes = [routes]
+
+            for route in routes:
+                if (route is None):
+                    continue
+
+                if (route["type"] == "indirect" and route["via"] is not None):
+                    indirect_routes.append(route)
 
         if not indirect_routes:
+
             add_routing_warning(
                 router_data,
                 "isp",
                 "warning",
-                ("No se encontraron las rutas indirectas necesarias para alcanzar las redes publicas IPv4.")
+                (
+                    "No se encontraron las rutas indirectas "
+                    "necesarias para alcanzar las redes publicas IPv4."
+                )
             )
 
-        # ----------------------------------
+        # --------------------------------------------------
         # validate expected ISP routes
-        # ----------------------------------
+        # --------------------------------------------------
 
         for route_name, expected in expected_routes.items():
+
+            interpreted = interpreted_router_routes.get(route_name)
+
+            # ----------------------------------------------
+            # reverse p2p support
+            # ----------------------------------------------
+
+            if interpreted is None and "<>" in route_name:
+
+                reversed_name = reverse_route_name(route_name)
+
+                interpreted = interpreted_router_routes.get(reversed_name)
+
+            if interpreted is None:
+
+                add_routing_warning(
+                    router_data,
+                    "isp",
+                    "warning",
+                    (
+                        f"No se encontró la ruta ISP "
+                        f"hacia {route_name}"
+                    )
+                )
+
+                continue
+
+            # ----------------------------------------------
+            # normalize
+            # ----------------------------------------------
 
             expected_routes_list = expected
 
             if not isinstance(expected_routes_list, list):
                 expected_routes_list = [expected_routes_list]
 
+            if not isinstance(interpreted, list):
+                interpreted = [interpreted]
+
             matched = False
             best_errors = []
 
+            # ----------------------------------------------
+            # validate
+            # ----------------------------------------------
+
             for expected_route in expected_routes_list:
 
-                for interpreted_route in interpreted_routes:
+                for interpreted_route in interpreted:
 
                     field_errors = []
 
-                    # ----------------------------------
+                    # --------------------------------------
                     # normal field validation
-                    # ----------------------------------
+                    # --------------------------------------
 
                     for field_name, expected_value in expected_route.items():
 
                         interpreted_value = interpreted_route.get(field_name)
 
-                        field_result = validate_route_field(field_name, interpreted_value, expected_value)
+                        field_result = validate_route_field(
+                            field_name,
+                            interpreted_value,
+                            expected_value
+                        )
 
                         if not field_result["valid"]:
 
@@ -466,9 +530,9 @@ def validate_isp_routes(data):
                                 "actual": field_result["actual"]
                             })
 
-                    # ----------------------------------
+                    # --------------------------------------
                     # explicit via ownership validation
-                    # ----------------------------------
+                    # --------------------------------------
 
                     via_ip = interpreted_route.get("via")
 
@@ -476,7 +540,7 @@ def validate_isp_routes(data):
 
                         resolved_owner = resolve_ip_owner(via_ip, data)
 
-                        expected_vias = expected_route.get("via_info",[])
+                        expected_vias = expected_route.get("via_info", [])
 
                         via_valid = False
 
@@ -502,13 +566,18 @@ def validate_isp_routes(data):
                                 "actual": format_via_info(resolved_owner)
                             })
 
-                    # ----------------------------------
-                    # matched
-                    # ----------------------------------
+                    # --------------------------------------
+                    # full match
+                    # --------------------------------------
 
                     if not field_errors:
+
                         matched = True
                         break
+
+                    # --------------------------------------
+                    # keep best candidate
+                    # --------------------------------------
 
                     if (
                         not best_errors
@@ -518,6 +587,10 @@ def validate_isp_routes(data):
 
                 if matched:
                     break
+
+            # --------------------------------------------------
+            # warnings
+            # --------------------------------------------------
 
             if not matched:
 
@@ -538,86 +611,29 @@ def validate_isp_routes(data):
                         "isp",
                         "warning",
                         (
-                            f"Error en {error['field']} para "
-                            f"{route_name}: "
+                            f"Error en {error['field']} "
+                            f"para {route_name}: "
                             f"esperado={error['expected']} "
                             f"actual={error['actual']}"
                         )
                     )
 
-                    expected_routes_list = expected
-
-                    if not isinstance(expected_routes_list, list):
-                        expected_routes_list = [expected_routes_list]
-
-                    matched = False
-
-                    for expected_route in expected_routes_list:
-
-                        for interpreted_route in interpreted_routes:
-
-                            field_errors = []
-
-                            for field_name, expected_value in expected_route.items():
-
-                                interpreted_value = interpreted_route.get(field_name)
-
-                                field_result = validate_route_field(
-                                    field_name,
-                                    interpreted_value,
-                                    expected_value
-                                )
-
-                                if not field_result["valid"]:
-
-                                    field_errors.append({
-                                        "field": field_name,
-                                        "expected": field_result["expected"],
-                                        "actual": field_result["actual"]
-                                    })
-
-                            if not field_errors:
-                                matched = True
-                                break
-
-                        if matched:
-                            break
-
-                    if not matched:
-
-                        add_routing_warning(
-                            router_data,
-                            "isp",
-                            "warning",
-                            (
-                                f"No se encontró una ruta ISP válida "
-                                f"hacia {route_name}"
-                            )
-                        )
-
-                        for error in field_errors:
-
-                            add_routing_warning(
-                                router_data,
-                                "isp",
-                                "warning",
-                                (
-                                    f"Error en {error['field']} para "
-                                    f"{route_name}: "
-                                    f"esperado={error['expected']} "
-                                    f"actual={error['actual']}"
-                                )
-                            )
-
-        # ----------------------------------
+        # --------------------------------------------------
         # invalid default routes
-        # ----------------------------------
+        # --------------------------------------------------
 
-        default_routes = [
-            route
-            for route in interpreted_routes
-            if route.get("dst") == "default"
-        ]
+        default_routes = []
+
+        for routes in interpreted_router_routes.values():
+
+            if not isinstance(routes, list):
+                routes = [routes]
+
+            for route in routes:
+                if (route is None):
+                    continue
+                if route.get("dst") == "default":
+                    default_routes.append(route)
 
         for route in default_routes:
 
@@ -687,43 +703,36 @@ def validate_tunnels(data):
             local_owner = resolve_ip_owner(local_ip, data)
             
             remote_owner = resolve_ip_owner(remote_ip, data)
-            print(f"Validando túnel en {router_name}: local {local_ip} | {local_owner}, remote {remote_ip} | {remote_owner}")
-            local_valid = (local_owner.get("node") == router_name and local_owner.get("interface") == expected_local_interface)
-            
+            local_valid = (local_owner.get("node") == router_name and local_owner.get("interface") == expected_local_interface)            
             remote_valid = (remote_owner.get("node") == expected_remote_router and remote_owner.get("interface") == expected_remote_interface)
-
-            if local_valid and remote_valid:
-                matched = True
-                break
-
-        if not matched:
-
-            add_routing_warning(
-                routing,
-                "tunnels",
-                "error",
-                (
-                    f"El túnel configurado en {router_name} no apunta a "
-                    f"{expected_remote_router}-{expected_remote_interface}"
+            if not local_valid or not remote_valid:
+                add_routing_warning(
+                    routing,
+                    "tunnels",
+                    "error",
+                    (
+                        f"Túnel invalido con local {local_ip} y remote {remote_ip} en {router_name}."
+                    )
                 )
-            )
-
-            for tunnel in tunnels:
-
-                local_ip = tunnel.get("local")
-                remote_ip = tunnel.get("remote")
-
-                local_owner = resolve_ip_owner(local_ip, data)
-
-                remote_owner = resolve_ip_owner(remote_ip,data)
-
+            
+            if not local_valid:
+                add_routing_warning(
+                    routing,
+                    "tunnels",
+                    "warning",
+                    (   f"La dirección local {local_ip} del túnel configurado en {router_name}"
+                        f" no existe en el {router_name} en la interfaz {expected_local_interface}. "
+                        f"Se resolvió como {format_via_info(local_owner)}"
+                    )
+                )
+            elif not remote_valid:
                 add_routing_warning(
                     routing,
                     "tunnels",
                     "warning",
                     (
-                        f"Túnel interpretado: "
-                        f"local={format_via_info(local_owner)} "
-                        f"remote={format_via_info(remote_owner)}"
+                        f"La dirección remota {remote_ip} del túnel configurado en {router_name} "
+                        f"no existe en el {expected_remote_router} en la interfaz {expected_remote_interface}."
+                        f"Se resolvió como {format_via_info(remote_owner)}"
                     )
                 )

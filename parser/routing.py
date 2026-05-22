@@ -191,9 +191,7 @@ def resolve_ip_owner(ip_str, data):
         for member in net.get("member_interfaces", []):
             node_id = member["node"]
             iface = member["iface"]
-            print(f"Checking if IP {ip} belongs to interface {iface} of node {node_id} in network {net['name']}")
             addrs = get_staticroute_interface_addresses(data, node_id, iface)
-            print(f"Interface {iface} of node {node_id} has addresses: {addrs}")
             for addr in addrs:
                 if addr.ip == ip:
                     node = data["devices"].get(node_id, {"name": f"node{node_id}"})
@@ -216,7 +214,7 @@ def resolve_ip_owner(ip_str, data):
 # Buids the routing matrix for all intranet routers and networks, 
 # classifying routes and resolving via information.
 # -------------------------------------------------------------------
-def build_routing_matrix(data):
+def build_routing_matrix(data, intranet = True):
     matrix = {}
 
     for node_id, routing in data.get("routing", {}).items():
@@ -228,17 +226,25 @@ def build_routing_matrix(data):
         router_name = device.get("name")
 
         # 🔒 solo routers de intranet
-        if not is_intranet_router(router_name):
-            continue
-
+        if intranet:
+            if not is_intranet_router(router_name):
+                continue
+        else:
+            if is_intranet_router(router_name):
+                continue
+        
         matrix[router_name] = {}
         routes = routing.get("routes", [])
 
         for net in data.get("networks", {}).values():
             net_name = net.get("name")
 
-            if not is_intranet_network(net_name):
-                continue
+            if intranet:
+                if not is_intranet_network(net_name):
+                    continue
+            else:
+                if is_intranet_network(net_name):
+                    continue
 
             prefixes = [p for p in net.get("prefixes", []) if p != "-"]
 

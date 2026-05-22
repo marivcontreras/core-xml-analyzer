@@ -11,6 +11,10 @@ def parse_services(root, data):
     if section is None:
         return
 
+    for router in data["routers"].values():
+        if router["id"] not in data["services"]:
+            data["services"][router["id"]] = {}
+
     for svc in section.findall("service"):
         node = svc.get("node")
         name = svc.get("name")
@@ -31,9 +35,20 @@ def parse_services(root, data):
 # --------------------------------------------------------
 def parse_routing(data):
     data["routing"] = {}
-
     for node_id, services in data["services"].items():
         if "StaticRoute" not in services:
+            if node_id in data["routers"]:
+                data["routing"][node_id] = {
+                    "routes": [],
+                    "rules": [],
+                    "iptables": [],
+                    "tunnels": [],
+                    "warnings": {
+                        "isp": [],
+                        "tunnels": [],
+                        "routing": []
+                    }
+                }
             continue
 
         text = services["StaticRoute"]

@@ -275,11 +275,15 @@ EXPECTED_ROUTING_MATRIX = {
 
 ISP_EXPECTED = {
         "ISP-Intranet": {
-            "ISP-Casa<>R-Casa": indirect(["ISP-Casa-eth1"], devs=["eth1"]),
+            "ISP-Casa<>R-Casa": indirectISP(["ISP-Casa-eth0"], devs=["eth1"]),
+            "R2<>ISP-Intranet": direct("eth0"),
+            "ISP-Casa<>ISP-Intranet": direct("eth1")
         },
 
         "ISP-Casa": {
-            "R2<>ISP-Intranet": indirect(["ISP-Intranet-eth1"], devs=["eth0"]),
+            "R2<>ISP-Intranet": indirectISP(["ISP-Intranet-eth1"], devs=["eth0"]),
+            "R-Casa<>ISP-Casa": direct("eth1"),
+            "ISP-Casa<>ISP-Intranet": direct("eth0")
         }
     }
 
