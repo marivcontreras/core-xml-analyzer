@@ -2,21 +2,9 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import warnings
 from parser.parser import parse_xml
 from report.formatters import build_text_warning_summary, build_warning_summary, group_router_warnings_by_type, pretty_networks, summarize, group_warnings
+from utils.ip import TYPE_LABELS
 
 env = Environment(loader=FileSystemLoader("templates"))
-
-TYPE_LABELS = {
-    "syntax": "Sintaxis",
-    "missing": "Faltante",
-    "invalid": "Inválido",
-    "design": "Diseño",
-    "inconsistent": "Inconsistente",
-    "isp": "ISP",
-    "routing": "Ruteo",
-    "tunnels": "Túneles",
-    "error": "Errores",
-    "warning": "Advertencias"
-}
 
 def render_report_html(xml_text, filename="uploaded.xml"):
     result = parse_xml(xml_text)

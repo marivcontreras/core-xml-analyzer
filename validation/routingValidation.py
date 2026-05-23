@@ -388,17 +388,17 @@ def build_invalid_field_warning(router, route, field, expected, actual):
     if field == "via_info":
         if (actual is not None):
             return (
-                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo via. "
+                f"La ruta hacia la red {route} tiene un valor inválido en el campo via. "
                 f"Posibles: {format_via_info(expected)}. Actual: {format_via_info(actual)}"
             )
         else:
             return (
-                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+                f"La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
                 f"Posibles: {format_via_info(expected)}. Actual: la dirección IP es inválida o no está asignada."
             )
 
     return (
-        f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+        f"La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
         f"Esperado: {expected}. Actual: {actual}"
     )
 

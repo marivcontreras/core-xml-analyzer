@@ -12,6 +12,19 @@ PREFIX_TYPE = {
     "unknown": "desconocido"
 }
 
+TYPE_LABELS = {
+    "syntax": "Sintaxis",
+    "missing": "Faltante",
+    "invalid": "Inválido",
+    "design": "Diseño",
+    "inconsistent": "Inconsistente",
+    "isp": "ISP",
+    "routing": "Ruteo",
+    "tunnels": "Túneles",
+    "error": "Errores",
+    "warning": "Advertencias"
+}
+
 def same_block(p1, p2):
     n1 = ipaddress.ip_network(p1, strict=False)
     n2 = ipaddress.ip_network(p2, strict=False)

@@ -1,7 +1,7 @@
 from parser.devices import INTRANET_ROUTERS, get_node
 from collections import defaultdict
 
-from utils.ip import PREFIX_TYPE
+from utils.ip import PREFIX_TYPE, TYPE_LABELS
 
 # -------------------------------------------------
 # Sumarizes metrics and warnings for analysis panel
@@ -144,27 +144,6 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
     lines = []
 
     # --------------------------------------------------
-    # network warnings
-    # --------------------------------------------------
-
-    for net_name, type_groups in grouped_warnings.items():
-
-        for warning_type, items in type_groups.items():
-
-            for item in items:
-
-                severity = item.get("severity", "warning").upper()
-
-                lines.append(
-                    (
-                        f"[{severity}] "
-                        f"[NETWORK] "
-                        f"[{net_name}] "
-                        f"{item.get('message')}"
-                    )
-                )
-
-    # --------------------------------------------------
     # router config warnings
     # --------------------------------------------------
 
@@ -178,8 +157,8 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 
                 lines.append(
                     (
-                        f"[{severity}] "
-                        f"[ROUTER_CONFIG] "
+                        f"[{TYPE_LABELS.get(severity, severity)}] "
+                        f"[{TYPE_LABELS.get(warning_type, warning_type)}] "
                         f"[{router_name}] "
                         f"{item.get('message')}"
                     )
@@ -202,8 +181,8 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 
                 lines.append(
                     (
-                        f"[{severity}] "
-                        f"[{category.upper()}] "
+                        f"[{TYPE_LABELS.get(severity, severity)}] "
+                        f"[{TYPE_LABELS.get(category, category)}] "
                         f"[{router_name}] "
                         f"{item.get('message')}"
                     )
