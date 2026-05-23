@@ -1,3 +1,6 @@
+from utils.ip import PREFIX_TYPE
+
+
 ANY = "__ANY__"
 AUTO = "__AUTO__"
 
@@ -8,7 +11,7 @@ def clone_with_prefix_type(route, prefix_type):
 
 def direct(iface=None):
     return [{
-        "type": "direct",
+        "type": "DIR",
         "via": None,
         "via_info": None,
         "dev": iface,
@@ -32,12 +35,12 @@ def default(iface, via, onlySite=False):
         })
 
     base_route =  {
-        "type": "indirect",
+        "type": "IND",
         "via": AUTO,
         "via_info": normalized_vias,
         "dev": iface,
         "table": "main",
-        "dst": "default",
+        "dst": PREFIX_TYPE["default"],
         "score": 0,
         "is_default": True,
         "is_policy": False
@@ -45,12 +48,12 @@ def default(iface, via, onlySite=False):
 
     if onlySite:
         return [
-            clone_with_prefix_type(base_route, "site")
+            clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
         ]
 
     return [
-        clone_with_prefix_type(base_route, "global"),
-        clone_with_prefix_type(base_route, "site")
+        clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
+        clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
 def indirectISP(vias, devs=None, onlySite = False):
@@ -66,7 +69,7 @@ def indirectISP(vias, devs=None, onlySite = False):
         })
 
     base_route = {
-        "type": "indirect",
+        "type": "IND",
         "via": AUTO,
         "via_info": normalized_vias,
         "dev": devs if devs else ANY,
@@ -75,7 +78,7 @@ def indirectISP(vias, devs=None, onlySite = False):
         "score": ANY,
         "is_default": ANY,
         "is_policy": False,
-        "prefix_type": "ipv4"
+        "prefix_type": PREFIX_TYPE["ipv4"]
     }
 
     return [base_route]
@@ -95,7 +98,7 @@ def indirect(vias, devs=None, onlySite = False):
         })
 
     base_route = {
-        "type": "indirect",
+        "type": "IND",
         "via": AUTO,
         "via_info": normalized_vias,
         "dev": devs if devs else ANY,
@@ -108,12 +111,12 @@ def indirect(vias, devs=None, onlySite = False):
 
     if onlySite:
         return [
-            clone_with_prefix_type(base_route, "site")
+            clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
         ]
 
     return [
-        clone_with_prefix_type(base_route, "global"),
-        clone_with_prefix_type(base_route, "site")
+        clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
+        clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
 
@@ -129,12 +132,12 @@ def policy_default(table, iface, via, onlySite = False):
     })
 
     base_route = {
-        "type": "indirect",
+        "type": "IND",
         "via": AUTO,
         "via_info": normalized_vias,
         "dev": iface,
         "table": table,
-        "dst": "default",
+        "dst": PREFIX_TYPE["default"],
         "score": 0,
         "is_default": True,
         "is_policy": True
@@ -142,12 +145,12 @@ def policy_default(table, iface, via, onlySite = False):
 
     if onlySite:
         return [
-            clone_with_prefix_type(base_route, "site")
+            clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
         ]
 
     return [
-        clone_with_prefix_type(base_route, "global"),
-        clone_with_prefix_type(base_route, "site")
+        clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
+        clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
 
@@ -166,12 +169,12 @@ def policy_drop(table, drop_type = ["blackhole", "prohibit", "unreachable"], onl
 
     if onlySite:
         return [
-            clone_with_prefix_type(base_route, "site")
+            clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
         ]
     
     return [
-        clone_with_prefix_type(base_route, "global"),
-        clone_with_prefix_type(base_route, "site")
+        clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
+        clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
 

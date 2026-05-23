@@ -1,6 +1,17 @@
 
 import ipaddress
 
+PREFIX_TYPE = {
+    "ipv4": "ipv4",
+    "ipv6": "ipv6",
+    "default": "default",
+    "indirect": "IND",
+    "direct": "DIR",
+    "site": "S",
+    "global": "G",
+    "unknown": "desconocido"
+}
+
 def same_block(p1, p2):
     n1 = ipaddress.ip_network(p1, strict=False)
     n2 = ipaddress.ip_network(p2, strict=False)
@@ -13,20 +24,20 @@ def same_block(p1, p2):
 def classify_prefix_type(ip):
     dst = ipaddress.ip_network(ip, strict=False)
     if not ip or not dst:
-        return "unknown"
+        return PREFIX_TYPE["unknown"]
 
     if dst.version == 4:
-        return "ipv4"
+        return PREFIX_TYPE["ipv4"]
     
     dst = dst.exploded.lower()
 
     if dst in ["default", "::/0"]:
-        return "default"
+        return PREFIX_TYPE["default"]
 
     if dst.startswith("fd"):
-        return "site"
+        return PREFIX_TYPE["site"]
 
     if dst.startswith("2001:"):
-        return "global" 
+        return PREFIX_TYPE["global"] 
 
-    return "other"
+    return PREFIX_TYPE["unknown"]

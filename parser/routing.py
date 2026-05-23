@@ -1,6 +1,6 @@
 import ipaddress
 
-from utils.ip import classify_prefix_type
+from utils.ip import PREFIX_TYPE, classify_prefix_type
 from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.devices import get_node, is_intranet_router
 from report.formatters import is_intranet_network
@@ -9,7 +9,7 @@ from report.formatters import is_intranet_network
 # Returns normalized IP network object, treating "default" as a special case.
 # ----------------------------------------------------------
 def normalize_route_network(value):
-    if value == "default":
+    if value == PREFIX_TYPE["default"]:
         return ipaddress.ip_network("::/0")
 
     return ipaddress.ip_network(value, strict=False)
@@ -109,7 +109,7 @@ def classify_route(route):
 
     # 4. indirect normal
     if route.get("via"):
-        return "indirect"
+        return "IND"
 
     # fallback raro
     return "unknown"
@@ -258,18 +258,22 @@ def build_routing_matrix(data, intranet = True):
             is_direct = router_belongs_to_network(router_name, net)
 
             if is_direct:
-                matrix[router_name][net_name].append({
-                    "type": "direct",
-                    "via": None,
-                    "via_info": None,
-                    "dev": find_interface_to_network(node_id, net, data),
-                    "table": "local",
-                    "dst": None,
-                    "net_prefix": "both",
-                    "score": 999,
-                    "is_default": False,
-                    "is_policy": False
-                })
+                for prefix in prefixes:
+                    matrix[router_name][net_name].append(
+                        build_route(
+                            "DIR",
+                            via=None,
+                            via_info=None,
+                            dev=find_interface_to_network(node_id, net, data),
+                            table="local",
+                            dst=prefix,
+                            net_prefix=prefix,
+                            prefix_type=classify_prefix_type(prefix),
+                            score=999,
+                            is_default=False,
+                            is_policy=False
+                        )
+                    )
 
             # --------------------------------------------------
             # 2. INDIRECT ROUTES (una mejor ruta por tabla)
@@ -293,19 +297,20 @@ def build_routing_matrix(data, intranet = True):
                     if via:
                         via_info = resolve_ip_owner(via, data)
 
-                    matrix[router_name][net_name].append({
-                        "type": classify_route(route),
-                        "via": via,
-                        "via_info": via_info,
-                        "dev": route.get("dev"),
-                        "table": table_name,
-                        "dst": route.get("dst"),
-                        "net_prefix": prefix,
-                        "prefix_type": classify_prefix_type(prefix),
-                        "score": best_route["score"],
-                        "is_default": route.get("dst") in ["default", "::/0"],
-                        "is_policy": table_name != "main"
-                    })
+                    matrix[router_name][net_name].append(
+                        build_route(
+                            classify_route(route),
+                            via=via,
+                            via_info=via_info,
+                            dev=route.get("dev"),
+                            table=table_name,
+                            dst=route.get("dst"),
+                            net_prefix=prefix,
+                            prefix_type=classify_prefix_type(prefix),
+                            score=best_route["score"],
+                            is_default=route.get("dst") in ["default", "::/0"],
+                            is_policy=table_name != "main"
+                        ))
 
             # --------------------------------------------------
             # 3. limpiar redes sin rutas
@@ -316,4 +321,19 @@ def build_routing_matrix(data, intranet = True):
 
     return matrix
 
+
+def build_route(route_type, dev=None, via=None, via_info=None, table="main", dst=None, net_prefix=None, prefix_type=None, score=0, is_default=False, is_policy=False):
+    return {
+        "type": route_type,
+        "net_prefix": net_prefix,
+        "prefix_type": prefix_type,
+        "dst": dst, 
+        "via": via,
+        "via_info": via_info,
+        "dev": dev,
+        "table": table,
+        "score": score,
+        "is_default": is_default,
+        "is_policy": is_policy
+    }
 

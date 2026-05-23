@@ -4,7 +4,7 @@
 <html>
 
 <head>
-    <title>CORE Analysis Report</title>
+    <title>Simulación CORE: Interpretación, validación y reporte</title>
     <style>
         body {
             font-family: Nunito, sans-serif;
@@ -21,27 +21,66 @@
 
         .card {
             background: white;
-            padding: 20px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+            padding: 22px;
+            margin-bottom: 16px;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 10px;
         }
 
         th,
         td {
             text-align: left;
-            padding: 3px;
-            border-bottom: 1px solid #ddd;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e6e6e6;
             vertical-align: top;
         }
 
         th {
-            background: #efefef;
+            background: #f4f6f8;
+            color: #374151;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        tr:hover td {
+            background: #f3f7ff;
+        }
+
+        .summary-container {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .summary-block {
+            flex: 1;
+            background: #fbfbfc;
+            border: 1px solid #ececec;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .summary-block h2 {
+            margin-bottom: 16px;
+        }
+
+        .warning-summary-table tr td:first-child {
+            font-weight: bold;
+        }
+
+        .scope-summary-table tr td:first-child {
+            font-weight: bold;
         }
 
         .warning {
@@ -60,23 +99,93 @@
 
         details summary {
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
             margin-bottom: 4px;
+            user-select: none;
         }
 
         details[open] summary {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .network-prefixes {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .network-prefix {
+            font-family: monospace;
+            font-size: 12px;
+
+            padding: 2px;
+
+            border-radius: 4px;
+
+            background: #eceff1;
+        }
+
+        .network-prefix-global {
+            background-color: #e3f2fd;
+        }
+
+        .network-prefix-ula {
+            background-color: #ede7f6;
+        }
+
+        .routing-table-wrapper {
+            overflow-x: auto;
+            max-width: 100%;
         }
 
         .routing-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 2px;
+            table-layout: fixed;
+
+            font-size: 12px;
+        }
+
+        .routing-table th {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+
+            background: #dfe6ee;
+
+            padding: 6px 4px;
+
+            font-size: 12px;
+        }
+
+        .routing-table td {
+            padding: 2px;
+        }
+
+        .routing-table th:first-child,
+        .routing-table td:first-child {
+            width: 120px;
+            min-width: 100px;
+            max-width: 120px;
+        }
+
+        .network-cell {
+            min-width: 180px;
+            max-width: 220px;
+
+            background: #fafafa;
+        }
+
+        .network-name {
+            font-size: 13px;
+            margin-bottom: 2px;
         }
 
         .routing-cell {
             vertical-align: top;
-            min-width: 100px;
-            padding: 4px;
+            min-width: 120px;
+            padding: 2px;
         }
 
         .route-entry {
@@ -84,13 +193,18 @@
             flex-direction: row;
             flex-wrap: wrap;
 
-            gap: 4px;
+            gap: 2px;
 
-            padding: 4px;
-            margin-bottom: 4px;
+            padding: 2px;
+            margin-bottom: 2px;
 
-            border: #b0a8a8 1px solid;
-            border-radius: 6px;
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 4px;
+        }
+
+        .route-entry:hover {
+            transform: translateY(-1px);
         }
 
         /* ------------------------------ */
@@ -125,28 +239,23 @@
             flex-direction: row;
             align-items: center;
             gap: 2px;
-            padding: 4px 6px;
-
+            padding: 4px;
             border-radius: 6px;
-
-            background: #f5f5f5;
-            border: 1px solid #696363;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .route-field-invalid {
             background: #ffe5e5;
-            border: 1px solid #ff6b6b;
+            border: 1px solid #ef5350;
         }
 
         .route-field-name {
             font-size: 12px;
-            font-weight: bold;
-            color: #666;
         }
 
         .route-field-value {
-            font-family: monospace;
-            word-break: break-word;
+            font-size: 12px;
         }
 
         .route-field-div {
@@ -154,11 +263,11 @@
         }
 
         .routing-invalid {
-            background: rgba(255, 0, 0, 0.04);
+            background: rgba(255, 0, 0, 0.03);
         }
 
         .routing-missing {
-            background: rgba(255, 0, 0, 0.08);
+            background: rgba(255, 0, 0, 0.05);
         }
 
         .route-missing {
@@ -189,11 +298,6 @@
             background: #fff8e1;
         }
 
-        .warning-error {
-            border-left-color: #e53935;
-            background: #ffebee;
-        }
-
         .warning-header {
             margin-bottom: 4px;
         }
@@ -209,25 +313,28 @@
         }
 
         .warning-group {
-            margin-bottom: 24px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fcfcfc;
         }
 
         .warning-group-title {
             font-size: 18px;
+            font-weight: 700;
         }
 
         .warning-subgroup {
-            margin-bottom: 16px;
-            padding-left: 12px;
-            border-left: 3px solid #ddd;
+            margin-top: 14px;
+            padding-left: 14px;
+            border-left: 4px solid #d1d5db;
         }
 
         .warning-subgroup-title {
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #374151;
         }
 
         .warning-list {
@@ -237,7 +344,26 @@
         }
 
         .warning-item {
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            padding: 10px 12px;
+
+            border-radius: 10px;
+
+            border-left: 5px solid #ff9800;
+
+            background: #fff8e1;
+
+            line-height: 1.45;
+        }
+
+        .warning-error {
+            border-left-color: #e53935;
+            background: #ffebee;
+        }
+
+        .warning-warning {
+            border-left-color: #fb8c00;
+            background: #fff8e1;
         }
 
         .summary-warning {
@@ -248,33 +374,104 @@
 
 <body>
 
-    <h1>CORE Analysis Report</h1>
+    <h1>Simulación CORE: Interpretación, validación y reporte</h1>
 
     <div class="card">
         <strong>Archivo:</strong> {{ filename }}
     </div>
 
     <div class="card">
-        <h2>Summary</h2>
 
-        <table>
-            <tr>
-                <th>Total Devices</th>
-                <td>{{ summary.devices_total }}</td>
-            </tr>
-            <tr>
-                <th>Routers</th>
-                <td>{{ summary.routers }}</td>
-            </tr>
-            <tr>
-                <th>Links</th>
-                <td>{{ summary.links }}</td>
-            </tr>
-            <tr>
-                <th>Networks Inferred</th>
-                <td>{{ summary.networks }}</td>
-            </tr>
-        </table>
+        <div class="summary-container">
+
+            <div class="summary-block">
+
+                <h2>Infraestructura</h2>
+
+                <table class="modern-table">
+                    <tr>
+                        <th>Dispositivos Totales</th>
+                        <td>{{ summary.devices_total }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Routers</th>
+                        <td>{{ summary.routers }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Links</th>
+                        <td>{{ summary.links }}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Redes</th>
+                        <td>{{ summary.networks }}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+            <div class="summary-block">
+
+                <h2>Resumen de Advertencias</h2>
+                {% if warning_summary.total > 0 %}
+                <table class="modern-table warning-summary-table">
+
+                    <thead>
+                        <tr>
+                            <th>Gravedad</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for severity, count in warning_summary.by_severity.items() %}
+
+                        <tr>
+                            <td>{{ TYPE_LABELS[severity] if severity in TYPE_LABELS else severity }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                <br>
+
+                <table class="modern-table scope-summary-table">
+
+                    <thead>
+                        <tr>
+                            <th>Alcance</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for scope, count in warning_summary.by_scope.items() %}
+
+                        <tr>
+                            <td>{{ TYPE_LABELS[scope] if scope in TYPE_LABELS else scope }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+                {% else %}
+                <p>No hay advertencias.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
     </div>
 
     <div class="card">
@@ -312,7 +509,7 @@
 
     {% if warnings.items() %}
     <div class="card">
-        <h2>Desglose de advertencias por red</h2>
+        <h2>Desglose de Advertencias por Red</h2>
 
         {% for net in networks %}
         <div class="network">
@@ -374,116 +571,134 @@
             <h5>NOTA: Esta tabla explica como se llega a cada red desde cada router (por cada par router-red elige la
                 ruta más especifica) </h5>
         </div>
-        <table class="routing-table">
-            <thead>
-                <tr>
-                    <th>Red</th>
-                    {% for router in data.routing_matrix_table.routers %}
-                    <th>{{ router }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
+        <div class="routing-table-wrapper">
+            <table class="routing-table">
+                <thead>
+                    <tr>
+                        <th>Red</th>
+                        {% for router in data.routing_matrix_table.routers %}
+                        <th>{{ router }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for row in data.routing_matrix_table.rows %}
-                <tr>
-                    <td class="network-cell">
+                <tbody>
+                    {% for row in data.routing_matrix_table.rows %}
+                    <tr>
+                        <td class="network-cell">
 
-                        <div class="network-name">
-                            <strong> {{ row.network }} </strong>
-                        </div>
-
-                        {% if row.prefixes %}
-                        <div class="network-prefixes">
-
-                            {% for prefix in row.prefixes %}
-
-                            <div class="network-prefix">
-                                {{ prefix }}
+                            <div class="network-name">
+                                <strong> {{ row.network }} </strong>
                             </div>
 
-                            {% endfor %}
+                            {% if row.prefixes %}
+                            <div class="network-prefixes">
 
-                        </div>
-                        {% endif %}
+                                {% for prefix in row.prefixes %}
 
-                    </td>
+                                <div class="network-prefix
+                                        {% if prefix %}
+                                            {% if prefix.startswith('FD') or prefix.startswith('fd') %}
+                                                network-prefix-ula
+                                            {% elif prefix.startswith('2001:') %}
+                                                network-prefix-global
+                                            {% endif %}
+                                        {% endif %}">
+                                    {{ prefix }}
+                                </div>
 
-                    {% for router in data.routing_matrix_table.routers %}
+                                {% endfor %}
 
-                    {% set routes = row["values"][router] %}
-                    {% set validation = row["validation"][router] %}
-
-                    <td class="routing-cell {% if not validation['exists'] %} routing-missing {% endif %} {% if not
-                        validation['valid'] %} routing-invalid {% endif %}">
-
-                        {% if routes %}
-                        {% for route in routes %}
-
-                        {% set net_prefix = route.get("net_prefix") %}
-
-                        <div class="route-entry
-                            {% if net_prefix %}
-                                {% if net_prefix.startswith('FD') or net_prefix.startswith('fd') %}
-                                    route-entry-ula
-                                {% elif net_prefix.startswith('2001:') %}
-                                    route-entry-global
-                                {% elif net_prefix == 'both' %}
-                                    route-entry-direct
-                                {% endif %}
-                            {% endif %}">
-
-                            {% for field_name, field_value in route.items() %}
-                            {% set field_validation = route.get("_field_validation", {}).get(field_name) %}
-
-                            {% if field_value != None and field_name != "score" and field_name != "is_default"
-                            and field_name != "is_policy" and field_name != "net_prefix" and field_name !=
-                            "_field_validation" %}
-                            <div class="route-field {% if field_validation and not field_validation.valid %}
-                                    route-field-invalid {% endif %}">
-                                <span class="route-field-name">
-                                    {{ field_name }}:
-                                </span>
-
-                                {% if field_name != "via_info" %}
-                                <span class="route-field-value">
-                                    {{ field_value }}
-                                </span>
-                                {% elif field_value["node"] == None or field_value["interface"] == None %}
-                                <span class="route-field-value">
-                                    Desconocido
-                                </span>
-                                {% else %}
-                                <span class="route-field-value">
-                                    {{ field_value["node"] }}-{{ field_value["interface"] }}
-                                </span>
-                                {% endif %}
                             </div>
                             {% endif %}
 
+                        </td>
+
+                        {% for router in data.routing_matrix_table.routers %}
+
+                        {% set routes = row["values"][router] %}
+                        {% set validation = row["validation"][router] %}
+
+                        <td class="routing-cell {% if not validation['exists'] %} routing-missing {% endif %} {% if not
+                        validation['valid'] %} routing-invalid {% endif %}">
+
+                            {% if routes %}
+                            {% for route in routes %}
+
+                            {% set net_prefix = route.get("net_prefix") %}
+                            {% set type = route.get("type") %}
+                            <div class="route-entry
+                                    {% if type == 'DIR' %}
+                                        route-entry-direct
+                                    {% elif net_prefix %}
+                                        {% if net_prefix.startswith('FD') or net_prefix.startswith('fd') %}
+                                            route-entry-ula
+                                        {% elif net_prefix.startswith('2001:') %}
+                                            route-entry-global
+                                        {% endif %}
+                                    {% endif %}">
+
+                                {% for field_name, field_value in route.items() %}
+                                {% set field_validation = route.get("_field_validation", {}).get(field_name) %}
+
+                                {% if field_value != None and field_name != "score" and field_name != "is_default"
+                                and field_name != "is_policy" and field_name != "via_info" and field_name !=
+                                "net_prefix" and field_name != "_field_validation" and field_value != "main" and field_value != "local" %}
+                                <div class="route-field {% if field_validation and not field_validation.valid %}
+                                    route-field-invalid {% endif %}">
+
+                                    {% if field_name != "type" and field_name != "via_info" and field_name !=
+                                    "prefix_type" %}
+                                    <span class="route-field-name">
+                                        {{ field_name }}:
+                                    </span>
+                                    {% endif %}
+
+                                    {% if field_name == "via" %}
+                                    <span class="route-field-value">
+                                        {% if route["via_info"]["node"] == None or route["via_info"]["interface"] ==
+                                        None %}
+                                        <span class="route-field-value">
+                                            {{ field_value }} [Desconocido]
+                                        </span>
+                                        {% else %}
+                                        <span class="route-field-value">
+                                            {{ field_value }} ({{ route["via_info"]["node"]
+                                            }}-{{route["via_info"]["interface"] }})
+                                        </span>
+                                        {% endif %}
+                                    </span>
+                                    {% else %}
+                                    <span class="route-field-value">
+                                        {{ field_value }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% endfor %}
+
+                            </div>
+
                             {% endfor %}
+                            {% else %}
 
-                        </div>
+                            <div class="route-missing">
+                                No existe la ruta
+                            </div>
 
+                            {% endif %}
+
+                        </td>
                         {% endfor %}
-                        {% else %}
 
-                        <div class="route-missing">
-                            Missing Route
-                        </div>
-
-                        {% endif %}
-
-                    </td>
+                    </tr>
                     {% endfor %}
 
-                </tr>
-                {% endfor %}
+                </tbody>
 
-            </tbody>
-
-        </table>
-
+            </table>
+        </div>
         {% if data.routing_matrix_table.grouped_warnings %}
         <div class="routing-warnings">
 

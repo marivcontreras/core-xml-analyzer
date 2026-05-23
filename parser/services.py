@@ -1,7 +1,7 @@
 import re
 import ipaddress
 from report.formatters import strip_comments
-from utils.ip import classify_prefix_type
+from utils.ip import PREFIX_TYPE, classify_prefix_type
 
 # ---------------------------------------------------------------------
 # Extracts service data into a structured format for later validation.
@@ -78,7 +78,7 @@ def parse_routes(text, data):
 
     for is_v6, line in matches:
         route = {
-            "family": "ipv6" if is_v6 else "ipv4",
+            "family": PREFIX_TYPE["ipv6"] if is_v6 else PREFIX_TYPE["ipv4"],
             "type": "unicast",   # default
             "dst": None,
             "via": None,
@@ -321,7 +321,7 @@ def resolve_route_networks(route_dst, data):
     if not route_dst:
         return ["unknown"]
 
-    if route_dst == "default":
+    if route_dst == PREFIX_TYPE["default"]:
         return ["all"]
 
     try:
@@ -365,9 +365,9 @@ def resolve_route_networks(route_dst, data):
                 break
 
     if matched_networks:
-        if(classify_prefix_type(route_dst) == "site" and len(matched_networks) == 13):
+        if(classify_prefix_type(route_dst) == PREFIX_TYPE["site"] and len(matched_networks) == 13):
             return ["all"]
-        if(classify_prefix_type(route_dst) == "global" and len(matched_networks) == 11):
+        if(classify_prefix_type(route_dst) == PREFIX_TYPE["global"] and len(matched_networks) == 11):
             return ["all"]
         return matched_networks
 

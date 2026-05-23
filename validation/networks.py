@@ -2,7 +2,7 @@
 import ipaddress
 
 from analyzer.prefixes import get_staticroute_interface_addresses
-from utils.ip import same_block, classify_prefix_type
+from utils.ip import PREFIX_TYPE, same_block, classify_prefix_type
 from utils.warning import add_warning
 
 # -------------------------------------------------------------
@@ -20,10 +20,10 @@ def validate_networks(data):
 
         kinds = [classify_prefix_type(p) for p in prefixes]
 
-        if "ipv4" in kinds and len(kinds) <= 1:
+        if PREFIX_TYPE["ipv4"] in kinds and len(kinds) <= 1:
             continue
 
-        if "ipv4" in kinds and len(kinds) > 1:
+        if PREFIX_TYPE["ipv4"] in kinds and len(kinds) > 1:
             add_warning(
                 data,
                 f"{net['name']}: se asignaron direcciones adicionales en internet ({', '.join(prefixes)})",
@@ -90,7 +90,7 @@ def validate_networks(data):
         # ----------------------------------
         # 3. Missing addresses (global + site)
         # ----------------------------------
-        if "site" not in kinds:
+        if PREFIX_TYPE["site"] not in kinds:
             add_warning(
                 data,
                 f"{net['name']}: prefijo site faltante (existentes: {', '.join(prefixes)})",
@@ -102,7 +102,7 @@ def validate_networks(data):
             )
 
         if "admin" not in net["name"].lower():  # you may refine later
-            if "global" not in kinds:
+            if PREFIX_TYPE["global"] not in kinds:
                 add_warning(
                     data,
                     f"{net['name']}: prefijo global faltante (existentes: {', '.join(prefixes)})",
@@ -118,7 +118,7 @@ def validate_networks(data):
         # (basic heuristic: name contains 'Admin')
         # ----------------------------------
         if "admin" in net["name"].lower():
-            if "global" in kinds:
+            if PREFIX_TYPE["global"] in kinds:
                 add_warning(
                     data,
                     f"{net['name']}: red admin no debería usar direcciones globales",
@@ -165,9 +165,9 @@ def check_p2p_consistency(net, data):
             if ip.version != 6:
                 continue
             
-            if classify_prefix_type(ip) == "site":  # fd00::/8
+            if classify_prefix_type(ip) == PREFIX_TYPE["site"]:  # fd00::/8
                 site_ip = ip
-            elif classify_prefix_type(ip) == "global":  # 2001::/16
+            elif classify_prefix_type(ip) == PREFIX_TYPE["global"]:  # 2001::/16
                 global_ip = ip
 
         endpoints.append({

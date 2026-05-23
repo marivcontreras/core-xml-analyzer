@@ -2,6 +2,7 @@ from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.devices import get_node, get_node_id
 from parser.routing import build_routing_matrix, resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
+from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning
 from validation.routingHelper import ANY, ISP_EXPECTED
 
@@ -436,7 +437,7 @@ def validate_isp_routes(data):
                 if (route is None):
                     continue
 
-                if (route["type"] == "indirect" and route["via"] is not None):
+                if (route["type"] == "IND" and route["via"] is not None):
                     indirect_routes.append(route)
 
         if not indirect_routes:
@@ -611,10 +612,10 @@ def validate_isp_routes(data):
                         "isp",
                         "warning",
                         (
-                            f"Error en {error['field']} "
+                            f"Error en campo {error['field']} "
                             f"para {route_name}: "
-                            f"esperado={error['expected']} "
-                            f"actual={error['actual']}"
+                            f"esperado -> {error['expected']}, "
+                            f"actual -> {error['actual']}"
                         )
                     )
 
@@ -632,7 +633,7 @@ def validate_isp_routes(data):
             for route in routes:
                 if (route is None):
                     continue
-                if route.get("dst") == "default":
+                if route.get("dst") == PREFIX_TYPE["default"]:
                     default_routes.append(route)
 
         for route in default_routes:

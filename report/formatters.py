@@ -1,6 +1,8 @@
 from parser.devices import INTRANET_ROUTERS
 from collections import defaultdict
 
+from utils.ip import PREFIX_TYPE
+
 # -------------------------------------------------
 # Sumarizes metrics and warnings for analysis panel
 # -------------------------------------------------
@@ -12,6 +14,131 @@ def summarize(data):
         "networks": len(data["networks"]),
         "warnings": [w["message"] for w in data["warnings"]]
     }
+
+from collections import defaultdict
+
+def build_warning_summary2(data, warnings, router_warnings):
+    summary = {
+        "total": 0,
+        "by_severity": defaultdict(int),
+        "by_category": defaultdict(int)
+    }
+
+    # --------------------------------------------------
+    # network warnings
+    # --------------------------------------------------
+
+    for net_name, type_groups in warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            summary["by_category"][warning_type] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    # --------------------------------------------------
+    # router warnings
+    # --------------------------------------------------
+
+    for router_name, type_groups in router_warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            summary["by_category"][warning_type] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    # --------------------------------------------------
+    # parsed routing/tunnel/isp warnings
+    # --------------------------------------------------
+
+    for routing in data.get("routing", {}).values():
+
+        for category, items in routing.get("warnings", {}).items():
+
+            summary["by_category"][category] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    return summary
+
+
+from collections import defaultdict
+
+def build_warning_summary(data, warnings, router_warnings):
+    summary = {
+        "total": 0,
+        "by_severity": defaultdict(int),
+        "by_scope": defaultdict(int)
+    }
+
+    # --------------------------------------------------
+    # network warnings
+    # --------------------------------------------------
+
+    for net_name, type_groups in warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            summary["by_scope"]["network"] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    # --------------------------------------------------
+    # router config warnings
+    # --------------------------------------------------
+
+    for router_name, type_groups in router_warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            summary["by_scope"]["router_config"] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    # --------------------------------------------------
+    # routing/tunnel/isp warnings
+    # --------------------------------------------------
+
+    for routing in data.get("routing", {}).values():
+
+        for category, items in routing.get("warnings", {}).items():
+
+            summary["by_scope"][category] += len(items)
+
+            for item in items:
+
+                severity = item.get("severity", "warning")
+
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    return summary
 
 # ------------------------------------
 # Formats networks for networks panel
@@ -76,7 +203,7 @@ def group_warnings(data):
     grouped = {}
 
     for w in data["warnings"]:
-        net = w.get("network", "global")
+        net = w.get("network", PREFIX_TYPE["global"])
         wtype = w.get("type", "generic")
 
         if net not in grouped:
