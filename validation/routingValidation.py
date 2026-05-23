@@ -388,7 +388,7 @@ def build_invalid_field_warning(router, route, field, expected, actual):
     if field == "via_info":
         if (actual is not None):
             return (
-                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
+                f"[{router}] La ruta hacia la red {route} tiene un valor inválido en el campo via. "
                 f"Posibles: {format_via_info(expected)}. Actual: {format_via_info(actual)}"
             )
         else:
@@ -421,7 +421,7 @@ def validate_isp_routes(data):
             continue
 
         interpreted_router_routes = matrix.get(router_name, {})
-        print(f"Validando rutas {interpreted_router_routes} para {router_name}")   
+        #print(f"Validando rutas {interpreted_router_routes} para {router_name}")   
         # --------------------------------------------------
         # indirect routes existence
         # --------------------------------------------------

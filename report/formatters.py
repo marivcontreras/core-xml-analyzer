@@ -1,4 +1,4 @@
-from parser.devices import INTRANET_ROUTERS
+from parser.devices import INTRANET_ROUTERS, get_node
 from collections import defaultdict
 
 from utils.ip import PREFIX_TYPE
@@ -140,6 +140,77 @@ def build_warning_summary(data, warnings, router_warnings):
 
     return summary
 
+def build_text_warning_summary(data, grouped_warnings, router_warnings):
+    lines = []
+
+    # --------------------------------------------------
+    # network warnings
+    # --------------------------------------------------
+
+    for net_name, type_groups in grouped_warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            for item in items:
+
+                severity = item.get("severity", "warning").upper()
+
+                lines.append(
+                    (
+                        f"[{severity}] "
+                        f"[NETWORK] "
+                        f"[{net_name}] "
+                        f"{item.get('message')}"
+                    )
+                )
+
+    # --------------------------------------------------
+    # router config warnings
+    # --------------------------------------------------
+
+    for router_name, type_groups in router_warnings.items():
+
+        for warning_type, items in type_groups.items():
+
+            for item in items:
+
+                severity = item.get("severity", "warning").upper()
+
+                lines.append(
+                    (
+                        f"[{severity}] "
+                        f"[ROUTER_CONFIG] "
+                        f"[{router_name}] "
+                        f"{item.get('message')}"
+                    )
+                )
+
+    # --------------------------------------------------
+    # routing / tunnel / isp warnings
+    # --------------------------------------------------
+
+    for node_id, routing in data.get("routing", {}).items():
+
+        node = get_node(data, node_id)
+        router_name = node.get("name", node_id)
+
+        for category, items in routing.get("warnings", {}).items():
+
+            for item in items:
+
+                severity = item.get("severity", "warning").upper()
+
+                lines.append(
+                    (
+                        f"[{severity}] "
+                        f"[{category.upper()}] "
+                        f"[{router_name}] "
+                        f"{item.get('message')}"
+                    )
+                )
+    print(lines)
+    return lines
+
 # ------------------------------------
 # Formats networks for networks panel
 # ------------------------------------
@@ -259,7 +330,7 @@ def format_via_info(via_info):
         network = item.get("network")
 
         if (node is None and interface is None and network is None):
-            return "Dirección IP inexistente en la topología"
+            return "La dirección no existe en la topología"
         
         text = f"{node}-{interface}"
 

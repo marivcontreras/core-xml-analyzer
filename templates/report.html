@@ -369,8 +369,63 @@
         .summary-warning {
             color: #c62828;
         }
+
+        .warning-summary-title-section {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .warning-summary-toolbar {
+            margin-bottom: 12px;
+        }
+
+        .warning-summary-toolbar button {
+            padding: 8px 12px;
+
+            border: none;
+            border-radius: 6px;
+
+            background: #1976d2;
+            color: white;
+
+            cursor: pointer;
+        }
+
+        .warning-summary-toolbar button:hover {
+            background: #1565c0;
+        }
+
+        .warning-summary-text {
+            width: 100%;
+            min-height: 300px;
+
+            padding: 12px;
+
+            border-radius: 8px;
+            border: 1px solid #ccc;
+
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+
+            box-sizing: border-box;
+        }
     </style>
 </head>
+<script>
+    function copyWarningSummary() {
+
+        const textarea = document.getElementById("warning-summary");
+
+        textarea.select();
+        textarea.setSelectionRange(0, 999999);
+
+        navigator.clipboard.writeText(textarea.value);
+    }
+</script>
 
 <body>
 
@@ -643,7 +698,8 @@
 
                                 {% if field_value != None and field_name != "score" and field_name != "is_default"
                                 and field_name != "is_policy" and field_name != "via_info" and field_name !=
-                                "net_prefix" and field_name != "_field_validation" and field_value != "main" and field_value != "local" %}
+                                "net_prefix" and field_name != "_field_validation" and field_value != "main" and
+                                field_value != "local" %}
                                 <div class="route-field {% if field_validation and not field_validation.valid %}
                                     route-field-invalid {% endif %}">
 
@@ -940,6 +996,23 @@
 
     </details>
     {% endfor %}
+
+    {% if warning_summary_text %}
+    <div class="card">
+        <div class="warning-summary-title-section">
+            <h2>Resumen Completo de Advertencias</h2>
+
+            <div class="warning-summary-toolbar">
+                <button onclick="copyWarningSummary()">
+                    Copiar resumen
+                </button>
+            </div>
+        </div>
+
+        <textarea id="warning-summary" class="warning-summary-text" readonly>{% for line in warning_summary_text %}{{ line }}
+{% endfor %}</textarea>
+    </div>
+    {% endif %}
 
     <div class="card">
         <a href="/">Analyze another file</a>
