@@ -187,7 +187,7 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
                         f"{item.get('message')}"
                     )
                 )
-    print(lines)
+
     return lines
 
 # ------------------------------------

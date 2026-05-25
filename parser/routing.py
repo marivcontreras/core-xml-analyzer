@@ -324,14 +324,14 @@ def build_routing_matrix(data, intranet = True):
 
 def build_route(route_type, dev=None, via=None, via_info=None, table="main", dst=None, net_prefix=None, prefix_type=None, score=0, is_default=False, is_policy=False):
     return {
+        "table": table,
         "type": route_type,
         "net_prefix": net_prefix,
         "prefix_type": prefix_type,
         "dst": dst, 
         "via": via,
         "via_info": via_info,
-        "dev": dev,
-        "table": table,
+        "dev": dev,        
         "score": score,
         "is_default": is_default,
         "is_policy": is_policy

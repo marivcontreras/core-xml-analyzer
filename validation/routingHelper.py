@@ -1,8 +1,14 @@
 from utils.ip import PREFIX_TYPE
 
-
 ANY = "__ANY__"
 AUTO = "__AUTO__"
+
+TABLES = {
+    "main": "main",
+    "local": "local",
+    "to-r3": "redireccionar paquetes TCP hacia R3",
+    "guest-isolation": "prohibir el acceso a la red desde wguest",
+}
 
 def clone_with_prefix_type(route, prefix_type):
     cloned = dict(route)
@@ -21,7 +27,6 @@ def direct(iface=None):
         "is_default": False,
         "is_policy": False
     }]
-
 
 def default(iface, via, onlySite=False):
     normalized_vias = []
@@ -83,8 +88,6 @@ def indirectISP(vias, devs=None, onlySite = False):
 
     return [base_route]
 
-    
-
 def indirect(vias, devs=None, onlySite = False):
     normalized_vias = []
 
@@ -106,7 +109,7 @@ def indirect(vias, devs=None, onlySite = False):
         "dst": AUTO,
         "score": ANY,
         "is_default": ANY,
-        "is_policy": ANY
+        "is_policy": False
     }
 
     if onlySite:
@@ -118,7 +121,6 @@ def indirect(vias, devs=None, onlySite = False):
         clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
         clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
-
 
 def policy_default(table, iface, via, onlySite = False):
     normalized_vias = []
@@ -132,7 +134,7 @@ def policy_default(table, iface, via, onlySite = False):
     })
 
     base_route = {
-        "type": "IND",
+        "type": "policy",
         "via": AUTO,
         "via_info": normalized_vias,
         "dev": iface,
@@ -152,7 +154,6 @@ def policy_default(table, iface, via, onlySite = False):
         clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
         clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
-
 
 def policy_drop(table, drop_type = ["blackhole", "prohibit", "unreachable"], onlySite = False):
     base_route = {
@@ -232,7 +233,7 @@ EXPECTED_ROUTING_MATRIX = {
         "WVentas": indirect(["R6-eth2"]) + policy_drop("guest-isolation"),
         "SwVentas": indirect(["R6-eth2"]) + policy_drop("guest-isolation"),
         "WGuest": direct("eth1") + policy_drop("guest-isolation"),
-        "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_drop("guest-isolation", onlySite=True),
+        "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_drop("guest-isolation", onlySite=True) ,
         "SwOfiAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_drop("guest-isolation", onlySite=True),
         "R1-DC<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
         "R4<>R5": direct("eth2") + policy_drop("guest-isolation"),

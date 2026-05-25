@@ -12,11 +12,39 @@ from utils.warning import add_warning
 # - Missing addresses
 # -------------------------------------------------------------
 def validate_networks(data):
+    used_prefixes = {}
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
 
         if not prefixes:
             continue
+
+        # ----------------------------------
+        # duplicated prefixes across networks
+        # ----------------------------------
+        for prefix in prefixes:
+
+            if prefix in used_prefixes:
+
+                add_warning(
+                    data,
+                    (
+                        f"{net['name']}: el prefijo {prefix} "
+                        f"ya fue asignado a la red "
+                        f"{used_prefixes[prefix]}"
+                    ),
+                    wtype="invalid",
+                    scope="network",
+                    network=net["name"],
+                    code="duplicated_prefix",
+                    details={
+                        "prefix": prefix,
+                        "other_network": used_prefixes[prefix]
+                    }
+                )
+
+            else:
+                used_prefixes[prefix] = net["name"]
 
         kinds = [classify_prefix_type(p) for p in prefixes]
 

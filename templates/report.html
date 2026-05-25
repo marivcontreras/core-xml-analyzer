@@ -471,34 +471,7 @@
 
                 <h2>Resumen de Advertencias</h2>
                 {% if warning_summary.total > 0 %}
-                <table class="modern-table warning-summary-table">
-
-                    <thead>
-                        <tr>
-                            <th>Gravedad</th>
-                            <th>Cantidad</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {% for severity, count in warning_summary.by_severity.items() %}
-
-                        <tr>
-                            <td>{{ TYPE_LABELS[severity] if severity in TYPE_LABELS else severity }}</td>
-                            <td>{{ count }}</td>
-                        </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-                <br>
-
                 <table class="modern-table scope-summary-table">
-
                     <thead>
                         <tr>
                             <th>Alcance</th>
@@ -704,8 +677,12 @@
                                     route-field-invalid {% endif %}">
 
                                     {% if field_name != "type" and field_name != "via_info" and field_name !=
-                                    "prefix_type" %}
+                                    "prefix_type" and field_name != "table" %}
                                     <span class="route-field-name">
+                                        {{ field_name }}:
+                                    </span>
+                                    {% elif field_name == "table" %}
+                                    <span class="route-field-value" style="font-weight: 700">
                                         {{ field_name }}:
                                     </span>
                                     {% endif %}
@@ -715,7 +692,7 @@
                                         {% if route["via_info"]["node"] == None or route["via_info"]["interface"] ==
                                         None %}
                                         <span class="route-field-value">
-                                            {{ field_value }} [Inexistente]
+                                            {{ field_value }} (Inválido)
                                         </span>
                                         {% else %}
                                         <span class="route-field-value">
@@ -723,6 +700,10 @@
                                             }}-{{route["via_info"]["interface"] }})
                                         </span>
                                         {% endif %}
+                                    </span>
+                                    {% elif field_name == "table" %}
+                                    <span class="route-field-value" style="font-weight: 700">
+                                        {{ field_value }}
                                     </span>
                                     {% else %}
                                     <span class="route-field-value">
@@ -763,9 +744,9 @@
             {% for router, router_warnings in data.routing_matrix_table.grouped_warnings.items() %}
 
             <details class="warning-group">
-                <summary class="warning-group-title">
-                    {{ router }}
-                </summary>
+                    <summary class="warning-group-title">
+                        {{ router }}
+                    </summary>
 
                 {% for route, route_warnings in router_warnings.items() %}
 
@@ -877,8 +858,10 @@
         {% set routing_warnings = routing.warnings["routing"] %}
         {% if routing_warnings %}
 
-        <div class="routing-warnings">
-
+        <details class="warning-subgroup">
+            <summary class="warning-subgroup-title">
+                Advertencias de Ruteo
+            </summary>
             {% for warning in routing_warnings %}
 
             <div class="warning-item warning-{{ warning.severity }}">
@@ -887,15 +870,17 @@
 
             {% endfor %}
 
-        </div>
+        </details>
 
         {% endif %}
 
         {% set isp_warnings = routing.warnings["isp"] %}
         {% if isp_warnings %}
 
-        <div class="routing-warnings">
-
+        <details class="warning-subgroup">
+            <summary class="warning-subgroup-title">
+                        Advertencias de ISP
+            </summary>
             {% for warning in isp_warnings %}
 
             <div class="warning-item warning-{{ warning.severity }}">
@@ -904,7 +889,7 @@
 
             {% endfor %}
 
-        </div>
+        </details>
 
         {% endif %}
 
@@ -949,7 +934,10 @@
         {% set tunnel_warnings = routing.warnings["tunnels"] %}
         {% if tunnel_warnings %}
 
-        <div class="routing-warnings">
+        <details class="warning-subgroup">
+            <summary class="warning-subgroup-title">
+                        Advertencias de Túneles
+            </summary>
 
             {% for warning in tunnel_warnings %}
 
@@ -959,7 +947,7 @@
 
             {% endfor %}
 
-        </div>
+        </details>
 
         {% endif %}
 

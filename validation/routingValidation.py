@@ -4,7 +4,7 @@ from parser.routing import build_routing_matrix, resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
 from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning
-from validation.routingHelper import ANY, ISP_EXPECTED
+from validation.routingHelper import ANY, ISP_EXPECTED, TABLES
 
 # -------------------------------------------------------------
 # Creates a validation table and a list of warnings related to routing configuration.
@@ -117,6 +117,13 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                     if (expected_is_policy is not ANY and interpreted_is_policy != expected_is_policy):
                         continue
+                    
+                    expected_type = expected_route.get("type")
+                    interpreted_type = interpreted_route.get("type")
+                    
+                    if (interpreted_type is not None and interpreted_type != expected_type):
+                        print(f"Comparando ruta esperada {expected_type} con ruta interpretada {interpreted_type}")
+                        continue
 
                     field_results = {}
 
@@ -187,20 +194,32 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 # --------------------------------------------------
 
                 if not matched:
-
+                    print(f"Router {router_name} Expected route: {expected_route}")
                     route_result["missing_expected_routes"].append({
                         "expected": expected_route,
                         "best_candidate": best_candidate
                     })
 
-                    warnings.append({
-                        "router": router_name,
-                        "route": route_name,
-                        "severity": "error",
-                        "message": (
-                            f"No se puede alcanzar la red {expected_route.get("prefix_type")} {route_name} desde {router_name}" 
-                        )
-                    })
+                    expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
+
+                    if not expected_route.get("is_policy"):
+                        warnings.append({
+                            "router": router_name,
+                            "route": route_name,
+                            "severity": "error",
+                            "message": (
+                                f"No se puede alcanzar la red {expected_prefix_type} {route_name} desde {router_name}" 
+                            )
+                        })
+                    else:
+                        warnings.append({
+                            "router": router_name,
+                            "route": route_name,
+                            "severity": "error",
+                            "message": (
+                                f"No se encontró la ruta hacia la red {expected_prefix_type} {route_name} en la tabla adicional esperada para {TABLES[expected_route.get('table')]} en el router {router_name}."
+                            )
+                        })
 
                     if best_candidate:
 
@@ -275,7 +294,6 @@ def propagate_routing_warnings(data, validation_result):
     )
 
     for router, route_warnings in grouped_warnings.items():
-        print(f"Propagando warning para {router}: {route_warnings}")
         node_id = get_node_id(data, router)
         router_data = routing_data.get(node_id)
 
@@ -292,7 +310,6 @@ def propagate_routing_warnings(data, validation_result):
         for net, warnings in route_warnings.items():
 
             for warning in warnings:
-                print(f"Propagando warning para {router}: {warning}")
                 message = warning.get("message")
 
                 if message in existing_messages:

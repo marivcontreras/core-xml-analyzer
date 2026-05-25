@@ -22,7 +22,9 @@ TYPE_LABELS = {
     "routing": "Ruteo",
     "tunnels": "Túneles",
     "error": "Errores",
-    "warning": "Advertencias"
+    "warning": "Advertencias",
+    "network": "Redes", 
+    "router_config": "Configuración de routers",
 }
 
 def same_block(p1, p2):
