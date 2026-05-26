@@ -48,13 +48,13 @@ def infer_networks(data):
             if not prefixes:
                 add_warning(
                     data,
-                    f"{node['name']} no tiene una dirección IP en {iface['name']} (red {l2['name']})",
-                    wtype="missing",
-                    scope="interface",
+                    "missing_ip_interface",
                     network=l2["name"],
                     node=node["name"],
                     interface=iface["name"],
-                    code="missing_ip_interface"
+                    node_name=node["name"],
+                    interface_name=iface["name"],
+                    net_name=l2["name"]
                 )
 
             net["prefixes"].update(prefixes)
@@ -99,25 +99,23 @@ def infer_networks(data):
         if not p1:
             add_warning(
                 data,
-                f"{n1['name']} no tiene una dirección IP en {link['iface1']['name']} (p2p)",
-                wtype="missing",
-                scope="interface",
+                "missing_ip_p2p",
                 network=f"{n1['name']}<>{n2['name']}",
                 node=n1["name"],
                 interface=link["iface1"]["name"],
-                code="missing_ip_p2p"
+                node_name=n1["name"],
+                interface_name=link["iface1"]["name"]
             )
 
         if not p2:
             add_warning(
                 data,
-                f"{n2['name']} no tiene una dirección IP en {link['iface2']['name']} (p2p)",
-                wtype="missing",
-                scope="interface",
+                "missing_ip_p2p",
                 network=f"{n1['name']}<>{n2['name']}",
                 node=n2["name"],
                 interface=link["iface2"]["name"],
-                code="missing_ip_p2p"
+                node_name=n2["name"],
+                interface_name=link["iface2"]["name"]
             )
 
         net["prefixes"] = sorted(list(net["prefixes"])) if net["prefixes"] else ["-"]

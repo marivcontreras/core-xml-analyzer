@@ -1,11 +1,29 @@
-def add_warning(data, message, *, wtype="generic", scope="network",
+from resources.warnings import get_warning_message, get_warning_type, get_warning_scope
+
+def add_warning(data, code, *, wtype=None, scope=None,
                 network=None, node=None, interface=None,
-                code=None, details=None):
+                details=None, **format_kwargs):
+    """
+    Add a warning to the data using a warning code and format parameters.
+
+    Args:
+        data: The data dictionary containing warnings list
+        code: Warning code key from resources.warnings
+        wtype: Override warning type (optional, uses resource default)
+        scope: Override warning scope (optional, uses resource default)
+        network, node, interface: Context metadata
+        details: Additional details dictionary
+        **format_kwargs: Format parameters for message template
+    """
+    message = get_warning_message(code, **format_kwargs)
+    if not message:
+        raise ValueError(f"Unknown warning code: {code}")
 
     warning = {
         "message": message,
-        "type": wtype,
-        "scope": scope,
+        "type": wtype or get_warning_type(code),
+        "scope": scope or get_warning_scope(code),
+        "code": code,
     }
 
     if network:
@@ -14,15 +32,42 @@ def add_warning(data, message, *, wtype="generic", scope="network",
         warning["node"] = node
     if interface:
         warning["interface"] = interface
-    if code:
-        warning["code"] = code
     if details:
         warning["details"] = details
 
     data["warnings"].append(warning)
 
 
-def add_routing_warning(routing, category, severity, message, **extra):
+def add_routing_warning(routing, category, severity, code, warnings_list=None, router=None, route=None, **format_kwargs):
+    """
+    Add a routing warning using a warning code and format parameters.
+
+    Args:
+        routing: The routing dictionary containing warnings, or None if warnings_list provided
+        category: Warning category (routing, isp, tunnels, etc.)
+        severity: Severity level (warning, error, etc.)
+        code: Warning code key from resources.warnings
+        warnings_list: Optional list to append warning to (for routing matrix validation)
+        **format_kwargs: Format parameters for message template
+    """
+    message = get_warning_message(code, **format_kwargs)
+    if not message:
+        raise ValueError(f"Unknown warning code: {code}")
+
+    warning = {
+        "router": format_kwargs.get("router_name", router),
+        "route": format_kwargs.get("route_name", route),
+        "severity": severity,
+        "message": message,
+        "code": code,
+    }  
+
+    if warnings_list is not None:
+        warnings_list.append(warning)
+    else:
+        routing["warnings"][category].append(warning)
+
+def replicate_routing_warning(routing, category, severity, message, **extra):
 
     warning = {
         "severity": severity,

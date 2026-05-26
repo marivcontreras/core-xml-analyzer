@@ -26,11 +26,10 @@ def validate_ip_addr_commands(node_id, data):
         if not match:
             add_warning(
                 data,
-                f"{node_name}: comando inválido → '{line}'",
-                wtype="syntax",
-                scope="node",
+                "invalid_ip_command",
                 node=node_name,
-                code="invalid_ip_command",
+                node_name=node_name,
+                line=line,
                 details={"line": line, "line_number": line_num}
             )
             continue
@@ -40,12 +39,11 @@ def validate_ip_addr_commands(node_id, data):
         if not interface_exists(node_id, iface, data):
             add_warning(
                 data,
-                f"{node_name}: interfaz {iface} no existe",
-                wtype="invalid",
-                scope="interface",
+                "interface_not_found",
                 node=node_name,
                 interface=iface,
-                code="interface_not_found"
+                node_name=node_name,
+                interface_name=iface
             )
 
         # ❌ Invalid prefix length
@@ -56,12 +54,12 @@ def validate_ip_addr_commands(node_id, data):
         except:
             add_warning(
                 data,
-                f"{node_name}: máscara inválida en '{line}'",
-                wtype="invalid",
-                scope="interface",
+                "invalid_prefix_length_ipv6",
                 node=node_name,
                 interface=iface,
-                code="invalid_prefix_length"
+                node_name=node_name,
+                interface_name=iface,
+                line=line
             )
             continue
 
@@ -71,12 +69,12 @@ def validate_ip_addr_commands(node_id, data):
         except Exception:
             add_warning(
                 data,
-                f"{node_name}: dirección IPv6 inválida en '{line}'",
-                wtype="invalid",
-                scope="interface",
+                "invalid_ipv6",
                 node=node_name,
                 interface=iface,
-                code="invalid_ipv6"
+                node_name=node_name,
+                interface_name=iface,
+                line=line
             )
        
 # -------------------------------------------------------------

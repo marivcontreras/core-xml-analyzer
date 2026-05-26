@@ -1,9 +1,9 @@
-from analyzer.prefixes import get_staticroute_interface_addresses
+-from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.devices import get_node, get_node_id
 from parser.routing import build_routing_matrix, resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
 from utils.ip import PREFIX_TYPE
-from utils.warning import add_routing_warning
+from utils.warning import add_routing_warning, replicate_routing_warning
 from validation.routingHelper import ANY, ISP_EXPECTED, TABLES
 
 # -------------------------------------------------------------
@@ -58,12 +58,15 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
             if interpreted is None:
 
-                warnings.append({
-                    "router": router_name,
-                    "route": route_name,
-                    "severity": "error",
-                    "message": f"Ruta faltante hacia '{route_name}'"
-                })
+                add_routing_warning(
+                    None,
+                    "routing",
+                    "error",
+                    "missing_route",
+                    router= router_name,
+                    warnings_list=warnings,
+                    route_name=route_name
+                )
 
                 route_result["exists"] = False
                 continue
@@ -203,23 +206,28 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
 
                     if not expected_route.get("is_policy"):
-                        warnings.append({
-                            "router": router_name,
-                            "route": route_name,
-                            "severity": "error",
-                            "message": (
-                                f"No se puede alcanzar la red {expected_prefix_type} {route_name} desde {router_name}" 
-                            )
-                        })
+                        add_routing_warning(
+                            None,
+                            "routing",
+                            "error",
+                            "unreachable_network",
+                            warnings_list=warnings,
+                            prefix_type=expected_prefix_type,
+                            route_name=route_name,
+                            router_name=router_name
+                        )
                     else:
-                        warnings.append({
-                            "router": router_name,
-                            "route": route_name,
-                            "severity": "error",
-                            "message": (
-                                f"No se encontró la ruta hacia la red {expected_prefix_type} {route_name} en la tabla adicional esperada para {TABLES[expected_route.get('table')]} en el router {router_name}."
-                            )
-                        })
+                        add_routing_warning(
+                            None,
+                            "routing",
+                            "error",
+                            "missing_route_additional_table",
+                            warnings_list=warnings,
+                            prefix_type=expected_prefix_type,
+                            route_name=route_name,
+                            table=TABLES[expected_route.get('table')],
+                            router_name=router_name
+                        )
 
                     if best_candidate:
 
@@ -227,21 +235,18 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                             if not field_result["valid"]:
 
-                                warnings.append({
-                                    "router": router_name,
-                                    "route": route_name,
-                                    "field": field_name,
-                                    "severity": "error",
-                                    "expected": field_result["expected"],
-                                    "actual": field_result["actual"],
-                                    "message": build_invalid_field_warning(
-                                        router_name,
-                                        route_name,
-                                        field_name,
-                                        field_result["expected"],
-                                        field_result["actual"]
-                                    )
-                                })
+                                add_routing_warning(
+                                    None,
+                                    "routing",
+                                    "error",
+                                    "invalid_route_field",
+                                    router=router_name,
+                                    warnings_list=warnings,
+                                    field=field_name,
+                                    route_name=route_name,
+                                    expected=field_result["expected"],
+                                    actual=field_result["actual"]
+                                )
 
             # --------------------------------------------------
             # final validity
@@ -315,7 +320,7 @@ def propagate_routing_warnings(data, validation_result):
                 if message in existing_messages:
                     continue
 
-                add_routing_warning(
+                replicate_routing_warning(
                     router_data,
                     "routing",
                     warning.get("severity","warning"),
@@ -463,10 +468,7 @@ def validate_isp_routes(data):
                 router_data,
                 "isp",
                 "warning",
-                (
-                    "No se encontraron las rutas indirectas "
-                    "necesarias para alcanzar las redes publicas IPv4."
-                )
+                "no_indirect_routes"
             )
 
         # --------------------------------------------------
@@ -493,10 +495,8 @@ def validate_isp_routes(data):
                     router_data,
                     "isp",
                     "warning",
-                    (
-                        f"No se encontró la ruta ISP "
-                        f"hacia {route_name}"
-                    )
+                    "missing_isp_route",
+                    route_name=route_name
                 )
 
                 continue
@@ -616,10 +616,8 @@ def validate_isp_routes(data):
                     router_data,
                     "isp",
                     "warning",
-                    (
-                        f"No se encontró una ruta ISP válida "
-                        f"hacia {route_name}"
-                    )
+                    "invalid_isp_route",
+                    route_name=route_name
                 )
 
                 for error in best_errors:
@@ -628,12 +626,11 @@ def validate_isp_routes(data):
                         router_data,
                         "isp",
                         "warning",
-                        (
-                            f"Error en campo {error['field']} "
-                            f"para {route_name}: "
-                            f"esperado -> {error['expected']}, "
-                            f"actual -> {error['actual']}"
-                        )
+                        "invalid_field_error",
+                        field=error['field'],
+                        route_name=route_name,
+                        expected=error['expected'],
+                        actual=error['actual']
                     )
 
         # --------------------------------------------------
@@ -659,11 +656,8 @@ def validate_isp_routes(data):
                 router_data,
                 "isp",
                 "warning",
-                (
-                    f"Error de concepto: "
-                    f"Ruta default invalida en "
-                    f"{format_route(route)}"
-                )
+                "invalid_default_route",
+                route=format_route(route)
             )
 
 def validate_tunnels(data):
@@ -702,7 +696,8 @@ def validate_tunnels(data):
                 routing,
                 "tunnels",
                 "error",
-                (f"No se encontró un túnel configurado en {router_name}")
+                "no_tunnel_configured",
+                router_name=router_name
             )
 
             continue
@@ -728,9 +723,10 @@ def validate_tunnels(data):
                     routing,
                     "tunnels",
                     "error",
-                    (
-                        f"Túnel invalido con local {local_ip} y remote {remote_ip} en {router_name}."
-                    )
+                    "invalid_tunnel",
+                    local_ip=local_ip,
+                    remote_ip=remote_ip,
+                    router_name=router_name
                 )
             
             if not local_valid:
@@ -738,19 +734,21 @@ def validate_tunnels(data):
                     routing,
                     "tunnels",
                     "warning",
-                    (   f"La dirección local {local_ip} del túnel configurado en {router_name}"
-                        f" no existe en el {router_name} en la interfaz {expected_local_interface}. "
-                        f"Se resolvió como {format_via_info(local_owner)}"
-                    )
+                    "tunnel_invalid_local",
+                    local_ip=local_ip,
+                    router_name=router_name,
+                    expected_interface=expected_local_interface,
+                    resolved_local=format_via_info(local_owner)
                 )
             elif not remote_valid:
                 add_routing_warning(
                     routing,
                     "tunnels",
                     "warning",
-                    (
-                        f"La dirección remota {remote_ip} del túnel configurado en {router_name} "
-                        f"no existe en el {expected_remote_router} en la interfaz {expected_remote_interface}."
-                        f"Se resolvió como {format_via_info(remote_owner)}"
-                    )
+                    "tunnel_invalid_remote",
+                    remote_ip=remote_ip,
+                    router_name=router_name,
+                    remote_router=expected_remote_router,
+                    expected_interface=expected_remote_interface,
+                    resolved_remote=format_via_info(remote_owner)
                 )

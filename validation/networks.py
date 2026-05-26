@@ -28,15 +28,11 @@ def validate_networks(data):
 
                 add_warning(
                     data,
-                    (
-                        f"{net['name']}: el prefijo {prefix} "
-                        f"ya fue asignado a la red "
-                        f"{used_prefixes[prefix]}"
-                    ),
-                    wtype="invalid",
-                    scope="network",
+                    "duplicated_prefix",
                     network=net["name"],
-                    code="duplicated_prefix",
+                    net_name=net["name"],
+                    prefix=prefix,
+                    other_network=used_prefixes[prefix],
                     details={
                         "prefix": prefix,
                         "other_network": used_prefixes[prefix]
@@ -54,22 +50,20 @@ def validate_networks(data):
         if PREFIX_TYPE["ipv4"] in kinds and len(kinds) > 1:
             add_warning(
                 data,
-                f"{net['name']}: se asignaron direcciones adicionales en internet ({', '.join(prefixes)})",
-                wtype="design",
-                scope="network",
+                "ipv4_with_other_prefixes",
                 network=net["name"],
-                code="ipv4_with_other_prefixes",
+                net_name=net["name"],
+                prefixes=', '.join(prefixes),
                 details={"prefixes": prefixes}
             )
         
         if "unknown" in kinds:
             add_warning(
                 data,
-                f"{net['name']}: prefijo invalido ({', '.join(prefixes)})",
-                wtype="design",
-                scope="network",
+                "invalid_prefixes",
                 network=net["name"],
-                code="invalid_prefixes",
+                net_name=net["name"],
+                prefixes=', '.join(prefixes),
                 details={"prefixes": prefixes}
             )        
         
@@ -79,11 +73,10 @@ def validate_networks(data):
         if len(prefixes) > 2:
             add_warning(
                 data,
-                f"{net['name']}: se asignaron mas de 2 bloques de red ({', '.join(prefixes)})",
-                wtype="design",
-                scope="network",
+                "too_many_prefixes",
                 network=net["name"],
-                code="too_many_prefixes",
+                net_name=net["name"],
+                prefixes=', '.join(prefixes),
                 details={"prefixes": prefixes}
             )
 
@@ -96,22 +89,22 @@ def validate_networks(data):
             if net["kind"] in ["lan", "wireless"] and net_obj.prefixlen != 64:
                 add_warning(
                     data,
-                    f"{net['name']}: prefijo {p} deberia ser /64",
-                    wtype="invalid",
-                    scope="network",
+                    "invalid_prefix_length",
                     network=net["name"],
-                    code="invalid_prefix_length",
+                    net_name=net["name"],
+                    prefix=p,
+                    expected=64,
                     details={"prefix": p, "expected": 64}
                 )
 
             if net["kind"] == "point-to-point" and net_obj.prefixlen != 127:
                 add_warning(
                     data,
-                    f"{net['name']}: prefijo {p} deberia ser /127",
-                    wtype="invalid",
-                    scope="network",
+                    "invalid_prefix_length",
                     network=net["name"],
-                    code="invalid_prefix_length",
+                    net_name=net["name"],
+                    prefix=p,
+                    expected=127,
                     details={"prefix": p, "expected": 127}
                 )
 
@@ -121,11 +114,10 @@ def validate_networks(data):
         if PREFIX_TYPE["site"] not in kinds:
             add_warning(
                 data,
-                f"{net['name']}: prefijo site faltante (existentes: {', '.join(prefixes)})",
-                wtype="missing",
-                scope="network",
+                "missing_site_prefix",
                 network=net["name"],
-                code="missing_site_prefix",
+                net_name=net["name"],
+                existing=', '.join(prefixes),
                 details={"existing": prefixes}
             )
 
@@ -133,11 +125,10 @@ def validate_networks(data):
             if PREFIX_TYPE["global"] not in kinds:
                 add_warning(
                     data,
-                    f"{net['name']}: prefijo global faltante (existentes: {', '.join(prefixes)})",
-                    wtype="missing",
-                    scope="network",
+                    "missing_global_prefix",
                     network=net["name"],
-                    code="missing_global_prefix",
+                    net_name=net["name"],
+                    existing=', '.join(prefixes),
                     details={"existing": prefixes}
                 )
 
@@ -149,11 +140,9 @@ def validate_networks(data):
             if PREFIX_TYPE["global"] in kinds:
                 add_warning(
                     data,
-                    f"{net['name']}: red admin no debería usar direcciones globales",
-                    wtype="design",
-                    scope="network",
+                    "admin_with_global",
                     network=net["name"],
-                    code="admin_with_global",
+                    net_name=net["name"],
                     details={"prefixes": prefixes}
                 )
 
@@ -216,22 +205,22 @@ def check_p2p_consistency(net, data):
         if not same_block(str(a["global"].network), str(b["global"].network)):
             add_warning(
                 data,
-                f"{net['name']}: direcciones globales de distintos bloques ({a['global']} - {b['global']})",
-                wtype="inconsistent",
-                scope="link",
+                "p2p_global_mismatch",
                 network=net["name"],
-                code="p2p_global_mismatch"
+                net_name=net["name"],
+                global_a=a["global"],
+                global_b=b["global"]
             )
     # --- SITE CHECK ---
     if a["site"] and b["site"]:
         if not same_block(str(a["site"].network), str(b["site"].network)):
             add_warning(
                 data,
-                f"{net['name']}: direcciones site de distintos bloques ({a['site']} - {b['site']})",
-                wtype="inconsistent",
-                scope="link",
+                "p2p_site_mismatch",
                 network=net["name"],
-                code="p2p_site_mismatch"
+                net_name=net["name"],
+                site_a=a["site"],
+                site_b=b["site"]
             )
 
     # --- MISSING ADDRESS CHECK ---
@@ -239,19 +228,19 @@ def check_p2p_consistency(net, data):
         if not ep["global"]:
             add_warning(
                 data,
-                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección global",
-                wtype="inconsistent",
-                scope="link",
+                "p2p_missing_global",
                 network=net["name"],
-                code="p2p_missing_global"
+                net_name=net["name"],
+                node_name=data['devices'][ep['node']]['name'],
+                iface=ep['iface']
             )
 
         if not ep["site"]:
             add_warning(
                 data,
-                f"{net['name']}: {data['devices'][ep['node']]['name']} ({ep['iface']}) sin dirección site", 
-                wtype="inconsistent",
-                scope="link",
+                "p2p_missing_site",
                 network=net["name"],
-                code="p2p_missing_site"
+                net_name=net["name"],
+                node_name=data['devices'][ep['node']]['name'],
+                iface=ep['iface']
             )

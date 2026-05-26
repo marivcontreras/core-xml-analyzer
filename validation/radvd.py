@@ -24,12 +24,11 @@ def validate_radvd_interfaces(data):
             if not assigned_ips:
                 add_warning(
                     data,
-                    f"{node_name}: La interfaz {iface} tiene configurado radvd pero no se encontraron direcciones asignadas correspondientes al bloque anunciado",
-                    wtype="missing",
-                    scope="interface",
+                    "radvd_without_ip",
                     node=node_name,
                     interface=iface,
-                    code="radvd_without_ip"
+                    node_name=node_name,
+                    interface_name=iface
                 )
                 continue
 
@@ -37,10 +36,10 @@ def validate_radvd_interfaces(data):
                 if not any(ip.ip in prefix for prefix in prefixes):
                     add_warning(
                         data,
-                        f"{node_name}: La dirección {ip} en la interfaz {iface} no pertenece a los bloques anunciados",
-                        wtype="invalid",
-                        scope="interface",
+                        "ip_outside_radvd_prefix",
                         node=node_name,
                         interface=iface,
-                        code="ip_outside_radvd_prefix"
+                        node_name=node_name,
+                        interface_name=iface,
+                        ip=ip
                     )
