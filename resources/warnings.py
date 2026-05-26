@@ -223,7 +223,19 @@ WARNINGS = {
     },
 
     "invalid_route_field": {
-        "message": "Campo {field} inválido en la ruta hacia {route_name}: esperado -> {expected}, actual -> {actual}",
+        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}: esperado -> {expected}, actual -> {actual}.",
+        "type": "error",
+        "category": "routing"
+    },
+
+    "invalid_route_field_via_info": {
+        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}: esperado -> {expected}, actual -> {actual}.",
+        "type": "error",
+        "category": "routing"
+    },
+
+    "invalid_route_field_via_info_none": {
+        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}: esperado -> {expected}, actual -> la dirección IP es inválida o no está asignada.",
         "type": "error",
         "category": "routing"
     },

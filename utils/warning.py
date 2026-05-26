@@ -50,6 +50,7 @@ def add_routing_warning(routing, category, severity, code, warnings_list=None, r
         warnings_list: Optional list to append warning to (for routing matrix validation)
         **format_kwargs: Format parameters for message template
     """
+    print(f"Format kwargs: {format_kwargs}")
     message = get_warning_message(code, **format_kwargs)
     if not message:
         raise ValueError(f"Unknown warning code: {code}")

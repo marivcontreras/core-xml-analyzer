@@ -1,4 +1,4 @@
--from analyzer.prefixes import get_staticroute_interface_addresses
+from analyzer.prefixes import get_staticroute_interface_addresses
 from parser.devices import get_node, get_node_id
 from parser.routing import build_routing_matrix, resolve_ip_owner
 from report.formatters import format_route, format_via_info, reverse_route_name
@@ -122,10 +122,12 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         continue
                     
                     expected_type = expected_route.get("type")
+                    if not isinstance(expected_type, list):
+                        expected_type = [expected_type]
                     interpreted_type = interpreted_route.get("type")
                     
-                    if (interpreted_type is not None and interpreted_type != expected_type):
-                        print(f"Comparando ruta esperada {expected_type} con ruta interpretada {interpreted_type}")
+                    if (interpreted_type is not None and interpreted_type not in expected_type):
+                        print(f"Comparando ruta esperada {expected_route} con ruta interpretada {interpreted_route}")
                         continue
 
                     field_results = {}
@@ -197,7 +199,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 # --------------------------------------------------
 
                 if not matched:
-                    print(f"Router {router_name} Expected route: {expected_route}")
+                    print(f"Router {router_name}: Expected route: {expected_route}. Best candidate: {best_candidate}")
                     route_result["missing_expected_routes"].append({
                         "expected": expected_route,
                         "best_candidate": best_candidate
@@ -235,17 +237,13 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                             if not field_result["valid"]:
 
-                                add_routing_warning(
-                                    None,
-                                    "routing",
-                                    "error",
-                                    "invalid_route_field",
-                                    router=router_name,
-                                    warnings_list=warnings,
-                                    field=field_name,
-                                    route_name=route_name,
-                                    expected=field_result["expected"],
-                                    actual=field_result["actual"]
+                                build_invalid_field_warning(
+                                    warnings, 
+                                    router_name,
+                                    route_name,
+                                    field_name,
+                                    field_result["expected"],
+                                    field_result["actual"]
                                 )
 
             # --------------------------------------------------
@@ -406,23 +404,46 @@ def match_via_info(actual, expected_options):
 # Creates a human-friendly warning message for an invalid field, 
 # with special formatting for certain fields like via_info.
 # -------------------------------------------------------------
-def build_invalid_field_warning(router, route, field, expected, actual):
+def build_invalid_field_warning(warnings, router, route, field, expected, actual):
     if field == "via_info":
         if (actual is not None):
-            return (
-                f"La ruta hacia la red {route} tiene un valor inválido en el campo via. "
-                f"Posibles: {format_via_info(expected)}. Actual: {format_via_info(actual)}"
-            )
+            add_routing_warning(
+                None,
+                "routing",
+                "error",
+                "invalid_route_field_via_info",
+                router=router,
+                warnings_list=warnings,
+                route_name=route,
+                field=field,               
+                expected=format_via_info(expected),
+                actual=format_via_info(actual)
+                )
         else:
-            return (
-                f"La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
-                f"Posibles: {format_via_info(expected)}. Actual: la dirección IP es inválida o no está asignada."
-            )
+            add_routing_warning(
+                None,
+                "routing",
+                "error",
+                "invalid_route_field_via_info_none",
+                router=router,
+                warnings_list=warnings,
+                route_name=route,
+                field=field,                
+                expected=format_via_info(expected)
+                )
 
-    return (
-        f"La ruta hacia la red {route} tiene un valor inválido en el campo {field}. "
-        f"Esperado: {expected}. Actual: {actual}"
-    )
+    add_routing_warning(
+                None,
+                "routing",
+                "error",
+                "invalid_route_field",
+                router=router,
+                warnings_list=warnings,
+                route_name=route,
+                field=field,                
+                expected=expected,
+                actual=actual
+                )
 
 def validate_isp_routes(data):
     routing_data = data["routing"]
