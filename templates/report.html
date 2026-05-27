@@ -49,12 +49,8 @@
             font-size: 14px;
         }
 
-        tr:nth-child(even) td {
-            background: #fafafa;
-        }
-
         tr:hover td {
-            background: #f3f7ff;
+            background: #eee9e9e5;
         }
 
         .summary-container {
@@ -263,11 +259,11 @@
         }
 
         .routing-invalid {
-            background: rgba(255, 0, 0, 0.03);
+            background: rgba(255, 0, 0, 0.1);
         }
 
         .routing-missing {
-            background: rgba(255, 0, 0, 0.05);
+            background: rgba(255, 0, 0, 0.1);
         }
 
         .route-missing {
@@ -649,7 +645,7 @@
 
                         <td class="routing-cell {% if not validation['exists'] %} routing-missing {% endif %} {% if not
                         validation['valid'] %} routing-invalid {% endif %}">
-
+                            <pre> {{ validation['valid'] }} </pre>
                             {% if routes %}
                             {% for route in routes %}
 

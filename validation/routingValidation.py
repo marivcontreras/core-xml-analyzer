@@ -127,7 +127,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     interpreted_type = interpreted_route.get("type")
                     
                     if (interpreted_type is not None and interpreted_type not in expected_type):
-                        print(f"Comparando ruta esperada {expected_route} con ruta interpretada {interpreted_route}")
+                        #print(f"Comparando ruta esperada {expected_route} con ruta interpretada {interpreted_route}")
                         continue
 
                     field_results = {}
@@ -199,7 +199,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 # --------------------------------------------------
 
                 if not matched:
-                    print(f"Router {router_name}: Expected route: {expected_route}. Best candidate: {best_candidate}")
+                    #print(f"Router {router_name}: Expected route: {expected_route}. Best candidate: {best_candidate}")
                     route_result["missing_expected_routes"].append({
                         "expected": expected_route,
                         "best_candidate": best_candidate
@@ -251,7 +251,8 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # --------------------------------------------------
 
             route_result["valid"] = (len(route_result["missing_expected_routes"]) == 0)
-
+            if (router_name == "R5"):
+                print(f"Route result for {router_name} {route_name}: Exists {route_result['exists']}  Valid {route_result['valid']}")
         # ------------------------------------------------------
         # detect totally unexpected networks
         # ------------------------------------------------------

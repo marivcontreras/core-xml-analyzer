@@ -392,15 +392,19 @@ def is_intranet_network(net_name):
 # Builds a matrix table for displaying network information
 # -------------------------------------------------------------
 def build_matrix_table(matrix, networks_data, validation_result=None):
+
+    import copy
+
     routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
 
     validation_table = {}
     warnings = []
+    grouped_warnings = {}
 
     if validation_result:
         validation_table = validation_result.get("validation_table", {})
         warnings = validation_result.get("warnings", [])
-        grouped_warnings = validation_result.get("grouped_warnings", [])
+        grouped_warnings = validation_result.get("grouped_warnings", {})
 
     # ----------------------------------------------------------
     # collect networks
@@ -416,6 +420,7 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
     # ----------------------------------------------------------
 
     networks = sorted(n for n in networks if is_intranet_network(n))
+
     network_prefixes = {}
 
     for net in networks_data.values():
@@ -425,6 +430,7 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
     rows = []
 
     for net in networks:
+
         row = {
             "network": net,
             "prefixes": network_prefixes.get(net, []),
@@ -435,8 +441,10 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
         has_data = False
 
         for router in routers:
+
             cell = matrix.get(router, {}).get(net)
-            validation = (validation_table.get(router, {}).get(net, build_empty_validation()))
+
+            validation = validation_table.get(router, {}).get(net, validation_table.get(router, {}).get(reverse_route_name(net), build_empty_validation()))
 
             # --------------------------------------------------
             # normalize routing entries to list
@@ -445,10 +453,12 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
 
             if cell is None:
                 normalized_cell = []
+
             elif isinstance(cell, list):
-                normalized_cell = cell
+                normalized_cell = copy.deepcopy(cell)
+
             else:
-                normalized_cell = [cell]
+                normalized_cell = [copy.deepcopy(cell)]
 
             if normalized_cell:
                 has_data = True
