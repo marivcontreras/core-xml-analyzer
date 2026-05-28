@@ -416,7 +416,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                 router=router,
                 warnings_list=warnings,
                 route_name=route,
-                field=field,               
+                field="via",               
                 expected=format_via_info(expected),
                 actual=format_via_info(actual)
                 )
@@ -429,22 +429,22 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                 router=router,
                 warnings_list=warnings,
                 route_name=route,
-                field=field,                
+                field="via",                
                 expected=format_via_info(expected)
                 )
-
-    add_routing_warning(
-                None,
-                "routing",
-                "error",
-                "invalid_route_field",
-                router=router,
-                warnings_list=warnings,
-                route_name=route,
-                field=field,                
-                expected=expected,
-                actual=actual
-                )
+    else:
+        add_routing_warning(
+                    None,
+                    "routing",
+                    "error",
+                    "invalid_route_field",
+                    router=router,
+                    warnings_list=warnings,
+                    route_name=route,
+                    field=field,                
+                    expected=expected,
+                    actual=actual
+                    )
 
 def validate_isp_routes(data):
     routing_data = data["routing"]

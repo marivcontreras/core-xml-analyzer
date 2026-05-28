@@ -325,12 +325,22 @@
             margin-top: 14px;
             padding-left: 14px;
             border-left: 4px solid #d1d5db;
-        }
+        }      
 
         .warning-subgroup-title {
             font-weight: 700;
             margin-bottom: claupx;
             color: #374151;
+        }
+
+        .routing-warning-subgroup {
+            margin-top: 14px;
+            padding: 14px;            
+        }
+
+        .routing-warning-subgroup-title {
+            font-weight: 700;
+            color: #b00020;
         }
 
         .warning-list {
@@ -853,8 +863,8 @@
         {% set routing_warnings = routing.warnings["routing"] %}
         {% if routing_warnings %}
 
-        <details class="warning-subgroup">
-            <summary class="warning-subgroup-title">
+        <details class="routing-warning-subgroup">
+            <summary class="routing-warning-subgroup-title">
                 Advertencias de Ruteo
             </summary>
             {% for warning in routing_warnings %}
