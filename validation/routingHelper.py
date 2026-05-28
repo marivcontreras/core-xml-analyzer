@@ -1,3 +1,94 @@
+"""
+Routing Helper Module - Expected Routing Matrix Configuration
+
+This module defines the expected routing configuration for the network topology under validation.
+It serves as the source of truth for which routes should be present on each router.
+
+ROUTING MATRIX STRUCTURE
+========================
+
+The EXPECTED_ROUTING_MATRIX is organized by router, with each router defining:
+- Key: Router name (e.g., "R1-DC", "R4", "R5")
+- Value: Dict mapping network destinations to expected route specifications
+
+Each route specification includes:
+- Route type (direct, indirect, policy route)
+- Via information (next-hop device/interface)
+- Output interface
+- Routing table assignment
+- Prefix type (IPv6 global, IPv6 site-local)
+
+ROUTE BUILDERS
+==============
+
+Helper functions construct route specifications:
+
+1. direct(iface)
+   - For directly connected networks
+   - Type: "DIR"
+   - No via/next-hop needed
+   - Automatically assigned to "local" table
+   - Example: direct("eth0") for a network on eth0
+
+2. default(iface, via, onlySite=False)
+   - For default routes (0::/0)
+   - Type: "IND" (indirect)
+   - Parameters:
+     * iface: output interface name
+     * via: next-hop in format "ROUTER-INTERFACE" (e.g., "R4-eth1")
+     * onlySite: if True, only create site-local default; else both global+site
+   - Goes to "main" routing table
+
+3. indirect(vias, devs=None, onlySite=False)
+   - For reachable networks via one or more hops
+   - Type: "IND"
+   - Parameters:
+     * vias: list of next-hops in format "ROUTER-INTERFACE"
+     * devs: output interface(s), or ANY if flexible
+     * onlySite: if True, only site-local; else both global+site
+   - Uses "main" routing table
+
+4. policy_default(table, iface, via, onlySite=False)
+   - For policy-based default routes in specific tables
+   - Type: "policy"
+   - Goes to specified policy table (e.g., "guest-isolation")
+
+5. policy_drop(table, drop_type=['blackhole','prohibit','unreachable'], onlySite=False)
+   - For policy-based drop rules
+   - Blocks traffic for specific prefix types to specific tables
+
+TABLES
+======
+
+TABLES dict defines special routing tables for policy-based routing:
+- "main": default routing table (used by most routes)
+- "local": kernel-managed table for directly connected networks
+- "to-r3": policy table redirecting TCP packets toward R3
+- "guest-isolation": policy table preventing guest network access
+
+MODIFYING THE ROUTING MATRIX
+=============================
+
+To adjust routing expectations for a topology change:
+
+1. Identify affected routers
+2. Find the route entry for the changed destination
+3. Update the route specification using the appropriate builder function
+4. Test with the topology XML to ensure validation matches expected behavior
+
+Example: If R5's path to SwAdmin changes from R4 via eth0 to R6 via eth1:
+   OLD: "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)
+   NEW: "SwAdmin": indirect(["R6-eth1", "R3-eth2"], onlySite=True)
+
+IMPORTANT NOTES
+===============
+
+- EXPECTED_ROUTING_MATRIX validates the configuration in parse_xml()
+- All changes here require corresponding configuration changes in the XML
+- Validation is context-specific to the network topology being analyzed
+- Consider adding comments to non-obvious routing decisions
+"""
+
 from utils.ip import PREFIX_TYPE
 
 ANY = "__ANY__"

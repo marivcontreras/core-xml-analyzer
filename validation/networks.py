@@ -4,6 +4,11 @@ import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses
 from utils.ip import PREFIX_TYPE, same_block, classify_prefix_type
 from utils.warning import add_warning
+from validation.configs.network_config import (
+    PREFIX_LENGTH_REQUIREMENTS,
+    MAX_PREFIXES_PER_NETWORK,
+    ADMIN_NETWORK_PATTERN,
+)
 
 # -------------------------------------------------------------
 # Creates a list of warnings related to network design and configuration issues, such as:
@@ -70,7 +75,7 @@ def validate_networks(data):
         # ----------------------------------
         # 1. Too many prefixes
         # ----------------------------------
-        if len(prefixes) > 2:
+        if len(prefixes) > MAX_PREFIXES_PER_NETWORK:
             add_warning(
                 data,
                 "too_many_prefixes",
@@ -86,26 +91,26 @@ def validate_networks(data):
         for p in prefixes:
             net_obj = ipaddress.ip_network(p, strict=False)
 
-            if net["kind"] in ["lan", "wireless"] and net_obj.prefixlen != 64:
+            if net["kind"] in ["lan", "wireless"] and net_obj.prefixlen != PREFIX_LENGTH_REQUIREMENTS["lan"]:
                 add_warning(
                     data,
                     "invalid_prefix_length",
                     network=net["name"],
                     net_name=net["name"],
                     prefix=p,
-                    expected=64,
-                    details={"prefix": p, "expected": 64}
+                    expected=PREFIX_LENGTH_REQUIREMENTS["lan"],
+                    details={"prefix": p, "expected": PREFIX_LENGTH_REQUIREMENTS["lan"]}
                 )
 
-            if net["kind"] == "point-to-point" and net_obj.prefixlen != 127:
+            if net["kind"] == "point-to-point" and net_obj.prefixlen != PREFIX_LENGTH_REQUIREMENTS["point-to-point"]:
                 add_warning(
                     data,
                     "invalid_prefix_length",
                     network=net["name"],
                     net_name=net["name"],
                     prefix=p,
-                    expected=127,
-                    details={"prefix": p, "expected": 127}
+                    expected=PREFIX_LENGTH_REQUIREMENTS["point-to-point"],
+                    details={"prefix": p, "expected": PREFIX_LENGTH_REQUIREMENTS["point-to-point"]}
                 )
 
         # ----------------------------------
@@ -121,7 +126,7 @@ def validate_networks(data):
                 details={"existing": prefixes}
             )
 
-        if "admin" not in net["name"].lower():  # you may refine later
+        if ADMIN_NETWORK_PATTERN.lower() not in net["name"].lower():
             if PREFIX_TYPE["global"] not in kinds:
                 add_warning(
                     data,
@@ -134,9 +139,9 @@ def validate_networks(data):
 
         # ----------------------------------
         # 4. Admin network should NOT have global
-        # (basic heuristic: name contains 'Admin')
+        # (heuristic: name contains configured ADMIN_NETWORK_PATTERN)
         # ----------------------------------
-        if "admin" in net["name"].lower():
+        if ADMIN_NETWORK_PATTERN.lower() in net["name"].lower():
             if PREFIX_TYPE["global"] in kinds:
                 add_warning(
                     data,

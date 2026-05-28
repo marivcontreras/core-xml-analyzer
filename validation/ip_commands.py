@@ -1,11 +1,7 @@
-import re
 import ipaddress
 
 from utils.warning import add_warning
-
-IPV6_CMD_REGEX = re.compile(
-    r'^\s*ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)\s*$'
-)
+from validation.configs.ip_commands_config import IPV6_CMD_REGEX, IPV6_PREFIX_LENGTH_MIN, IPV6_PREFIX_LENGTH_MAX
 
 def validate_ip_addr_commands(node_id, data):
     services = data["services"].get(node_id, {})
@@ -49,7 +45,7 @@ def validate_ip_addr_commands(node_id, data):
         # ❌ Invalid prefix length
         try:
             mask_int = int(mask)
-            if mask_int < 0 or mask_int > 128:
+            if mask_int < IPV6_PREFIX_LENGTH_MIN or mask_int > IPV6_PREFIX_LENGTH_MAX:
                 raise ValueError()
         except:
             add_warning(
