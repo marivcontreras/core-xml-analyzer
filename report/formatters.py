@@ -360,7 +360,7 @@ def format_route(route):
 # -------------------------------------------------
 # Reverses P2P network name if it contains "<>", e.g. "R1<>R2" -> "R2<>R1"
 # -------------------------------------------------
-def reverse_route_name(route_name):
+def reverse_network_name(route_name):
     if "<>" in route_name:
         parts = [p.strip() for p in route_name.split("<>")]
         if len(parts) == 2:
@@ -444,7 +444,7 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
 
             cell = matrix.get(router, {}).get(net)
 
-            validation = validation_table.get(router, {}).get(net, validation_table.get(router, {}).get(reverse_route_name(net), build_empty_validation()))
+            validation = validation_table.get(router, {}).get(net, validation_table.get(router, {}).get(reverse_network_name(net), build_empty_validation()))
 
             # --------------------------------------------------
             # normalize routing entries to list

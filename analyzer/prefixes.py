@@ -2,6 +2,7 @@ import ipaddress
 import re
 
 from parser.devices import get_node
+from report.formatters import reverse_network_name
 
 # ----------------------------------------------------------
 # Obtains net prefixes for a given node interface:
@@ -212,3 +213,71 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
 
     return result
 
+# -------------------------------------------------------------------
+# Returns node and interface information for a given IP address.
+# -------------------------------------------------------------------
+def resolve_ip_owner(ip_str, data):
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except:
+        return None
+
+    for net in data["networks"].values():
+        for member in net.get("member_interfaces", []):
+            node_id = member["node"]
+            iface = member["iface"]
+            addrs = get_staticroute_interface_addresses(data, node_id, iface)
+            for addr in addrs:
+                if addr.ip == ip:
+                    node = data["devices"].get(node_id, {"name": f"node{node_id}"})
+
+                    return {
+                        "node": node["name"],
+                        "interface": iface,
+                        "network": net["name"],
+                        "type": "neighbor"
+                    }
+
+    return {
+                "node": None,
+                "interface": None,
+                "network": None,
+                "type": None
+            }
+
+
+def get_network_by_name(data, network_name):
+    for net in data["networks"].values():
+        if net.get("name") == network_name or net.get("name") == reverse_network_name(network_name):
+            return net
+
+    return None
+
+def resolve_route_dev(node_id, via_ip, data):
+    print(f"Via IP {via_ip} for node {node_id}")
+    if not via_ip:
+        return None
+
+    via_info = resolve_ip_owner(via_ip, data)
+    print(f"Resolving route dev for {node_id} with via_info {via_info}")
+
+    network_name = via_info.get("network")
+
+    if not network_name:
+        return None
+    
+    print(f"Looking for network {network_name} or {reverse_network_name(network_name)} in data")
+
+    network = get_network_by_name(data, network_name)
+    
+    print(f"Found network {network_name}: {network}")
+    if not network:
+        return None
+
+    for member in network.get("member_interfaces", []):
+
+        if member["node"] == node_id:
+            print(f"Found interface {member['iface']} for node {node_id}")
+            return member["iface"]
+
+    return None
