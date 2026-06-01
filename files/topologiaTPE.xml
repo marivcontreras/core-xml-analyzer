@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario>
+  <networks>
+    <network id="10" name="SwVentas" icon="" canvas="1" type="SWITCH">
+    </network>
+    <network id="11" name="SwAdmin" icon="" canvas="1" type="SWITCH">
+    </network>
+    <network id="12" name="SwOfiAdmin" icon="" canvas="1" type="SWITCH">
+    </network>
+    <network id="13" name="SwDataCenter" icon="" canvas="1" type="SWITCH">
+    </network>
+    <network id="14" name="WVentas" icon="" canvas="1" type="WIRELESS_LAN">
+    </network>
+    <network id="15" name="WGuest" icon="" canvas="1" type="WIRELESS_LAN">
+    </network>
+  </networks>
+  <devices>
+    <device id="1" name="R1-DC" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="2" name="R2" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="3" name="R3" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="4" name="R4" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="5" name="R5" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="6" name="R6" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="7" name="ISP-Intranet" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="8" name="ISP-Casa" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="9" name="R-Casa" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="16" name="PC-W-VTAS" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="17" name="PC-VTAS" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="18" name="S-VTAS" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="19" name="PC-DC" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="20" name="S-DNS" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="21" name="S-WEB" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="22" name="PC-GUEST" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="23" name="PC-ADM" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="24" name="S-ADM" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="25" name="PC-OFI-ADM" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+    <device id="26" name="PC-CASA" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
+    </device>
+  </devices>
+  <links>
+    <link node1="6" node2="14">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:b1"/>
+    </link>
+    <link node1="6" node2="10">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:c1"/>
+      <iface2 id="0" name="veth10.0.1"/>
+    </link>
+    <link node1="6" node2="5">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:03"/>
+    </link>
+    <link node1="16" node2="14">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:b2"/>
+    </link>
+    <link node1="5" node2="15">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:01"/>
+    </link>
+    <link node1="10" node2="17">
+      <iface1 id="1" name="veth10.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:c2"/>
+    </link>
+    <link node1="10" node2="18">
+      <iface1 id="2" name="veth10.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:c3"/>
+    </link>
+    <link node1="22" node2="15">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:02"/>
+    </link>
+    <link node1="13" node2="20">
+      <iface1 id="2" name="veth13.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a3"/>
+    </link>
+    <link node1="12" node2="25">
+      <iface1 id="1" name="veth12.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:e2"/>
+    </link>
+    <link node1="13" node2="21">
+      <iface1 id="3" name="veth13.3.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a4"/>
+    </link>
+    <link node1="13" node2="19">
+      <iface1 id="1" name="veth13.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:a2"/>
+    </link>
+    <link node1="11" node2="24">
+      <iface1 id="1" name="veth11.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d3"/>
+    </link>
+    <link node1="5" node2="4">
+      <iface1 id="3" name="eth2" mac="00:00:00:00:00:12"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:13"/>
+    </link>
+    <link node1="4" node2="2">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:18"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:19"/>
+    </link>
+    <link node1="11" node2="23">
+      <iface1 id="0" name="veth11.0.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d2"/>
+    </link>
+    <link node1="7" node2="8">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:1e" ip4="162.120.0.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:1f" ip4="162.120.0.2" ip4_mask="24"/>
+    </link>
+    <link node1="11" node2="3">
+      <iface1 id="2" name="veth11.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:d1"/>
+    </link>
+    <link node1="3" node2="2">
+      <iface1 id="3" name="eth3" mac="00:00:00:00:00:1a"/>
+      <iface2 id="1" name="eth1" mac="00:00:00:00:00:1b"/>
+    </link>
+    <link node1="3" node2="12">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:e1"/>
+      <iface2 id="0" name="veth12.0.1"/>
+    </link>
+    <link node1="1" node2="13">
+      <iface1 id="0" name="eth0" mac="00:00:00:00:00:a1"/>
+      <iface2 id="0" name="veth13.0.1"/>
+    </link>
+    <link node1="2" node2="7">
+      <iface1 id="2" name="eth2" mac="00:00:00:00:00:1c" ip4="100.64.0.2" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:1d" ip4="100.64.0.1" ip4_mask="24"/>
+    </link>
+    <link node1="4" node2="1">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:16"/>
+      <iface2 id="1" name="eth1" mac="00:00:00:00:00:17"/>
+    </link>
+    <link node1="8" node2="9">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:20" ip4="100.64.1.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:21" ip4="100.64.1.2" ip4_mask="24"/>
+    </link>
+    <link node1="9" node2="26">
+      <iface1 id="1" name="eth1" mac="00:00:00:00:00:22"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:00:00:23"/>
+    </link>
+    <link node1="5" node2="3">
+      <iface1 id="4" name="eth3" mac="00:00:00:00:00:14"/>
+      <iface2 id="2" name="eth2" mac="00:00:00:00:00:15"/>
+    </link>
+    <link node1="4" node2="3">
+      <iface1 id="3" name="eth3" mac="00:00:00:00:00:05"/>
+      <iface2 id="4" name="eth4" mac="00:00:00:00:00:06"/>
+    </link>
+  </links>
+</scenario>
