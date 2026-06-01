@@ -35,12 +35,22 @@ def get_prefixes_from_staticroute(node_id, iface_name, data):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
-    matches = re.findall(
+    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
+    ipv6_matches = re.findall(
         r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
         text
     )
+    
+    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
+    ipv4_matches = re.findall(
+        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)/(\d+)\s+dev\s+(\S+)',
+        text
+    )
+    
+    # Combine both patterns
+    all_matches = ipv6_matches + ipv4_matches
 
-    for addr, mask, dev in matches:
+    for addr, mask, dev in all_matches:
         if dev != iface_name:
             continue
 
@@ -133,15 +143,22 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
     result = []
     seen = set()
 
-    matches = re.findall(
+    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
+    ipv6_matches = re.findall(
         r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
         text
     )
+    
+    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
+    ipv4_matches = re.findall(
+        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
+        text
+    )
+    
+    # Combine both patterns
+    all_matches = ipv6_matches + ipv4_matches
 
-    #data["warnings"].append(f"node {node_id} for {iface_name}: found {matches} IP addresses")
-    result = []
-
-    for addr, mask, dev in matches:
+    for addr, mask, dev in all_matches:
         if iface_name == None or dev == iface_name:
             try:
                 ip = ipaddress.ip_interface(f"{addr}/{mask}")
