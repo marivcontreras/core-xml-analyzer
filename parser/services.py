@@ -153,6 +153,7 @@ def parse_rules(text):
 
     for line in matches:
         rule = {
+            "action": "unicast",
             "table": "main",
             "priority": None,
             "src": None,
@@ -200,6 +201,19 @@ def parse_rules(text):
         proto = re.search(r'ipproto\s+(\S+)', line)
         if proto:
             rule["ipproto"] = proto.group(1)
+
+        # ----------------------------------
+        # ACTION
+        # ----------------------------------
+
+        if re.search(r'\bblackhole\b', line):
+            rule["action"] = "blackhole"
+
+        elif re.search(r'\bunreachable\b', line):
+            rule["action"] = "unreachable"
+
+        elif re.search(r'\bprohibit\b', line):
+            rule["action"] = "prohibit"
 
         rules.append(rule)
 

@@ -217,8 +217,8 @@ WARNINGS = {
     },
 
     "missing_route_additional_table": {
-        "message": "No se encontró la ruta hacia la red {prefix_type} {route_name} en la tabla adicional esperada para {table} en el router {router_name}.",
-        "type": "error",
+        "message": "No se encontró la ruta hacia la red {prefix_type} {route_name} en la tabla adicional esperada para {table} en el router {router_name}. Consultar ip rule/iptables por implementaciones alternativas.",
+        "type": "warning",
         "category": "routing"
     },
 
