@@ -1,5 +1,6 @@
 import re
 import ipaddress
+from analyzer.prefixes import resolve_route_dev
 from report.formatters import strip_comments
 from utils.ip import PREFIX_TYPE, classify_prefix_type
 
@@ -54,7 +55,7 @@ def parse_routing(data):
         text = services["StaticRoute"]
 
         data["routing"][node_id] = {
-            "routes": parse_routes(text, data),
+            "routes": parse_routes(text, data, node_id),
             "rules": parse_rules(text),
             "iptables": parse_ip6tables(text),
             "tunnels": parse_tunnels(text),
@@ -68,7 +69,7 @@ def parse_routing(data):
 # --------------
 # Route parser
 # --------------
-def parse_routes(text, data):
+def parse_routes(text, data, node_id):
     routes = []
 
     matches = re.findall(
@@ -115,13 +116,19 @@ def parse_routes(text, data):
         if via:
             route["via"] = via.group(1)
 
-        # ----------------------------------
+         # ----------------------------------
         # DEV (interface)
         # ----------------------------------
+
         dev = re.search(r'dev\s+(\S+)', line)
+
         if dev:
+            print(f"Route dev for {route['dst']} via {route['via']} with dev {dev.group(1)}")
             route["dev"] = dev.group(1)
 
+        elif route["via"]:
+            route["dev"] = resolve_route_dev(node_id, route["via"], data)
+            print(f"Resolving route dev for {route['dst']} via {route['via']} with dev {route['dev']}")
         # ----------------------------------
         # TABLE
         # ----------------------------------
@@ -146,6 +153,7 @@ def parse_rules(text):
 
     for line in matches:
         rule = {
+            "action": "unicast",
             "table": "main",
             "priority": None,
             "src": None,
@@ -193,6 +201,19 @@ def parse_rules(text):
         proto = re.search(r'ipproto\s+(\S+)', line)
         if proto:
             rule["ipproto"] = proto.group(1)
+
+        # ----------------------------------
+        # ACTION
+        # ----------------------------------
+
+        if re.search(r'\bblackhole\b', line):
+            rule["action"] = "blackhole"
+
+        elif re.search(r'\bunreachable\b', line):
+            rule["action"] = "unreachable"
+
+        elif re.search(r'\bprohibit\b', line):
+            rule["action"] = "prohibit"
 
         rules.append(rule)
 

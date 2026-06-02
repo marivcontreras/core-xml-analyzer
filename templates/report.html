@@ -585,7 +585,7 @@
                 <div class="warning-subgroup-title">{{ TYPE_LABELS[type] }}</div>
                 <ul class="warning-list">
                     {% for w in warnings %}
-                    <li class="warning-item">
+                    <li class="warning-item {% if w.type == 'error' %} warning-error {% elif w.type == 'warning' %} warning-warning {% endif %}">
                         {{ w.message }}
                         {% if w.interface %} ({{ w.interface }}) {% endif %}
                     </li>
@@ -765,7 +765,7 @@
 
                         {% for warning in route_warnings %}
 
-                        <li class="warning-item warning-{{ warning.severity }}">
+                        <li class="warning-item warning-{{ warning.type }}">
 
                             <div class="warning-message">
                                 {{ warning.message }}
@@ -804,6 +804,7 @@
             <thead>
                 <tr>
                     <th>Prioridad</th>
+                    <th>Acción</th>
                     <th>Src</th>
                     <th>Dst</th>
                     <th>Proto</th>
@@ -815,6 +816,7 @@
                 {% for rule in routing.rules %}
                 <tr>
                     <td>{{ rule.priority if rule.priority else "-" }}</td>
+                    <td>{{ rule.action if rule.action else "-" }}</td>
                     <td>{{ rule.src if rule.src else "-" }}</td>
                     <td>{{ rule.dst if rule.dst else "-" }}</td>
                     <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
@@ -869,7 +871,7 @@
             </summary>
             {% for warning in routing_warnings %}
 
-            <div class="warning-item warning-{{ warning.severity }}">
+            <div class="warning-item warning-{{ warning.type }}">
                 {{ warning.message }}
             </div>
 
@@ -888,7 +890,7 @@
             </summary>
             {% for warning in isp_warnings %}
 
-            <div class="warning-item warning-{{ warning.severity }}">
+            <div class="warning-item warning-{{ warning.type }}">
                 {{ warning.message }}
             </div>
 
@@ -946,7 +948,7 @@
 
             {% for warning in tunnel_warnings %}
 
-            <div class="warning-item warning-{{ warning.severity }}">
+            <div class="warning-item warning-{{ warning.type }}">
                 {{ warning.message }}
             </div>
 

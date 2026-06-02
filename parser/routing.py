@@ -1,7 +1,7 @@
 import ipaddress
 
 from utils.ip import PREFIX_TYPE, classify_prefix_type
-from analyzer.prefixes import get_staticroute_interface_addresses
+from analyzer.prefixes import resolve_ip_owner
 from parser.devices import get_node, is_intranet_router
 from report.formatters import is_intranet_network
 
@@ -177,38 +177,6 @@ def find_interface_to_network(node_id, net, data):
                     return iface2.get("name") if iface2 else None
 
     return None
-
-# -------------------------------------------------------------------
-# Returns node and interface information for a given IP address.
-# -------------------------------------------------------------------
-def resolve_ip_owner(ip_str, data):
-    try:
-        ip = ipaddress.ip_address(ip_str)
-    except:
-        return None
-
-    for net in data["networks"].values():
-        for member in net.get("member_interfaces", []):
-            node_id = member["node"]
-            iface = member["iface"]
-            addrs = get_staticroute_interface_addresses(data, node_id, iface)
-            for addr in addrs:
-                if addr.ip == ip:
-                    node = data["devices"].get(node_id, {"name": f"node{node_id}"})
-
-                    return {
-                        "node": node["name"],
-                        "interface": iface,
-                        "network": net["name"],
-                        "type": "neighbor"
-                    }
-
-    return {
-                "node": None,
-                "interface": None,
-                "network": None,
-                "type": None
-            }
 
 # -------------------------------------------------------------------
 # Buids the routing matrix for all intranet routers and networks, 

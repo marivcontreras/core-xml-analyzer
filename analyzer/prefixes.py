@@ -2,6 +2,7 @@ import ipaddress
 import re
 
 from parser.devices import get_node
+from report.formatters import reverse_network_name
 
 # ----------------------------------------------------------
 # Obtains net prefixes for a given node interface:
@@ -35,12 +36,22 @@ def get_prefixes_from_staticroute(node_id, iface_name, data):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
-    matches = re.findall(
+    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
+    ipv6_matches = re.findall(
         r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
         text
     )
+    
+    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
+    ipv4_matches = re.findall(
+        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)/(\d+)\s+dev\s+(\S+)',
+        text
+    )
+    
+    # Combine both patterns
+    all_matches = ipv6_matches + ipv4_matches
 
-    for addr, mask, dev in matches:
+    for addr, mask, dev in all_matches:
         if dev != iface_name:
             continue
 
@@ -133,15 +144,22 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
     result = []
     seen = set()
 
-    matches = re.findall(
+    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
+    ipv6_matches = re.findall(
         r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
         text
     )
+    
+    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
+    ipv4_matches = re.findall(
+        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
+        text
+    )
+    
+    # Combine both patterns
+    all_matches = ipv6_matches + ipv4_matches
 
-    #data["warnings"].append(f"node {node_id} for {iface_name}: found {matches} IP addresses")
-    result = []
-
-    for addr, mask, dev in matches:
+    for addr, mask, dev in all_matches:
         if iface_name == None or dev == iface_name:
             try:
                 ip = ipaddress.ip_interface(f"{addr}/{mask}")
@@ -195,3 +213,71 @@ def get_staticroute_interface_addresses(data, node_id, iface_name = None):
 
     return result
 
+# -------------------------------------------------------------------
+# Returns node and interface information for a given IP address.
+# -------------------------------------------------------------------
+def resolve_ip_owner(ip_str, data):
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except:
+        return None
+
+    for net in data["networks"].values():
+        for member in net.get("member_interfaces", []):
+            node_id = member["node"]
+            iface = member["iface"]
+            addrs = get_staticroute_interface_addresses(data, node_id, iface)
+            for addr in addrs:
+                if addr.ip == ip:
+                    node = data["devices"].get(node_id, {"name": f"node{node_id}"})
+
+                    return {
+                        "node": node["name"],
+                        "interface": iface,
+                        "network": net["name"],
+                        "type": "neighbor"
+                    }
+
+    return {
+                "node": None,
+                "interface": None,
+                "network": None,
+                "type": None
+            }
+
+
+def get_network_by_name(data, network_name):
+    for net in data["networks"].values():
+        if net.get("name") == network_name or net.get("name") == reverse_network_name(network_name):
+            return net
+
+    return None
+
+def resolve_route_dev(node_id, via_ip, data):
+    print(f"Via IP {via_ip} for node {node_id}")
+    if not via_ip:
+        return None
+
+    via_info = resolve_ip_owner(via_ip, data)
+    print(f"Resolving route dev for {node_id} with via_info {via_info}")
+
+    network_name = via_info.get("network")
+
+    if not network_name:
+        return None
+    
+    print(f"Looking for network {network_name} or {reverse_network_name(network_name)} in data")
+
+    network = get_network_by_name(data, network_name)
+    
+    print(f"Found network {network_name}: {network}")
+    if not network:
+        return None
+
+    for member in network.get("member_interfaces", []):
+
+        if member["node"] == node_id:
+            print(f"Found interface {member['iface']} for node {node_id}")
+            return member["iface"]
+
+    return None

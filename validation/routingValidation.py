@@ -1,7 +1,7 @@
-from analyzer.prefixes import get_staticroute_interface_addresses
+from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner
 from parser.devices import get_node, get_node_id
-from parser.routing import build_routing_matrix, resolve_ip_owner
-from report.formatters import format_route, format_via_info, reverse_route_name
+from parser.routing import build_routing_matrix
+from report.formatters import format_route, format_via_info, reverse_network_name
 from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning, replicate_routing_warning
 from validation.routingHelper import ANY, ISP_EXPECTED, TABLES
@@ -30,7 +30,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # --------------------------------------------------
 
             if interpreted is None and "<>" in route_name:
-                reversed_name = reverse_route_name(route_name)
+                reversed_name = reverse_network_name(route_name)
                 interpreted = interpreted_routes.get(reversed_name)
 
             # --------------------------------------------------
@@ -259,7 +259,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
         #for route_name in interpreted_routes.keys():
 
-        #    if (route_name not in expected_routes and reverse_route_name(route_name) not in expected_routes):
+        #    if (route_name not in expected_routes and reverse_network_name(route_name) not in expected_routes):
         #        warnings.append({
         #            "router": router_name,
         #            "route": route_name,
@@ -507,7 +507,7 @@ def validate_isp_routes(data):
 
             if interpreted is None and "<>" in route_name:
 
-                reversed_name = reverse_route_name(route_name)
+                reversed_name = reverse_network_name(route_name)
 
                 interpreted = interpreted_router_routes.get(reversed_name)
 
