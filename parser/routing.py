@@ -239,7 +239,8 @@ def build_routing_matrix(data, intranet = True):
                             prefix_type=classify_prefix_type(prefix),
                             score=999,
                             is_default=False,
-                            is_policy=False
+                            is_policy=False,
+                            related_id=None
                         )
                     )
 
@@ -277,7 +278,8 @@ def build_routing_matrix(data, intranet = True):
                             prefix_type=classify_prefix_type(prefix),
                             score=best_route["score"],
                             is_default=route.get("dst") in ["default", "::/0"],
-                            is_policy=table_name != "main"
+                            is_policy=table_name != "main",
+                            related_id=route.get("id")
                         ))
 
             # --------------------------------------------------
@@ -290,7 +292,7 @@ def build_routing_matrix(data, intranet = True):
     return matrix
 
 
-def build_route(route_type, dev=None, via=None, via_info=None, table="main", dst=None, net_prefix=None, prefix_type=None, score=0, is_default=False, is_policy=False):
+def build_route(route_type, dev=None, via=None, via_info=None, table="main", dst=None, net_prefix=None, prefix_type=None, score=0, is_default=False, is_policy=False, related_id=None):
     return {
         "table": table,
         "type": route_type,
@@ -302,6 +304,7 @@ def build_route(route_type, dev=None, via=None, via_info=None, table="main", dst
         "dev": dev,        
         "score": score,
         "is_default": is_default,
-        "is_policy": is_policy
+        "is_policy": is_policy,
+        "related_id": related_id
     }
 

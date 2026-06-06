@@ -2,7 +2,7 @@ import re
 import ipaddress
 from analyzer.prefixes import resolve_route_dev
 from report.formatters import strip_comments
-from utils.ip import PREFIX_TYPE, classify_prefix_type
+from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type
 
 # ---------------------------------------------------------------------
 # Extracts service data into a structured format for later validation.
@@ -77,8 +77,9 @@ def parse_routes(text, data, node_id):
         text
     )
 
-    for is_v6, line in matches:
+    for route_index, (is_v6, line) in enumerate(matches, start=1):
         route = {
+            "id": f"route-{node_id}-{route_index}",
             "family": PREFIX_TYPE["ipv6"] if is_v6 else PREFIX_TYPE["ipv4"],
             "type": "unicast",   # default
             "dst": None,
@@ -340,15 +341,15 @@ def parse_tunnels(text):
 def resolve_route_networks(route_dst, data):
 
     if not route_dst:
-        return ["unknown"]
+        return [NETWORK_GROUPS["unknown"]]
 
     if route_dst == PREFIX_TYPE["default"]:
-        return ["all"]
+        return [NETWORK_GROUPS["all"]]
 
     try:
         route_network = ipaddress.ip_network(route_dst, strict=False)
     except Exception:
-        return ["unknown"]
+        return [NETWORK_GROUPS["unknown"]]
     
     matched_networks = []
 
@@ -387,9 +388,9 @@ def resolve_route_networks(route_dst, data):
 
     if matched_networks:
         if(classify_prefix_type(route_dst) == PREFIX_TYPE["site"] and len(matched_networks) == 13):
-            return ["all"]
+            return [NETWORK_GROUPS["all"]]
         if(classify_prefix_type(route_dst) == PREFIX_TYPE["global"] and len(matched_networks) == 11):
-            return ["all"]
+            return [NETWORK_GROUPS["all"]]
         return matched_networks
 
-    return ["unknown"]
+    return [NETWORK_GROUPS["unknown"]]

@@ -328,13 +328,16 @@ def format_route(route):
         return "-"
 
     parts = []
-
+    id = route.get("related_id")
     route_type = route.get("type")    
     dst = route.get("dst")
     table = route.get("table")
     dev = route.get("dev")
     via_info = route.get("via_info")
     
+    if id:
+        parts.append(f"id={id}")
+
     if route_type:
         parts.append(f"type={route_type}")   
 

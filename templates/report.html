@@ -53,6 +53,10 @@
             background: #eee9e9e5;
         }
 
+        .tr-has-warning {
+            background: #ffe5e5;
+        }
+
         .summary-container {
             display: flex;
             gap: 24px;
@@ -837,6 +841,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Tipo</th>
                     <th>Destino</th>
                     <th>Redes</th>
@@ -847,13 +852,16 @@
             </thead>
             <tbody>
                 {% for route in routing.routes %}
-                <tr>
+                
+                <tr class="{% if route.has_warnings %} tr-has-warning {% endif %}">
+                    <td>{{ route.id if route.id else "-" }}</td>
                     <td>{{ route.type }}</td>
                     <td>{{ route.dst }}</td>
                     <td>{{ route.networks | join(", ") }}</td>
                     <td>{{ route.via if route.via else "-" }}</td>
                     <td>{{ route.dev if route.dev else "-" }}</td>
                     <td>{{ route.table }}</td>
+
                 </tr>
                 {% endfor %}
             </tbody>

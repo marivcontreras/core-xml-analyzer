@@ -94,6 +94,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # --------------------------------------------------
 
             for expected_route in expected_routes_list:                
+                expected_route_id = expected_route.get("id")
                 matched = False
                 best_candidate = None
                 best_candidate_score = -1
@@ -191,12 +192,22 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                             "valid": via_info_validation["valid"],
                             "expected": via_info_validation["expected"],
                             "actual": via_info_validation["actual"]
-                        }              
+                        }
 
-                # --------------------------------------------------
-                # no valid interpreted route matched
-                # --------------------------------------------------
-
+                    if best_candidate:
+                        route_id = best_candidate["interpreted_route"].get("related_id") or expected_route_id
+                        print(f"Best candidate for {router_name} {route_name}: {format_route(best_candidate['interpreted_route'])} with score {best_candidate_score}")
+                        for field_name, field_result in best_candidate["field_results"].items():
+                            if not field_result["valid"]:
+                                build_invalid_field_warning(
+                                    warnings,
+                                    router_name,
+                                    route_name,
+                                    field_name,
+                                    field_result["expected"],
+                                    field_result["actual"],
+                                    route_id=route_id
+                                )
                 if not matched:
                     #print(f"Router {router_name}: Expected route: {expected_route}. Best candidate: {best_candidate}")
                     route_result["missing_expected_routes"].append({
@@ -214,7 +225,8 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                             warnings_list=warnings,
                             prefix_type=expected_prefix_type,
                             route_name=route_name,
-                            router_name=router_name
+                            router_name=router_name,
+                            route_id=expected_route_id
                         )
                     else:
                         add_routing_warning(
@@ -225,23 +237,9 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                             prefix_type=expected_prefix_type,
                             route_name=route_name,
                             table=TABLES[expected_route.get('table')],
-                            router_name=router_name
+                            router_name=router_name,
+                            route_id=expected_route_id
                         )
-
-                    if best_candidate:
-
-                        for field_name, field_result in best_candidate["field_results"].items():
-
-                            if not field_result["valid"]:
-
-                                build_invalid_field_warning(
-                                    warnings, 
-                                    router_name,
-                                    route_name,
-                                    field_name,
-                                    field_result["expected"],
-                                    field_result["actual"]
-                                )
 
             # --------------------------------------------------
             # final validity
@@ -302,6 +300,30 @@ def propagate_routing_warnings(data, validation_result):
             continue
 
         router_data.setdefault("warnings", [])
+
+        route_warning_ids = set()
+        #route_warning_dst_names = set()
+
+        for warnings_list in route_warnings.values():
+            for warning in warnings_list:
+                route_id = warning.get("route_id")
+                print(f"Checkeando warnings x rutas en {router}, route_id {route_id}")
+                if route_id:
+                    route_warning_ids.add(route_id)
+                #else:
+                #    route_name = warning.get("route")
+                #    if route_name:
+                #        route_warning_dst_names.add(route_name)
+        print(f"Router {router} tiene warnings asociados a route_ids: {len(route_warning_ids)}")
+
+        if len(route_warning_ids) > 0:
+            for route in router_data.get("routes", []):
+                if not isinstance(route, dict):
+                    continue
+
+                if route.get("id") in route_warning_ids:
+                    #or route.get("dst") in route_warning_dst_names:
+                    route["has_warnings"] = True
 
         existing_messages = {
             warn
@@ -402,7 +424,7 @@ def match_via_info(actual, expected_options):
 # Creates a human-friendly warning message for an invalid field, 
 # with special formatting for certain fields like via_info.
 # -------------------------------------------------------------
-def build_invalid_field_warning(warnings, router, route, field, expected, actual):
+def build_invalid_field_warning(warnings, router, route, field, expected, actual, route_id=None):
     if field == "via_info":
         if (actual is not None):
             add_routing_warning(
@@ -412,6 +434,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                 router=router,
                 warnings_list=warnings,
                 route_name=route,
+                route_id=route_id,
                 field="via",               
                 expected=format_via_info(expected),
                 actual=format_via_info(actual)
@@ -424,6 +447,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                 router=router,
                 warnings_list=warnings,
                 route_name=route,
+                route_id=route_id,
                 field="via",                
                 expected=format_via_info(expected)
                 )
@@ -435,6 +459,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                     router=router,
                     warnings_list=warnings,
                     route_name=route,
+                    route_id=route_id,
                     field=field,                
                     expected=expected,
                     actual=actual

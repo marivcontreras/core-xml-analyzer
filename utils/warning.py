@@ -38,7 +38,7 @@ def add_warning(data, code, *, wtype=None, scope=None,
     data["warnings"].append(warning)
 
 
-def add_routing_warning(routing, category, code, warnings_list=None, router=None, route=None, **format_kwargs):
+def add_routing_warning(routing, category, code, warnings_list=None, router=None, route=None, route_id=None, **format_kwargs):
     """
     Add a routing warning using a warning code and format parameters.
 
@@ -47,6 +47,7 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
         category: Warning category (routing, isp, tunnels, etc.)
         code: Warning code key from resources.warnings
         warnings_list: Optional list to append warning to (for routing matrix validation)
+        route_id: Optional route identifier to attach to the warning
         **format_kwargs: Format parameters for message template
     """
     #print(f"Format kwargs: {format_kwargs}")
@@ -57,6 +58,7 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
     warning = {
         "router": format_kwargs.get("router_name", router),
         "route": format_kwargs.get("route_name", route),
+        "route_id": route_id,
         "severity": get_warning_type(code),
         "message": message,
         "code": code,

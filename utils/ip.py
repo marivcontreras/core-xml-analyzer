@@ -1,6 +1,11 @@
 
 import ipaddress
 
+NETWORK_GROUPS = {
+    "all": "Todas",
+    "unknown": "Desconocida"
+}
+
 PREFIX_TYPE = {
     "ipv4": "ipv4",
     "ipv6": "ipv6",
