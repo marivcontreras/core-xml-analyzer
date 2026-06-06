@@ -140,13 +140,65 @@ def build_warning_summary(data, warnings, router_warnings):
 
     return summary
 
+def _group_warnings_by_code(items):
+        grouped = {}
+        for item in items:
+            print(f"Grouping warning item: {item}")
+            code = item.get("code") or item.get("type")
+            grouped.setdefault(code, []).append(item)
+        return grouped
+
+def _format_grouped_warning(router_name, category, code, prefix_type, items):
+    print(f"Formatting grouped warning for router {router_name}, category {category}, code {code}, prefix_type {prefix_type}, items: {items}")
+    severity = items[0].get("severity", "warning").upper()
+    label_type = TYPE_LABELS.get(severity, severity)
+    label_code = TYPE_LABELS.get(code.upper(), code.upper()) if code else "UNKNOWN"
+
+    if len(items) == 1:
+        message = items[0].get("message")
+    else:
+        route_names = sorted({item.get("route") for item in items if item.get("route")})
+        tables = sorted({item.get("table") for item in items if item.get("table")})
+        messages = sorted({item.get("message") for item in items if item.get("message")})
+
+        if code == "unreachable_network" and prefix_type and route_names:
+            if prefix_type == "global":
+                message = f"Desde {router_name} no se pueden alcanzar las redes globales: {', '.join(route_names)}"
+            else:
+                message = f"Desde {router_name} no se pueden alcanzar las redes {prefix_type}: {', '.join(route_names)}"
+        elif code == "missing_route_additional_table" and prefix_type and route_names:
+            prefix_type = prefix_type if prefix_type != "global" else "globales"
+            table_text = tables[0] if len(tables) == 1 else "varias tablas"
+            if (table_text == "to-R3"):
+                message = f"En {router_name} no se encontró tabla adicional con las rutas para redireccionar paquetes TCP hacia R3 con origen en las redes {prefix_type}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
+            elif (table_text == "guest-isolation"):
+                message = f"En {router_name} no se encontró tabla adicional con las rutas para prohibir el acceso desde Wguest hacia las redes {prefix_type}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
+            else:
+                message = f"En {router_name} no se encontraron las rutas para {table_text} hacia las redes {prefix_type}: {', '.join(route_names)}"
+        elif code == "invalid_route_field_via_info" and route_names:
+            message = f"Desde {router_name} hay información inválida en el campo via en las rutas hacia las redes {prefix_type}: {', '.join(route_names)}"
+        elif route_names:
+            message = f"Router {router_name} tiene {len(route_names)} advertencias '{code}' para rutas: {', '.join(route_names)}"
+        else:
+            message = f"Router {router_name} tiene {len(messages)} advertencias '{code}': {'; '.join(messages)}"
+
+    label_category = TYPE_LABELS.get(category, category) if category else label_code
+
+    formatted = (
+        f"[{label_type}] "
+        f"[{label_category}] "
+        f"[{router_name}] "
+        f"{message}"
+    )
+
+    return [formatted]
+
 def build_text_warning_summary(data, grouped_warnings, router_warnings):
-    lines = []
+    lines = []    
 
     # --------------------------------------------------
     # router config warnings
     # --------------------------------------------------
-
     for router_name, type_groups in router_warnings.items():
 
         for warning_type, items in type_groups.items():
@@ -168,25 +220,22 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
     # routing / tunnel / isp warnings
     # --------------------------------------------------
 
-    for node_id, routing in data.get("routing", {}).items():
+    routing_groups = {}
 
+    for node_id, routing in data.get("routing", {}).items():
         node = get_node(data, node_id)
         router_name = node.get("name", node_id)
 
         for category, items in routing.get("warnings", {}).items():
-
             for item in items:
+                #print(f"Processing routing warning for router {router_name}, category {category}, item: {item}")
+                code = item.get("code") or item.get("type")
+                prefix_type = item.get("prefix_type")
+                key = (router_name, category, code, prefix_type)
+                routing_groups.setdefault(key, []).append(item)
 
-                severity = item.get("severity", "warning").upper()
-
-                lines.append(
-                    (
-                        f"[{TYPE_LABELS.get(severity, severity)}] "
-                        f"[{TYPE_LABELS.get(category, category)}] "
-                        f"[{router_name}] "
-                        f"{item.get('message')}"
-                    )
-                )
+    for (router_name, category, code, prefix_type), grouped_items in routing_groups.items():
+        lines.extend(_format_grouped_warning(router_name, category, code, prefix_type, grouped_items))
 
     return lines
 

@@ -124,12 +124,12 @@ def parse_routes(text, data, node_id):
         dev = re.search(r'dev\s+(\S+)', line)
 
         if dev:
-            print(f"Route dev for {route['dst']} via {route['via']} with dev {dev.group(1)}")
+            #print(f"Route dev for {route['dst']} via {route['via']} with dev {dev.group(1)}")
             route["dev"] = dev.group(1)
 
         elif route["via"]:
             route["dev"] = resolve_route_dev(node_id, route["via"], data)
-            print(f"Resolving route dev for {route['dst']} via {route['via']} with dev {route['dev']}")
+            #print(f"Resolving route dev for {route['dst']} via {route['via']} with dev {route['dev']}")
         # ----------------------------------
         # TABLE
         # ----------------------------------

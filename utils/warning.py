@@ -1,4 +1,5 @@
 from resources.warnings import get_warning_message, get_warning_type, get_warning_scope
+from validation.routingHelper import TABLES
 
 def add_warning(data, code, *, wtype=None, scope=None,
                 network=None, node=None, interface=None,
@@ -51,32 +52,30 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
         **format_kwargs: Format parameters for message template
     """
     #print(f"Format kwargs: {format_kwargs}")
-    message = get_warning_message(code, **format_kwargs)
-    if not message:
-        raise ValueError(f"Unknown warning code: {code}")
-
     warning = {
         "router": format_kwargs.get("router_name", router),
         "route": format_kwargs.get("route_name", route),
+        "prefix_type": format_kwargs.get("prefix_type") or None,
         "route_id": route_id,
         "severity": get_warning_type(code),
-        "message": message,
         "code": code,
+        "table": format_kwargs.get("table") or "main"
     }  
+
+    if format_kwargs.get("table"):
+        format_kwargs["table"] = TABLES[format_kwargs["table"]]
+
+    message = get_warning_message(code, **format_kwargs)
+    if not message:
+        raise ValueError(f"Unknown warning code: {code}")
+    warning["message"] = message    
 
     if warnings_list is not None:
         warnings_list.append(warning)
     else:
         routing["warnings"][category].append(warning)
 
-def replicate_routing_warning(routing, category, severity, message, **extra):
-
-    warning = {
-        "severity": severity,
-        "message": message
-    }
-
-    warning.update(extra)
+def replicate_routing_warning(routing, category, warning):
 
     routing["warnings"][category].append(
         warning

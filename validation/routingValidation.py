@@ -196,7 +196,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                     if best_candidate:
                         route_id = best_candidate["interpreted_route"].get("related_id") or expected_route_id
-                        print(f"Best candidate for {router_name} {route_name}: {format_route(best_candidate['interpreted_route'])} with score {best_candidate_score}")
+                        #print(f"Best candidate for {router_name} {route_name}: {format_route(best_candidate['interpreted_route'])} with score {best_candidate_score}")
                         for field_name, field_result in best_candidate["field_results"].items():
                             if not field_result["valid"]:
                                 build_invalid_field_warning(
@@ -236,7 +236,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                             warnings_list=warnings,
                             prefix_type=expected_prefix_type,
                             route_name=route_name,
-                            table=TABLES[expected_route.get('table')],
+                            table=expected_route.get('table'),
                             router_name=router_name,
                             route_id=expected_route_id
                         )
@@ -246,8 +246,8 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
             # --------------------------------------------------
 
             route_result["valid"] = (len(route_result["missing_expected_routes"]) == 0)
-            if (router_name == "R5"):
-                print(f"Route result for {router_name} {route_name}: Exists {route_result['exists']}  Valid {route_result['valid']}")
+            #if (router_name == "R5"):
+                #print(f"Route result for {router_name} {route_name}: Exists {route_result['exists']}  Valid {route_result['valid']}")
         # ------------------------------------------------------
         # detect totally unexpected networks
         # ------------------------------------------------------
@@ -307,14 +307,14 @@ def propagate_routing_warnings(data, validation_result):
         for warnings_list in route_warnings.values():
             for warning in warnings_list:
                 route_id = warning.get("route_id")
-                print(f"Checkeando warnings x rutas en {router}, route_id {route_id}")
+                #print(f"Checkeando warnings x rutas en {router}, route_id {route_id}")
                 if route_id:
                     route_warning_ids.add(route_id)
                 #else:
                 #    route_name = warning.get("route")
                 #    if route_name:
                 #        route_warning_dst_names.add(route_name)
-        print(f"Router {router} tiene warnings asociados a route_ids: {len(route_warning_ids)}")
+        #print(f"Router {router} tiene warnings asociados a route_ids: {len(route_warning_ids)}")
 
         if len(route_warning_ids) > 0:
             for route in router_data.get("routes", []):
@@ -341,8 +341,7 @@ def propagate_routing_warnings(data, validation_result):
                 replicate_routing_warning(
                     router_data,
                     "routing",
-                    warning.get("severity","warning"),
-                    message
+                    warning
                 )
                 
                 existing_messages.add(message)
