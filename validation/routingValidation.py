@@ -61,7 +61,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 add_routing_warning(
                     None,
                     "routing",
-                    "error",
                     "missing_route",
                     router= router_name,
                     warnings_list=warnings,
@@ -211,7 +210,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         add_routing_warning(
                             None,
                             "routing",
-                            "error",
                             "unreachable_network",
                             warnings_list=warnings,
                             prefix_type=expected_prefix_type,
@@ -222,7 +220,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         add_routing_warning(
                             None,
                             "routing",
-                            "error",
                             "missing_route_additional_table",
                             warnings_list=warnings,
                             prefix_type=expected_prefix_type,
@@ -411,7 +408,6 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
             add_routing_warning(
                 None,
                 "routing",
-                "error",
                 "invalid_route_field_via_info",
                 router=router,
                 warnings_list=warnings,
@@ -424,7 +420,6 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
             add_routing_warning(
                 None,
                 "routing",
-                "error",
                 "invalid_route_field_via_info_none",
                 router=router,
                 warnings_list=warnings,
@@ -436,7 +431,6 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
         add_routing_warning(
                     None,
                     "routing",
-                    "error",
                     "invalid_route_field",
                     router=router,
                     warnings_list=warnings,
@@ -489,7 +483,6 @@ def validate_isp_routes(data):
             add_routing_warning(
                 router_data,
                 "isp",
-                "warning",
                 "no_indirect_routes"
             )
 
@@ -516,7 +509,6 @@ def validate_isp_routes(data):
                 add_routing_warning(
                     router_data,
                     "isp",
-                    "warning",
                     "missing_isp_route",
                     route_name=route_name
                 )
@@ -637,7 +629,6 @@ def validate_isp_routes(data):
                 add_routing_warning(
                     router_data,
                     "isp",
-                    "warning",
                     "invalid_isp_route",
                     route_name=route_name
                 )
@@ -647,7 +638,6 @@ def validate_isp_routes(data):
                     add_routing_warning(
                         router_data,
                         "isp",
-                        "warning",
                         "invalid_field_error",
                         field=error['field'],
                         route_name=route_name,
@@ -677,7 +667,6 @@ def validate_isp_routes(data):
             add_routing_warning(
                 router_data,
                 "isp",
-                "warning",
                 "invalid_default_route",
                 route=format_route(route)
             )
@@ -717,7 +706,6 @@ def validate_tunnels(data):
             add_routing_warning(
                 routing,
                 "tunnels",
-                "error",
                 "no_tunnel_configured",
                 router_name=router_name
             )
@@ -744,7 +732,6 @@ def validate_tunnels(data):
                 add_routing_warning(
                     routing,
                     "tunnels",
-                    "error",
                     "invalid_tunnel",
                     local_ip=local_ip,
                     remote_ip=remote_ip,
@@ -755,7 +742,6 @@ def validate_tunnels(data):
                 add_routing_warning(
                     routing,
                     "tunnels",
-                    "warning",
                     "tunnel_invalid_local",
                     local_ip=local_ip,
                     router_name=router_name,
@@ -766,7 +752,6 @@ def validate_tunnels(data):
                 add_routing_warning(
                     routing,
                     "tunnels",
-                    "warning",
                     "tunnel_invalid_remote",
                     remote_ip=remote_ip,
                     router_name=router_name,

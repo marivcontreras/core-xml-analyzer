@@ -765,7 +765,7 @@
 
                         {% for warning in route_warnings %}
 
-                        <li class="warning-item warning-{{ warning.type }}">
+                        <li class="warning-item warning-{{ warning.severity }}">
 
                             <div class="warning-message">
                                 {{ warning.message }}
@@ -871,7 +871,7 @@
             </summary>
             {% for warning in routing_warnings %}
 
-            <div class="warning-item warning-{{ warning.type }}">
+            <div class="warning-item warning-{{ warning.severity }}">
                 {{ warning.message }}
             </div>
 
@@ -890,7 +890,7 @@
             </summary>
             {% for warning in isp_warnings %}
 
-            <div class="warning-item warning-{{ warning.type }}">
+            <div class="warning-item warning-{{ warning.severity }}">
                 {{ warning.message }}
             </div>
 
@@ -948,7 +948,7 @@
 
             {% for warning in tunnel_warnings %}
 
-            <div class="warning-item warning-{{ warning.type }}">
+            <div class="warning-item warning-{{ warning.severity }}">
                 {{ warning.message }}
             </div>
 
