@@ -164,8 +164,10 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
         if code == "unreachable_network" and prefix_type and route_names:
             if prefix_type == "global":
                 message = f"Desde {router_name} no se pueden alcanzar las redes globales: {', '.join(route_names)}"
-            else:
+            elif prefix_type != None:  
                 message = f"Desde {router_name} no se pueden alcanzar las redes {prefix_type}: {', '.join(route_names)}"
+            else:
+                message = f"Desde {router_name} no se pueden alcanzar las redes: {', '.join(route_names)}"
         elif code == "missing_route_additional_table" and prefix_type and route_names:
             prefix_type = prefix_type if prefix_type != "global" else "globales"
             table_text = tables[0] if len(tables) == 1 else "varias tablas"
@@ -176,7 +178,10 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
             else:
                 message = f"En {router_name} no se encontraron las rutas para {table_text} hacia las redes {prefix_type}: {', '.join(route_names)}"
         elif code == "invalid_route_field_via_info" and route_names:
-            message = f"Desde {router_name} hay información inválida en el campo via en las rutas hacia las redes {prefix_type}: {', '.join(route_names)}"
+            if prefix_type != None:
+                message = f"Desde {router_name} hay información inválida en el campo via en las rutas hacia las redes {prefix_type}: {', '.join(route_names)}"
+            else:
+                message = f"Desde {router_name} hay información inválida en el campo via en las rutas hacia las redes: {', '.join(route_names)}"
         elif route_names:
             message = f"Router {router_name} tiene {len(route_names)} advertencias '{code}' para rutas: {', '.join(route_names)}"
         else:
