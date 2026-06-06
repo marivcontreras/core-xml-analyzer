@@ -32,13 +32,19 @@ except Exception as e:
 
 try:
     from validation.configs.ip_commands_config import (
+        IPV4_CMD_REGEX,
+        IPV4_PREFIX_LENGTH_MIN,
+        IPV4_PREFIX_LENGTH_MAX,
         IPV6_CMD_REGEX,
         IPV6_PREFIX_LENGTH_MIN,
         IPV6_PREFIX_LENGTH_MAX,
     )
     print("✓ ip_commands_config imports successful")
+    print(f"  - IPV4_PREFIX_LENGTH_MIN = {IPV4_PREFIX_LENGTH_MIN}")
+    print(f"  - IPV4_PREFIX_LENGTH_MAX = {IPV4_PREFIX_LENGTH_MAX}")
     print(f"  - IPV6_PREFIX_LENGTH_MIN = {IPV6_PREFIX_LENGTH_MIN}")
     print(f"  - IPV6_PREFIX_LENGTH_MAX = {IPV6_PREFIX_LENGTH_MAX}")
+    print(f"  - IPV4_CMD_REGEX = {IPV4_CMD_REGEX.pattern[:50]}...")
     print(f"  - IPV6_CMD_REGEX = {IPV6_CMD_REGEX.pattern[:50]}...")
 except Exception as e:
     print(f"✗ ip_commands_config import failed: {e}")

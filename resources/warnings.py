@@ -116,6 +116,18 @@ WARNINGS = {
         "scope": "interface"
     },
 
+    "invalid_ipv4": {
+        "message": "{node_name}: dirección IPv4 inválida en '{line}'",
+        "type": "invalid",
+        "scope": "interface"
+    },
+
+    "invalid_prefix_length_ipv4": {
+        "message": "{node_name}: máscara inválida en '{line}'",
+        "type": "invalid",
+        "scope": "interface"
+    },
+
     "invalid_ipv6": {
         "message": "{node_name}: dirección IPv6 inválida en '{line}'",
         "type": "invalid",

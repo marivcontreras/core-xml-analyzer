@@ -25,6 +25,9 @@ from validation.configs.network_config import (
     ADMIN_NETWORK_PATTERN,
 )
 from validation.configs.ip_commands_config import (
+    IPV4_CMD_REGEX,
+    IPV4_PREFIX_LENGTH_MIN,
+    IPV4_PREFIX_LENGTH_MAX,
     IPV6_PREFIX_LENGTH_MIN,
     IPV6_PREFIX_LENGTH_MAX,
 )
@@ -35,6 +38,8 @@ print(f"  PREFIX_LENGTH_REQUIREMENTS = {PREFIX_LENGTH_REQUIREMENTS}")
 print(f"  ADMIN_NETWORK_PATTERN = '{ADMIN_NETWORK_PATTERN}'")
 
 print(f"\nIP Commands Configuration:")
+print(f"  IPV4_PREFIX_LENGTH_MIN = {IPV4_PREFIX_LENGTH_MIN}")
+print(f"  IPV4_PREFIX_LENGTH_MAX = {IPV4_PREFIX_LENGTH_MAX}")
 print(f"  IPV6_PREFIX_LENGTH_MIN = {IPV6_PREFIX_LENGTH_MIN}")
 print(f"  IPV6_PREFIX_LENGTH_MAX = {IPV6_PREFIX_LENGTH_MAX}")
 

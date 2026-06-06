@@ -1,7 +1,14 @@
 import ipaddress
 
 from utils.warning import add_warning
-from validation.configs.ip_commands_config import IPV6_CMD_REGEX, IPV6_PREFIX_LENGTH_MIN, IPV6_PREFIX_LENGTH_MAX
+from validation.configs.ip_commands_config import (
+    IPV4_CMD_REGEX,
+    IPV4_PREFIX_LENGTH_MIN,
+    IPV4_PREFIX_LENGTH_MAX,
+    IPV6_CMD_REGEX,
+    IPV6_PREFIX_LENGTH_MIN,
+    IPV6_PREFIX_LENGTH_MAX,
+)
 
 def validate_ip_addr_commands(node_id, data):
     services = data["services"].get(node_id, {})
@@ -13,11 +20,17 @@ def validate_ip_addr_commands(node_id, data):
     for line_num, line in enumerate(text.splitlines(), start=1):
         line = line.strip()
 
-        if not line.startswith("ip -6 addr"):
+        if line.startswith("ip -6 addr"):
+            cmd_type = "ipv6"
+            regex = IPV6_CMD_REGEX
+        elif line.startswith("ip addr add") or line.startswith("ip -4 addr add"):
+            cmd_type = "ipv4"
+            regex = IPV4_CMD_REGEX
+        else:
             continue
 
-        match = IPV6_CMD_REGEX.match(line)
-        
+        match = regex.match(line)
+
         # ❌ Syntax error
         if not match:
             add_warning(
@@ -45,12 +58,16 @@ def validate_ip_addr_commands(node_id, data):
         # ❌ Invalid prefix length
         try:
             mask_int = int(mask)
-            if mask_int < IPV6_PREFIX_LENGTH_MIN or mask_int > IPV6_PREFIX_LENGTH_MAX:
-                raise ValueError()
-        except:
+            if cmd_type == "ipv4":
+                if mask_int < IPV4_PREFIX_LENGTH_MIN or mask_int > IPV4_PREFIX_LENGTH_MAX:
+                    raise ValueError()
+            else:
+                if mask_int < IPV6_PREFIX_LENGTH_MIN or mask_int > IPV6_PREFIX_LENGTH_MAX:
+                    raise ValueError()
+        except Exception:
             add_warning(
                 data,
-                "invalid_prefix_length_ipv6",
+                "invalid_prefix_length_ipv4" if cmd_type == "ipv4" else "invalid_prefix_length_ipv6",
                 node=node_name,
                 interface=iface,
                 node_name=node_name,
@@ -59,13 +76,16 @@ def validate_ip_addr_commands(node_id, data):
             )
             continue
 
-        # ❌ Invalid IPv6 address
+        # ❌ Invalid IP address
         try:
-            ipaddress.IPv6Interface(f"{addr}/{mask}")
+            if cmd_type == "ipv4":
+                ipaddress.IPv4Interface(f"{addr}/{mask}")
+            else:
+                ipaddress.IPv6Interface(f"{addr}/{mask}")
         except Exception:
             add_warning(
                 data,
-                "invalid_ipv6",
+                "invalid_ipv4" if cmd_type == "ipv4" else "invalid_ipv6",
                 node=node_name,
                 interface=iface,
                 node_name=node_name,

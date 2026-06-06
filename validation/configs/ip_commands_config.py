@@ -12,6 +12,29 @@ To adjust validation rules:
 
 import re
 
+# IPv4 address assignment command pattern
+# Matches: ip addr add <IPv4_ADDRESS>/<PREFIX> dev <INTERFACE>
+# or:     ip -4 addr add <IPv4_ADDRESS>/<PREFIX> dev <INTERFACE>
+# Examples that match:
+#   ip addr add 192.168.1.1/24 dev eth0
+#   ip -4 addr add 10.0.0.1/30 dev eth1
+# To support additional IPv4 command variations, modify this regex
+IPV4_CMD_PATTERN = (
+    r'^\s*ip(?:\s+-4)?\s+addr\s+add\s+([0-9]{1,3}(?:\.[0-9]{1,3}){3})/(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)\s*$'
+)
+
+# Compiled regex for performance
+IPV4_CMD_REGEX = re.compile(IPV4_CMD_PATTERN)
+
+# Valid range for IPv4 prefix length
+# IPv4 prefix lengths range from /0 to /32
+# Typical values:
+#   /24 - LAN subnet
+#   /30 - point-to-point link
+#   /16 - large internal network
+IPV4_PREFIX_LENGTH_MIN = 0
+IPV4_PREFIX_LENGTH_MAX = 32
+
 # IPv6 address assignment command pattern
 # Matches: ip -6 addr add <IPv6_ADDRESS>/<PREFIX> dev <INTERFACE>
 # Examples that match:
