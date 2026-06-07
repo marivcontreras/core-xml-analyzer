@@ -157,6 +157,8 @@ def parse_rules(text):
             "action": "unicast",
             "table": "main",
             "priority": None,
+            "iif": None,
+            "oif": None,
             "src": None,
             "dst": None,
             "fwmark": None,
@@ -171,16 +173,26 @@ def parse_rules(text):
             rule["priority"] = int(prio.group(1))
 
         # ----------------------------------
-        # SOURCE / DEST
+        # SOURCE / DEST / IN/OUT INTERFACES
         # ----------------------------------
         src = re.search(r'from\s+(\S+)', line)
         dst = re.search(r'to\s+(\S+)', line)
+
 
         if src:
             rule["src"] = src.group(1)
 
         if dst:
             rule["dst"] = dst.group(1)
+            
+        iif = re.search(r'iif\s+(\S+)', line)
+        oif = re.search(r'oif\s+(\S+)', line)
+        
+        if iif:
+            rule["iif"] = iif.group(1)
+
+        if oif:
+            rule["oif"] = oif.group(1)
 
         # ----------------------------------
         # TABLE
@@ -237,8 +249,11 @@ def parse_ip6tables(text):
             "protocol": None,
             "mark": None,
             "target": None,
+            "action": None,
             "src": None,
-            "dst": None
+            "dst": None,
+            "iif": None,
+            "oif": None
         }
 
         chain = re.search(r'-A\s+(\S+)', line)
@@ -247,12 +262,20 @@ def parse_ip6tables(text):
         target = re.search(r'-j\s+(\S+)', line)
         src = re.search(r'-s\s+(\S+)', line)
         dst = re.search(r'-d\s+(\S+)', line)      
+        iif = re.search(r'-i\s+(\S+)', line)
+        oif = re.search(r'-o\s+(\S+)', line)
 
         if src:
             rule["src"] = src.group(1)
 
         if dst:
             rule["dst"] = dst.group(1)
+
+        if iif:
+            rule["iif"] = iif.group(1)
+
+        if oif:
+            rule["oif"] = oif.group(1)
 
         if chain:
             rule["chain"] = chain.group(1)
@@ -265,6 +288,13 @@ def parse_ip6tables(text):
 
         if target:
             rule["target"] = target.group(1)
+
+            tgt = target.group(1).upper()
+
+            if tgt in ["DROP", "REJECT", "ACCEPT", "MARK", "LOG"]:
+                rule["action"] = tgt
+            else:
+                rule["action"] = "OTHER"
 
         rules.append(rule)
 

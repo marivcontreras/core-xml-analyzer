@@ -809,6 +809,8 @@
                 <tr>
                     <th>Prioridad</th>
                     <th>Acción</th>
+                    <th>Eth-IN</th>
+                    <th>Eth-OUT</th>
                     <th>Src</th>
                     <th>Dst</th>
                     <th>Proto</th>
@@ -821,6 +823,8 @@
                 <tr>
                     <td>{{ rule.priority if rule.priority else "-" }}</td>
                     <td>{{ rule.action if rule.action else "-" }}</td>
+                    <td>{{ rule.iif if rule.iif else "-" }}</td>
+                    <td>{{ rule.oif if rule.oif else "-" }}</td>
                     <td>{{ rule.src if rule.src else "-" }}</td>
                     <td>{{ rule.dst if rule.dst else "-" }}</td>
                     <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
@@ -975,6 +979,8 @@
                     <th>Chain</th>
                     <th>Src</th>
                     <th>Dst</th>
+                    <th>Eth-IN</th>
+                    <th>Eth-OUT</th>
                     <th>Proto</th>
                     <th>Mark</th>
                     <th>Target</th>
@@ -986,6 +992,8 @@
                     <td>{{ rule.chain if rule.chain else "-" }}</td>
                     <td>{{ rule.src if rule.src else "-" }}</td>
                     <td>{{ rule.dst if rule.dst else "-" }}</td>
+                    <td>{{ rule.iif if rule.iif else "-" }}</td>
+                    <td>{{ rule.oif if rule.oif else "-" }}</td>
                     <td>{{ rule.protocol if rule.protocol else "-" }}</td>
                     <td>{{ rule.mark if rule.mark else "-" }}</td>
                     <td>{{ rule.target if rule.target else "-" }}</td>
