@@ -203,6 +203,19 @@
             border-radius: 4px;
         }
 
+
+        .policy-entry {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            gap: 2px;
+
+            padding: 2px;
+            margin-bottom: 2px;
+        }
+
+
         .route-entry:hover {
             transform: translateY(-1px);
         }
@@ -237,6 +250,7 @@
         .route-field {
             display: flex;
             flex-direction: row;
+            width: fit-content;
             align-items: center;
             gap: 2px;
             padding: 4px;
@@ -329,7 +343,7 @@
             margin-top: 14px;
             padding-left: 14px;
             border-left: 4px solid #d1d5db;
-        }      
+        }
 
         .warning-subgroup-title {
             font-weight: 700;
@@ -339,7 +353,7 @@
 
         .routing-warning-subgroup {
             margin-top: 14px;
-            padding: 14px;            
+            padding: 14px;
         }
 
         .routing-warning-subgroup-title {
@@ -422,6 +436,55 @@
             resize: vertical;
 
             box-sizing: border-box;
+        }
+
+        .policy-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .policy-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .policy-router {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .policy-approach {
+            font-family: monospace;
+            font-size: 18px;
+            background: #f5f5f5;
+            padding: 3px 8px;
+            margin-left: 12px;
+            border-radius: 4px;
+        }
+
+        .policy-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .policy-table th,
+        .policy-table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .policy-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .policy-warning-list {
+            margin: 0;
+            color: #b00020;
         }
     </style>
 </head>
@@ -589,7 +652,8 @@
                 <div class="warning-subgroup-title">{{ TYPE_LABELS[type] }}</div>
                 <ul class="warning-list">
                     {% for w in warnings %}
-                    <li class="warning-item {% if w.type == 'error' %} warning-error {% elif w.type == 'warning' %} warning-warning {% endif %}">
+                    <li
+                        class="warning-item {% if w.type == 'error' %} warning-error {% elif w.type == 'warning' %} warning-warning {% endif %}">
                         {{ w.message }}
                         {% if w.interface %} ({{ w.interface }}) {% endif %}
                     </li>
@@ -753,9 +817,9 @@
             {% for router, router_warnings in data.routing_matrix_table.grouped_warnings.items() %}
 
             <details class="warning-group">
-                    <summary class="warning-group-title">
-                        {{ router }}
-                    </summary>
+                <summary class="warning-group-title">
+                    {{ router }}
+                </summary>
 
                 {% for route, route_warnings in router_warnings.items() %}
 
@@ -856,7 +920,7 @@
             </thead>
             <tbody>
                 {% for route in routing.routes %}
-                
+
                 <tr class="{% if route.has_warnings %} tr-has-warning {% endif %}">
                     <td>{{ route.id if route.id else "-" }}</td>
                     <td>{{ route.type }}</td>
@@ -898,7 +962,7 @@
 
         <details class="warning-subgroup">
             <summary class="warning-subgroup-title">
-                        Advertencias de ISP
+                Advertencias de ISP
             </summary>
             {% for warning in isp_warnings %}
 
@@ -955,7 +1019,7 @@
 
         <details class="warning-subgroup">
             <summary class="warning-subgroup-title">
-                        Advertencias de Túneles
+                Advertencias de Túneles
             </summary>
 
             {% for warning in tunnel_warnings %}
@@ -1006,6 +1070,107 @@
         {% endif %}
 
     </details>
+    {% endfor %}
+
+    <!-- POLICY -->
+    {% for node_id, routing in data.routing.items() %}
+    {% if routing.policy %}
+    {% set policy = routing.policy %}
+    <div class="card">
+        <div class="policy-header">
+            <span class="policy-router">{{policy.router}} | Solución/es utilizada/s: </span>
+            {% for approach in policy.approach %}
+                <span class="policy-approach">{{approach}}</span>
+            {% endfor %}
+        </div>
+
+        {% if policy.behavior %}
+        <div class="policy-section">
+            <h4>Comportamiento</h4>
+
+            <table class="policy-table">
+                <thead>
+                    <tr>
+                        <th>Herramienta</th>
+                        <th>Tag</th>
+                        <th>Opciones</th>
+                        <th>Solución (tabla usada y su entrada default)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in policy.behavior.items() %}
+                    <tr>
+                        <td>{{value.type}}</td>
+                        <td>{{key}}</td>
+                        <td>
+                            {% if value.options %}
+                            <div class="policy-entry">
+                                {% for op_name, op_value in value.options.items() %}
+                                <div class="route-field">
+
+                                    <span class="route-field-name">
+                                        {{ op_name }}:
+                                    </span>
+
+                                    <span class="route-field-value">
+                                        {{ op_value }}
+                                    </span>
+                                </div>
+
+                                {% endfor %}
+                            </div>
+
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>
+                                {% if value.table %}
+                                    {% if value.type == 'route' %}
+                                        Tabla {{ value.table }} |
+                                    {% else %}
+                                        Se usa la tabla {{ value.table }} |
+                                    {% endif %}
+                                {% endif %}
+                                {% if value.via %} Via: {{ value.via.node }} - {{ value.via.interface }} | {% endif %}
+                                {% if value.networks %}  Redes incluidas: {{ value.networks | join(", ") }} | {% endif %}
+                                {% if value.src_networks %} Redes de origen: {{ value.src_networks | join(", ") }} | {%
+                                endif %}
+                                {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | join(", ") }} {%
+                                endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if policy.evidence %}
+        <div class="policy-section">
+            <h4>Elementos Detectados</h4>
+
+            <ul class="policy-list">
+                {% for item in policy.evidence %}
+                <li>{{item.message}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if policy.warnings %}
+        <div class="policy-section">
+            <h4>Advertencias</h4>
+
+            <div class="policy-warning-list">
+                {% for warning in policy.warnings %}
+                <div class="warning-item warning-{{ warning.type }}">{{warning.message}}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
     {% endfor %}
 
     {% if warning_summary_text %}

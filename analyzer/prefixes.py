@@ -254,30 +254,29 @@ def get_network_by_name(data, network_name):
     return None
 
 def resolve_route_dev(node_id, via_ip, data):
-    print(f"Via IP {via_ip} for node {node_id}")
     if not via_ip:
         return None
 
     via_info = resolve_ip_owner(via_ip, data)
-    print(f"Resolving route dev for {node_id} with via_info {via_info}")
+    #print(f"Resolving route dev for {node_id} with via_info {via_info}")
 
     network_name = via_info.get("network")
 
     if not network_name:
         return None
     
-    print(f"Looking for network {network_name} or {reverse_network_name(network_name)} in data")
+    #print(f"Looking for network {network_name} or {reverse_network_name(network_name)} in data")
 
     network = get_network_by_name(data, network_name)
     
-    print(f"Found network {network_name}: {network}")
+    #print(f"Found network {network_name}: {network}")
     if not network:
         return None
 
     for member in network.get("member_interfaces", []):
 
         if member["node"] == node_id:
-            print(f"Found interface {member['iface']} for node {node_id}")
+            #print(f"Found interface {member['iface']} for node {node_id}")
             return member["iface"]
 
     return None

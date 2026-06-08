@@ -1,3 +1,4 @@
+from analyzer.policy import analyze_policies
 from parser.routing import build_routing_matrix
 from report.formatters import build_matrix_table, build_text_warning_summary
 from validation.ip_commands import validate_ip_addr_commands
@@ -58,7 +59,7 @@ def parse_xml(xml_text):
 
     validate_tunnels(data)
 
-    
+    analyze_policies(data)
     #print(data["routing_validation"]);
 
     return data

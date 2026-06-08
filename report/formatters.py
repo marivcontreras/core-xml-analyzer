@@ -140,16 +140,8 @@ def build_warning_summary(data, warnings, router_warnings):
 
     return summary
 
-def _group_warnings_by_code(items):
-        grouped = {}
-        for item in items:
-            print(f"Grouping warning item: {item}")
-            code = item.get("code") or item.get("type")
-            grouped.setdefault(code, []).append(item)
-        return grouped
-
 def _format_grouped_warning(router_name, category, code, prefix_type, items):
-    print(f"Formatting grouped warning for router {router_name}, category {category}, code {code}, prefix_type {prefix_type}, items: {items}")
+    #print(f"Formatting grouped warning for router {router_name}, category {category}, code {code}, prefix_type {prefix_type}, items: {items}")
     severity = items[0].get("severity", "warning").upper()
     label_type = TYPE_LABELS.get(severity, severity)
     label_code = TYPE_LABELS.get(code.upper(), code.upper()) if code else "UNKNOWN"

@@ -251,7 +251,47 @@ WARNINGS = {
         "type": "error",
         "category": "routing"
     },
+
+    # ================================================================
+    # POLICY INFERENCE WARNINGS (from analyzer/policy.py)
+    # ================================================================
+
+    "tcp_approach_iptables": {
+        "message": "Se detectaron reglas de iptables para marcar paquetes TCP",
+        "type": "information",
+        "category": "policy"
+    },
+
+    "tcp_option_missing": {
+        "message": "No se detectó la opción tcp en el comando iptables",
+        "type": "error",
+        "category": "policy"
+    },
+
+    "tcp_mark_mismatch": {
+        "message": "El valor de fwmark en ip rule no coincide con el valor configurado en iptables para marcar tráfico TCP",
+        "type": "error",
+        "category": "policy"
+    },
+
+    "tcp_approach_iprule": {
+            "message": "Se detectó una regla ip rule con la opción ipproto para TCP",
+            "type": "information",
+            "category": "policy"
+        },
 }
+
+def get_warning(code):
+    """
+    Retrieve a warning template by code.
+
+    Args:
+        code: Warning code key
+
+    Returns:
+        Warning template dict or None if code not found
+    """
+    return WARNINGS.get(code)
 
 def get_warning_message(code, **kwargs):
     """

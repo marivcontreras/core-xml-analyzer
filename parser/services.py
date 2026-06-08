@@ -1,6 +1,6 @@
 import re
 import ipaddress
-from analyzer.prefixes import resolve_route_dev
+from analyzer.prefixes import resolve_ip_owner, resolve_route_dev
 from report.formatters import strip_comments
 from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type
 
@@ -256,40 +256,47 @@ def parse_ip6tables(text):
             "oif": None
         }
 
-        chain = re.search(r'-A\s+(\S+)', line)
-        proto = re.search(r'-p\s+(\S+)', line)
-        mark = re.search(r'--set-mark\s+(\S+)', line)
-        target = re.search(r'-j\s+(\S+)', line)
-        src = re.search(r'-s\s+(\S+)', line)
-        dst = re.search(r'-d\s+(\S+)', line)      
-        iif = re.search(r'-i\s+(\S+)', line)
-        oif = re.search(r'-o\s+(\S+)', line)
+        chain = re.search(r'(!)?\s*-A\s+(\S+)', line)
+        proto = re.search(r'(!)?\s*-p\s+(\S+)', line)
+        mark = re.search(r'(!)?\s*--set-mark\s+(\S+)', line)
+        target = re.search(r'(!)?\s*-j\s+(\S+)', line)
+        src = re.search(r'(!)?\s*-s\s+(\S+)', line)
+        dst = re.search(r'(!)?\s*-d\s+(\S+)', line)      
+        iif = re.search(r'(!)?\s*-i\s+(\S+)', line)
+        oif = re.search(r'(!)?\s*-o\s+(\S+)', line)
 
         if src:
-            rule["src"] = src.group(1)
+            src_value = src.group(2)
+            rule["src"] = f"not {src_value}" if src.group(1) else src_value
 
         if dst:
-            rule["dst"] = dst.group(1)
+            dst_value = dst.group(2)
+            rule["dst"] = f"not {dst_value}" if dst.group(1) else dst_value
 
         if iif:
-            rule["iif"] = iif.group(1)
+            iif_value = iif.group(2)
+            rule["iif"] = f"not {iif_value}" if iif.group(1) else iif_value
 
         if oif:
-            rule["oif"] = oif.group(1)
+            oif_value = oif.group(2)
+            rule["oif"] = f"not {oif_value}" if oif.group(1) else oif_value
 
         if chain:
-            rule["chain"] = chain.group(1)
+            rule["chain"] = chain.group(2)
 
         if proto:
-            rule["protocol"] = proto.group(1)
+            proto_value = proto.group(2)
+            rule["protocol"] = f"not {proto_value}" if proto.group(1) else proto_value
 
         if mark:
-            rule["mark"] = mark.group(1)
+            mark_value = mark.group(2)
+            rule["mark"] = f"not {mark_value}" if mark.group(1) else mark_value
 
         if target:
-            rule["target"] = target.group(1)
+            target_value = target.group(2)
+            rule["target"] = target_value
 
-            tgt = target.group(1).upper()
+            tgt = target_value.upper()
 
             if tgt in ["DROP", "REJECT", "ACCEPT", "MARK", "LOG"]:
                 rule["action"] = tgt
