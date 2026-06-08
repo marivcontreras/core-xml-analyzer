@@ -72,6 +72,94 @@ def build_behavior_and_tag(item, data, initial_tag=None, behavior_type="rule"):
     return tag, behavior
 
 
+def add_default_route_via(behavior, table, routes, data):
+    """Set behavior['via'] from the default route of a table if present."""
+    if not table:
+        return
+    default_route = next(
+        (
+            r for r in routes
+            if r.get("table") == table and r.get("dst") == "default"
+        ),
+        None,
+    )
+
+    if default_route and default_route.get("via"):
+        behavior["via"] = resolve_ip_owner(default_route["via"], data)
+
+
+def process_iptables(policy, iptables, data, extra_actions=None):
+    """Normalize iptables list into policy['behavior']."""
+    for r in iptables:
+        initial_tag = None
+        actions = ["DROP", "REJECT", "ACCEPT"]
+        if extra_actions:
+            actions = list(set(actions + list(extra_actions)))
+        if r.get("action") in actions:
+            initial_tag = r.get("action")
+
+        tag, behavior = build_behavior_and_tag(r, data, initial_tag, "iptables")
+
+        if tag:
+            policy["behavior"][tag] = behavior
+
+
+def process_rules(policy, rules, routes, data, mode="ipproto", add_priority=False):
+    """Normalize ip rule list into policy['behavior'].
+
+    mode: 'ipproto' to use rule['ipproto']=='tcp' as initial tag,
+          'action' to use rule['action'] as initial tag.
+    """
+    for rule in rules:
+        if mode == "ipproto":
+            initial_tag = "tcp" if rule.get("ipproto") == "tcp" else None
+        else:
+            initial_tag = rule.get("action") if rule.get("action") else None
+
+        tag, behavior = build_behavior_and_tag(rule, data, initial_tag, "rule")
+
+        if not tag:
+            tag = "other"
+
+        if add_priority and rule.get("priority") is not None:
+            tag = f"{tag}_pri_{rule['priority']}"
+
+        if rule.get("table"):
+            behavior["table"] = rule["table"]
+
+        if tag:
+            add_default_route_via(behavior, rule.get("table"), routes, data)
+            policy["behavior"][tag] = behavior
+
+
+def process_routes(policy, routes, data):
+    """Normalize route entries into policy['behavior']."""
+    for r in routes:
+        tag = None
+        behavior = {
+            "type": "route",
+            "table": None,
+            "src_networks": {},
+            "dst_networks": {},
+            "via": {},
+        }
+
+        if (
+            r.get("type") in ["prohibit", "blackhole", "unreachable"]
+            or r.get("dst") == "default"
+            or (r.get("type") == "unicast" and r.get("table") != "main")
+        ):
+
+            tag = f"{r.get('table')}_{r.get('type')}_{r.get('dst')}"
+            behavior["table"] = r.get("table")
+            behavior["dst_networks"] = resolve_route_networks(r.get("dst"), data)
+
+            if r.get("via"):
+                behavior["via"] = resolve_ip_owner(r.get("via"), data)
+            policy["behavior"][tag] = behavior
+
+
+
 def analyze_policies(data):
     for node_id, router in data["routers"].items():
         name = router["name"]
@@ -134,68 +222,11 @@ def analyze_r4_policy(data, node_id):
     # Filtering con iptables
     # --------------------------------------------------
 
-    for r in iptables:
-        # Determine initial tag based on action
-        initial_tag = None
-        if r["action"] in ["DROP", "REJECT", "ACCEPT", "MARK"]:
-            initial_tag = r["action"]
-        
-        tag, behavior = build_behavior_and_tag(r, data, initial_tag, "iptables")
+    process_iptables(policy, iptables, data, extra_actions=["MARK"])
 
-        if tag:
-            policy["behavior"][tag] = behavior
+    process_rules(policy, rules, routes, data, mode="ipproto", add_priority=False)
 
-    for rule in rules:
-        # Determine initial tag based on ipproto
-        initial_tag = ""
-        if rule["ipproto"] == "tcp":
-            initial_tag = "tcp"
-        
-        tag, behavior = build_behavior_and_tag(rule, data, initial_tag if initial_tag else None, "rule")
-        
-        if not tag:
-            tag = "other"
-
-        if rule["table"]:
-            behavior["table"] = rule["table"]
-            
-        if tag:
-            # Find default route for this table
-            default_route = next(
-                (
-                    r for r in routes
-                    if r["table"] == rule["table"]
-                    and r["dst"] == "default"
-                ),
-                None
-            )
-
-            if default_route and default_route["via"]:
-                behavior["via"] = resolve_ip_owner(default_route["via"], data)
-
-            policy["behavior"][tag] = behavior
-
-    for r in routes:
-        tag = None
-        behavior = {
-            "type" : "route",
-            "table" : None,
-            "src_networks" : {},
-            "dst_networks" : {},
-            "via": {}            
-        }
-        
-        if (r["type"] in ["prohibit", "blackhole", "unreachable"] or
-            r["dst"] == "default" or
-            (r["type"] == "unicast" and r["table"] != "main")):
-
-            tag = f"{r["table"]}_{r["type"]}_{r["dst"]}"
-            behavior["table"] = r["table"]
-            behavior["dst_networks"] = resolve_route_networks(r["dst"], data)
-
-            if r["via"]:
-                behavior["via"] = resolve_ip_owner(r["via"], data)
-            policy["behavior"][tag] = behavior
+    process_routes(policy, routes, data)
 
     print(f"R4 policy: {policy}")
     policy["warnings"] = validate_policy(data, node_id, policy)
@@ -237,78 +268,18 @@ def analyze_r5_policy(data, node_id):
     # Filtering con iptables
     # --------------------------------------------------
 
-    for r in iptables:
-        # Determine initial tag based on action
-        initial_tag = None
-        if r["action"] in ["DROP", "REJECT", "ACCEPT"]:
-            initial_tag = r["action"]
-        
-        tag, behavior = build_behavior_and_tag(r, data, initial_tag, "iptables")
-
-        if tag:
-            policy["behavior"][tag] = behavior
+    process_iptables(policy, iptables, data)
 
     # --------------------------------------------------
     # Reglas de filtrado basadas en ip rule
     # --------------------------------------------------
-    for rule in rules:
-        # Determine initial tag based on action
-        initial_tag = None
-        if rule["action"]:
-            initial_tag = f"{rule['action']}"
-        
-        tag, behavior = build_behavior_and_tag(rule, data, initial_tag, "rule")
-        
-        if not tag:
-            tag = "other"
-
-        tag = f"{tag}_pri_{rule['priority']}"
-
-        if rule["table"]:
-            behavior["table"] = rule["table"]
-        # Create behavior entry with table and via
-        if tag:
-
-            # Find default route for this table
-            default_route = next(
-                (
-                    r for r in routes
-                    if r["table"] == rule["table"]
-                    and r["dst"] == "default"
-                ),
-                None
-            )
-
-            if default_route and default_route["via"]:
-                behavior["via"] = resolve_ip_owner(default_route["via"], data)
-
-            policy["behavior"][tag] = behavior
+    process_rules(policy, rules, routes, data, mode="action", add_priority=True)
     
     # --------------------------------------------------
     # Filtering con ip route
     # --------------------------------------------------
 
-    for r in routes:
-        tag = None
-        behavior = {
-            "type" : "route",
-            "table" : None,
-            "src_networks" : {},
-            "dst_networks" : {},
-            "via": {}            
-        }
-        
-        if (r["type"] in ["prohibit", "blackhole", "unreachable"] or
-            r["dst"] == "default" or
-            (r["type"] == "unicast" and r["table"] != "main")):
-
-            tag = f"{r["table"]}_{r["type"]}_{r["dst"]}"
-            behavior["table"] = r["table"]
-            behavior["dst_networks"] = resolve_route_networks(r["dst"], data)
-
-            if r["via"]:
-                behavior["via"] = resolve_ip_owner(r["via"], data)
-            policy["behavior"][tag] = behavior
+    process_routes(policy, routes, data)
     
    
     print(f"R5 policy: {policy}")
