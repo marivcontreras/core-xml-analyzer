@@ -207,7 +207,7 @@ def analyze_r4_policy(data, node_id):
     # --------------------------------------------------
 
     elif any(r["ipproto"] == "tcp" for r in rules):
-        policy["approach"] = "ipproto"
+        policy["approach"] = ["ipproto"]
 
         policy["evidence"].append(get_warning("tcp_approach_iprule"))
 

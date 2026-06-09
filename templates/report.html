@@ -745,7 +745,7 @@
                                 {% if field_value != None and field_name != "score" and field_name != "is_default"
                                 and field_name != "is_policy" and field_name != "via_info" and field_name !=
                                 "net_prefix" and field_name != "_field_validation" and field_value != "main" and
-                                field_value != "local" %}
+                                field_value != "local" and field_name != "related_id" %}
                                 <div class="route-field {% if field_validation and not field_validation.valid %}
                                     route-field-invalid {% endif %}">
 
