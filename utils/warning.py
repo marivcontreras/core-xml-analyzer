@@ -63,7 +63,7 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
     }  
 
     if format_kwargs.get("table"):
-        format_kwargs["table"] = TABLES[format_kwargs["table"]]
+        format_kwargs["table"] = TABLES.get(format_kwargs["table"], format_kwargs["table"])
 
     message = get_warning_message(code, **format_kwargs)
     if not message:

@@ -223,31 +223,37 @@ WARNINGS = {
     # ================================================================
 
     "unreachable_network": {
-        "message": "No se puede alcanzar la red {prefix_type} {route_name} desde {router_name}",
+        "message": "{prefix_type}: No se pueden alcanzar las redes {route_name} desde {router_name}",
         "type": "error",
         "category": "routing"
     },
 
     "missing_route_additional_table": {
-        "message": "No se encontró la ruta hacia la red {prefix_type} {route_name} en la tabla adicional esperada para {table} en el router {router_name}. Consultar ip rule/iptables por implementaciones alternativas.",
+        "message": "{prefix_type}: No se encontraron las rutas hacia las redes {route_name} en la tabla adicional esperada para {table} en el router {router_name}. ",
         "type": "warning",
         "category": "routing"
     },
 
     "invalid_route_field": {
-        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
+        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
+        "type": "error",
+        "category": "routing"
+    },
+
+    "invalid_route_field_default": {
+        "message": "Los paquetes dirigidos hacia la red {prefix_type} {route_name} están siendo direccionados incorrectamente a través de la entrada por default. Campo via esperado: {expected}. ",
         "type": "error",
         "category": "routing"
     },
 
     "invalid_route_field_via_info": {
-        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
+        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
         "type": "error",
         "category": "routing"
     },
 
     "invalid_route_field_via_info_none": {
-        "message": "La ruta hacia la red {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: la dirección IP es inválida o no está asignada.",
+        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: la dirección IP es inválida o no está asignada.",
         "type": "error",
         "category": "routing"
     },
@@ -275,10 +281,10 @@ WARNINGS = {
     },
 
     "tcp_approach_iprule": {
-            "message": "Se detectó una regla ip rule con la opción ipproto para TCP",
-            "type": "information",
-            "category": "policy"
-        },
+        "message": "Se detectó una regla ip rule con la opción ipproto para TCP",
+        "type": "information",
+        "category": "policy"
+    },
 }
 
 def get_warning(code):

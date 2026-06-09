@@ -98,7 +98,7 @@ TABLES = {
     "main": "main",
     "local": "local",
     "to-r3": "redireccionar paquetes TCP hacia R3",
-    "guest-isolation": "prohibir el acceso a la red desde wguest",
+    "guest-isolation": "redireccionar el tráfico con origen en wguest",
 }
 
 def clone_with_prefix_type(route, prefix_type):
@@ -246,30 +246,6 @@ def policy_default(table, iface, via, onlySite = False):
         clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
-def policy_drop(table, drop_type = ["blackhole", "prohibit", "unreachable"], onlySite = False):
-    base_route = {
-        "type": drop_type,
-        "via": None,
-        "via_info": None,
-        "dev": None,
-        "table": table,
-        "dst": AUTO,
-        "score": ANY,
-        "is_default": False,
-        "is_policy": True
-    }
-
-    if onlySite:
-        return [
-            clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
-        ]
-    
-    return [
-        clone_with_prefix_type(base_route, PREFIX_TYPE["global"]),
-        clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
-    ]
-
-
 EXPECTED_ROUTING_MATRIX = {
     "R1-DC": {
         "SwDataCenter": direct("eth0"),
@@ -320,19 +296,19 @@ EXPECTED_ROUTING_MATRIX = {
     },
 
     "R5": {
-        "SwDataCenter": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
-        "WVentas": indirect(["R6-eth2"]) + policy_drop("guest-isolation"),
-        "SwVentas": indirect(["R6-eth2"]) + policy_drop("guest-isolation"),
-        "WGuest": direct("eth1") + policy_drop("guest-isolation"),
-        "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_drop("guest-isolation", onlySite=True) ,
-        "SwOfiAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_drop("guest-isolation", onlySite=True),
-        "R1-DC<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
-        "R4<>R5": direct("eth2") + policy_drop("guest-isolation"),
-        "R5<>R6": direct("eth0") + policy_drop("guest-isolation"),
-        "R5<>R3": direct("eth3") + policy_drop("guest-isolation"),
-        "R4<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
-        "R2<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
-        "R2<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_drop("guest-isolation"),
+        "SwDataCenter": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "WVentas": indirect(["R6-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "SwVentas": indirect(["R6-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "WGuest": direct("eth1"),
+        "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_default("guest-isolation", "eth3", "R3-eth2", True) ,
+        "SwOfiAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_default("guest-isolation", "eth3", "R3-eth2", True),
+        "R1-DC<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R4<>R5": direct("eth2") + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R5<>R6": direct("eth0") + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R5<>R3": direct("eth3") + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R4<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R2<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
+        "R2<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
     },
 
     "R4": {
@@ -347,7 +323,7 @@ EXPECTED_ROUTING_MATRIX = {
         "R5<>R6": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
         "R5<>R3": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
         "R4<>R3": direct("eth3") + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R2<>R3": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
+        "R2<>R3": indirect(["R5-eth2", "R3-eth4", "R2-eth0"]) + policy_default("to-r3", "eth3", "R3-eth4"),
         "R2<>R4": direct("eth2") + policy_default("to-r3", "eth3", "R3-eth4"),
     },
 

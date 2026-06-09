@@ -47,6 +47,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                 # detailed matching info
                 "matched_routes": [],
                 "missing_expected_routes": [],
+                "missing_expected_routes_policy": [],
                 "extra_routes": []
             }
 
@@ -196,84 +197,123 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                     if best_candidate:
                         route_id = best_candidate["interpreted_route"].get("related_id") or expected_route_id
-                        #print(f"Best candidate for {router_name} {route_name}: {format_route(best_candidate['interpreted_route'])} with score {best_candidate_score}")
+                        is_default = best_candidate["interpreted_route"].get("dst") == "default"
+                        expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
+
                         for field_name, field_result in best_candidate["field_results"].items():
                             if not field_result["valid"]:
                                 build_invalid_field_warning(
                                     warnings,
                                     router_name,
+                                    expected_prefix_type,
                                     route_name,
                                     field_name,
                                     field_result["expected"],
                                     field_result["actual"],
+                                    is_default,
                                     route_id=route_id
                                 )
+
                 if not matched:
-                    #print(f"Router {router_name}: Expected route: {expected_route}. Best candidate: {best_candidate}")
-                    route_result["missing_expected_routes"].append({
-                        "expected": expected_route,
-                        "best_candidate": best_candidate
-                    })
 
                     expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
 
                     if not expected_route.get("is_policy"):
-                        add_routing_warning(
-                            None,
-                            "routing",
-                            "unreachable_network",
-                            warnings_list=warnings,
-                            prefix_type=expected_prefix_type,
-                            route_name=route_name,
-                            router_name=router_name,
-                            route_id=expected_route_id
-                        )
+
+                        route_result["missing_expected_routes"].append({
+                            "expected": expected_route,
+                            "best_candidate": best_candidate,
+                            "prefix_type": expected_prefix_type
+                        })
                     else:
-                        add_routing_warning(
-                            None,
-                            "routing",
-                            "missing_route_additional_table",
-                            warnings_list=warnings,
-                            prefix_type=expected_prefix_type,
-                            route_name=route_name,
-                            table=expected_route.get('table'),
-                            router_name=router_name,
-                            route_id=expected_route_id
-                        )
+                        route_result["missing_expected_routes_policy"].append({
+                            "expected": expected_route,
+                            "best_candidate": best_candidate,
+                            "prefix_type": expected_prefix_type
+                        })
 
             # --------------------------------------------------
             # final validity
             # --------------------------------------------------
 
             route_result["valid"] = (len(route_result["missing_expected_routes"]) == 0)
-            #if (router_name == "R5"):
-                #print(f"Route result for {router_name} {route_name}: Exists {route_result['exists']}  Valid {route_result['valid']}")
-        # ------------------------------------------------------
-        # detect totally unexpected networks
-        # ------------------------------------------------------
+        
 
-        #for route_name in interpreted_routes.keys():
+        # --------------------------------------------------
+        # aggregate unreachable networks into one warning per router and prefix type
+        # --------------------------------------------------
 
-        #    if (route_name not in expected_routes and reverse_network_name(route_name) not in expected_routes):
-        #        warnings.append({
-        #            "router": router_name,
-        #            "route": route_name,
-        #            "severity": "warning",
-        #            "message": f"Ruta adicional no esperada hacia {route_name}"
-        #        })
+    # --------------------------------------------------
+    # aggregate unreachable networks and missing policy route tables
+    # --------------------------------------------------
+    unreachable_by_router = {}
+    missing_policy_by_router = {}
 
-        from collections import defaultdict
+    for router_name, router_table in validation_table.items():
+        for route_name, route_result in router_table.items():
+            for missing in route_result.get("missing_expected_routes", []):
+                prefix_type = missing.get("prefix_type")
+                unreachable_by_router.setdefault(router_name, {}).setdefault(prefix_type, set()).add(route_name)
 
-        grouped_warnings = defaultdict(
-            lambda: defaultdict(list)
-        )
+            for missing in route_result.get("missing_expected_routes_policy", []):
+                prefix_type = missing.get("prefix_type")
+                expected_route = missing.get("expected", {})
+                table_name = expected_route.get("table")
 
-        for warning in warnings:
+                prefix_entry = missing_policy_by_router.setdefault(router_name, {}).setdefault(prefix_type, {
+                    "routes": set(),
+                    "tables": set()
+                })
+                prefix_entry["routes"].add(route_name)
+                if table_name:
+                    prefix_entry["tables"].add(table_name)
 
-            router = warning.get("router", "Unknown")
-            route = warning.get("route", "Unknown")
+    for router_name, prefix_groups in unreachable_by_router.items():
+        for prefix_type, route_names in prefix_groups.items():
+            add_routing_warning(
+                None,
+                "routing",
+                "unreachable_network",
+                warnings_list=warnings,
+                prefix_type=(prefix_type.upper() if prefix_type else None),
+                route_name=", ".join(sorted(route_names)),
+                router_name=router_name
+            )
 
-            grouped_warnings[router][route].append(warning)
+    for router_name, prefix_groups in missing_policy_by_router.items():
+        for prefix_type, info in prefix_groups.items():
+            route_names = sorted(info["routes"])
+            tables = sorted(info["tables"])
+            if len(tables) == 1:
+                table_name = tables[0]
+            elif len(tables) > 1:
+                table_name = "varias tablas"
+            else:
+                table_name = "tabla adicional"
+
+            add_routing_warning(
+                None,
+                "routing",
+                "missing_route_additional_table",
+                warnings_list=warnings,
+                prefix_type=(prefix_type.upper() if prefix_type else None),
+                route_name=", ".join(route_names),
+                table=table_name,
+                router_name=router_name
+            )
+
+    from collections import defaultdict
+
+    grouped_warnings = defaultdict(
+        lambda: defaultdict(list)
+    )
+
+    for warning in warnings:
+
+        router = warning.get("router", "Unknown")
+        route = warning.get("route", "Unknown")
+
+        grouped_warnings[router][route].append(warning)
 
     return {
         "warnings": warnings,
@@ -307,14 +347,9 @@ def propagate_routing_warnings(data, validation_result):
         for warnings_list in route_warnings.values():
             for warning in warnings_list:
                 route_id = warning.get("route_id")
-                #print(f"Checkeando warnings x rutas en {router}, route_id {route_id}")
                 if route_id:
                     route_warning_ids.add(route_id)
-                #else:
-                #    route_name = warning.get("route")
-                #    if route_name:
-                #        route_warning_dst_names.add(route_name)
-        #print(f"Router {router} tiene warnings asociados a route_ids: {len(route_warning_ids)}")
+            
 
         if len(route_warning_ids) > 0:
             for route in router_data.get("routes", []):
@@ -423,21 +458,37 @@ def match_via_info(actual, expected_options):
 # Creates a human-friendly warning message for an invalid field, 
 # with special formatting for certain fields like via_info.
 # -------------------------------------------------------------
-def build_invalid_field_warning(warnings, router, route, field, expected, actual, route_id=None):
+def build_invalid_field_warning(warnings, router, prefix_type, route, field, expected, actual, is_default, route_id=None):
     if field == "via_info":
         if (actual is not None):
-            add_routing_warning(
+            if (is_default):
+                add_routing_warning(
                 None,
                 "routing",
-                "invalid_route_field_via_info",
+                "invalid_route_field_default",
                 router=router,
                 warnings_list=warnings,
                 route_name=route,
                 route_id=route_id,
+                prefix_type=prefix_type,
                 field="via",               
                 expected=format_via_info(expected),
                 actual=format_via_info(actual)
                 )
+            else:
+                add_routing_warning(
+                    None,
+                    "routing",
+                    "invalid_route_field_via_info",
+                    router=router,
+                    warnings_list=warnings,
+                    route_name=route,
+                    route_id=route_id,
+                    prefix_type=prefix_type,
+                    field="via",               
+                    expected=format_via_info(expected),
+                    actual=format_via_info(actual)
+                    )
         else:
             add_routing_warning(
                 None,
@@ -447,6 +498,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                 warnings_list=warnings,
                 route_name=route,
                 route_id=route_id,
+                prefix_type=prefix_type,
                 field="via",                
                 expected=format_via_info(expected)
                 )
@@ -459,6 +511,7 @@ def build_invalid_field_warning(warnings, router, route, field, expected, actual
                     warnings_list=warnings,
                     route_name=route,
                     route_id=route_id,
+                    prefix_type=prefix_type,
                     field=field,                
                     expected=expected,
                     actual=actual

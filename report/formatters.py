@@ -154,22 +154,26 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
         messages = sorted({item.get("message") for item in items if item.get("message")})
 
         if code == "unreachable_network" and prefix_type and route_names:
-            if prefix_type == "global":
-                message = f"Desde {router_name} no se pueden alcanzar las redes globales: {', '.join(route_names)}"
-            elif prefix_type != None:  
-                message = f"Desde {router_name} no se pueden alcanzar las redes {prefix_type}: {', '.join(route_names)}"
+            prefix_lower = prefix_type.lower() if isinstance(prefix_type, str) else None
+            display_prefix = prefix_type.upper() if isinstance(prefix_type, str) else prefix_type
+            if prefix_lower == "global":
+                message = f"Desde {router_name} no se pueden alcanzar las redes {display_prefix}: {', '.join(route_names)}"
+            elif prefix_type is not None:  
+                message = f"Desde {router_name} no se pueden alcanzar las redes {display_prefix}: {', '.join(route_names)}"
             else:
                 message = f"Desde {router_name} no se pueden alcanzar las redes: {', '.join(route_names)}"
         
         elif code == "missing_route_additional_table" and prefix_type and route_names:
-            prefix_type = prefix_type if prefix_type != "global" else "globales"
+            prefix_lower = prefix_type.lower() if isinstance(prefix_type, str) else None
+            display_prefix = prefix_type.upper() if isinstance(prefix_type, str) else prefix_type
+            prefix_display_text = display_prefix if prefix_lower != "global" else display_prefix
             table_text = tables[0] if len(tables) == 1 else "varias tablas"
             if (table_text == "to-R3"):
-                message = f"En {router_name} no se encontró tabla adicional con las rutas para redireccionar paquetes TCP hacia R3 con origen en las redes {prefix_type}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
+                message = f"En {router_name} no se encontró tabla adicional con las rutas para redireccionar paquetes TCP hacia R3 con origen en las redes {prefix_display_text}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
             elif (table_text == "guest-isolation"):
-                message = f"En {router_name} no se encontró tabla adicional con las rutas para prohibir el acceso desde Wguest hacia las redes {prefix_type}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
+                message = f"En {router_name} no se encontró tabla adicional con las rutas para prohibir el acceso desde Wguest hacia las redes {prefix_display_text}: {', '.join(route_names)}. Chequear configuración de ip rule/iptables por si existen implementaciones alternativas."
             else:
-                message = f"En {router_name} no se encontraron las rutas para {table_text} hacia las redes {prefix_type}: {', '.join(route_names)}"
+                message = f"En {router_name} no se encontraron las rutas para {table_text} hacia las redes {prefix_display_text}: {', '.join(route_names)}"
         
         elif code == "invalid_route_field_via_info" and route_names:
             if prefix_type != None:

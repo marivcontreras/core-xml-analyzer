@@ -228,7 +228,7 @@ def analyze_r4_policy(data, node_id):
 
     process_routes(policy, routes, data)
 
-    print(f"R4 policy: {policy}")
+    #print(f"R4 policy: {policy}")
     policy["warnings"] = validate_policy(data, node_id, policy)
     routing["policy"] = policy
 
@@ -282,5 +282,5 @@ def analyze_r5_policy(data, node_id):
     process_routes(policy, routes, data)
     
    
-    print(f"R5 policy: {policy}")
+    #print(f"R5 policy: {policy}")
     routing["policy"] = policy

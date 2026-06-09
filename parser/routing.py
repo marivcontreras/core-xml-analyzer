@@ -69,8 +69,8 @@ def find_best_routes_by_table(routes, target_prefix):
     for route in routes:
 
         dst = route.get("dst")
-
-        if not dst:
+        rtype = route.get("type")
+        if not dst or rtype != "unicast":
             continue
 
         table = route.get("table", "main")
