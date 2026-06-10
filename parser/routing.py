@@ -108,7 +108,7 @@ def classify_route(route):
         return "policy"
 
     # 4. indirect normal
-    if route.get("via"):
+    if route.get("via") or dst == "default":
         return "IND"
 
     # fallback raro

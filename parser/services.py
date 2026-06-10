@@ -1,6 +1,6 @@
 import re
 import ipaddress
-from analyzer.prefixes import resolve_ip_owner, resolve_route_dev
+from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
 from report.formatters import strip_comments
 from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type
 
@@ -124,12 +124,16 @@ def parse_routes(text, data, node_id):
         dev = re.search(r'dev\s+(\S+)', line)
 
         if dev:
-            #print(f"Route dev for {route['dst']} via {route['via']} with dev {dev.group(1)}")
             route["dev"] = dev.group(1)
-
         elif route["via"]:
             route["dev"] = resolve_route_dev(node_id, route["via"], data)
             #print(f"Resolving route dev for {route['dst']} via {route['via']} with dev {route['dev']}")
+
+        if not route["via"] and route["dev"]:
+            via_ip = resolve_p2p_route_via(node_id, route["dev"], route["family"], data)
+            print(f"Debug {node_id} | {route["dev"]} | {route["type"]} | {via_ip}")
+            if via_ip:
+                route["via"] = via_ip
         # ----------------------------------
         # TABLE
         # ----------------------------------
@@ -140,6 +144,42 @@ def parse_routes(text, data, node_id):
         routes.append(route)
 
     return routes
+
+
+def resolve_p2p_route_via(node_id, dev, family, data):
+    if not dev:
+        return None
+
+    for net in data.get("networks", {}).values():
+        if net.get("kind") != "point-to-point":
+            continue
+
+        members = net.get("member_interfaces", [])
+        local_member = next(
+            (member for member in members if member["node"] == node_id and member["iface"] == dev),
+            None
+        )
+
+        if not local_member:
+            continue
+
+        other_member = next(
+            (member for member in members if member != local_member),
+            None
+        )
+
+        if not other_member:
+            continue
+
+        print(other_member)
+
+        peer_ip = get_staticroute_interface_addresses(data, other_member["node"], other_member["iface"])[0]
+        #peer_ip = get_peer_interface_ip(other_member["node"], other_member["iface"], family, data)
+        print(peer_ip)
+        if peer_ip:
+            return peer_ip.ip
+
+    return None
 
 # --------------
 # Rule parser

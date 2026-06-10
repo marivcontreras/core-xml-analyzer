@@ -128,7 +128,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     interpreted_type = interpreted_route.get("type")
                     
                     if (interpreted_type is not None and interpreted_type not in expected_type):
-                        #print(f"Comparando ruta esperada {expected_route} con ruta interpretada {interpreted_route}")
                         continue
 
                     field_results = {}
@@ -144,9 +143,11 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
 
                         field_results[field_name] = field_result
 
+                        ## si el campo invalido es destino, el error es de minimización, entonces no lo marco como invalido
                         if field_result["valid"]:
                             valid_fields += 1
                         else:
+                            #print(f"{router_name}: incorrect field name {field_name}")
                             invalid_fields += 1
 
                     score = valid_fields - invalid_fields
@@ -166,7 +167,6 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     # ----------------------------------------------
                     # full match
                     # ----------------------------------------------
-
                     if invalid_fields == 0:
 
                         matched = True
@@ -198,6 +198,8 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                     if best_candidate:
                         route_id = best_candidate["interpreted_route"].get("related_id") or expected_route_id
                         is_default = best_candidate["interpreted_route"].get("dst") == "default"
+                        is_policy = best_candidate["interpreted_route"].get("is_policy")
+                        table_name = best_candidate["interpreted_route"].get("table")
                         expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
 
                         for field_name, field_result in best_candidate["field_results"].items():
@@ -211,26 +213,43 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                                     field_result["expected"],
                                     field_result["actual"],
                                     is_default,
-                                    route_id=route_id
+                                    is_policy,
+                                    route_id=route_id,
+                                    table=table_name
                                 )
 
                 if not matched:
 
                     expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
 
-                    if not expected_route.get("is_policy"):
+                    # If the only invalid field in the best candidate is `dst` and the
+                    # expected value for `dst` is "default", do not mark the route as
+                    # missing (so it won't be aggregated as unreachable). Still keep
+                    # the invalid-field warnings generated earlier.
+                    skip_missing = False
+                    if best_candidate and best_candidate.get("field_results"):
+                        fr = best_candidate.get("field_results")
+                        blocking_invalids = [
+                            name for name, res in fr.items()
+                            if (not res.get("valid")) and not (name == "dst" and res.get("expected") == "default")
+                        ]
+                        if not blocking_invalids:
+                            skip_missing = True
 
-                        route_result["missing_expected_routes"].append({
-                            "expected": expected_route,
-                            "best_candidate": best_candidate,
-                            "prefix_type": expected_prefix_type
-                        })
+                    if not expected_route.get("is_policy"):
+                        if not skip_missing:
+                            route_result["missing_expected_routes"].append({
+                                "expected": expected_route,
+                                "best_candidate": best_candidate,
+                                "prefix_type": expected_prefix_type
+                            })
                     else:
-                        route_result["missing_expected_routes_policy"].append({
-                            "expected": expected_route,
-                            "best_candidate": best_candidate,
-                            "prefix_type": expected_prefix_type
-                        })
+                        if not skip_missing:
+                            route_result["missing_expected_routes_policy"].append({
+                                "expected": expected_route,
+                                "best_candidate": best_candidate,
+                                "prefix_type": expected_prefix_type
+                            })
 
             # --------------------------------------------------
             # final validity
@@ -458,7 +477,7 @@ def match_via_info(actual, expected_options):
 # Creates a human-friendly warning message for an invalid field, 
 # with special formatting for certain fields like via_info.
 # -------------------------------------------------------------
-def build_invalid_field_warning(warnings, router, prefix_type, route, field, expected, actual, is_default, route_id=None):
+def build_invalid_field_warning(warnings, router, prefix_type, route, field, expected, actual, is_default, is_policy, route_id=None, table=None):
     if field == "via_info":
         if (actual is not None):
             if (is_default):
@@ -502,6 +521,36 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                 field="via",                
                 expected=format_via_info(expected)
                 )
+    elif field == "dst" and expected == "default":
+        if is_policy:
+             add_routing_warning(
+                    None,
+                    "routing",
+                    "invalid_route_field_minimization_policy",
+                    router=router,
+                    warnings_list=warnings,
+                    route_name=route,
+                    route_id=route_id,
+                    prefix_type=prefix_type,
+                    field=field,            
+                    table=table,    
+                    expected=expected,
+                    actual=actual
+                    )
+        else:
+            add_routing_warning(
+                        None,
+                        "routing",
+                        "invalid_route_field_minimization",
+                        router=router,
+                        warnings_list=warnings,
+                        route_name=route,
+                        route_id=route_id,
+                        prefix_type=prefix_type,
+                        field=field,                
+                        expected=expected,
+                        actual=actual
+                        )
     else:
         add_routing_warning(
                     None,

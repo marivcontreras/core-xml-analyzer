@@ -114,8 +114,8 @@ def direct(iface=None):
         "dev": iface,
         "table": "local",
         "dst": AUTO,
-        "score": 999,
-        "is_default": False,
+        "score": ANY,
+        "is_default": ANY,
         "is_policy": False
     }]
 
@@ -137,8 +137,8 @@ def default(iface, via, onlySite=False):
         "dev": iface,
         "table": "main",
         "dst": PREFIX_TYPE["default"],
-        "score": 0,
-        "is_default": True,
+        "score": ANY,
+        "is_default": ANY,
         "is_policy": False
     }
 
@@ -231,8 +231,8 @@ def policy_default(table, iface, via, onlySite = False):
         "dev": iface,
         "table": table,
         "dst": PREFIX_TYPE["default"],
-        "score": 0,
-        "is_default": True,
+        "score": ANY,
+        "is_default": ANY,
         "is_policy": True
     }
 

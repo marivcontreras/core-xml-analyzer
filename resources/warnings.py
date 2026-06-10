@@ -240,6 +240,19 @@ WARNINGS = {
         "category": "routing"
     },
 
+    "invalid_route_field_minimization": {
+        "message": "La ruta hacia la red {prefix_type} {route_name} no está siendo minimizada por default. Destino esperado: {expected}. Actual: {actual}.",
+        "type": "warning",
+        "category": "routing"
+    },
+
+    "invalid_route_field_minimization_policy": {
+        "message": "La ruta hacia la red {prefix_type} {route_name} no está siendo minimizada por default en la tabla {table}. Destino esperado: {expected}. Actual: {actual}.",
+        "type": "warning",
+        "category": "routing"
+    },
+
+
     "invalid_route_field_default": {
         "message": "Los paquetes dirigidos hacia la red {prefix_type} {route_name} están siendo direccionados incorrectamente a través de la entrada por default. Campo via esperado: {expected}. ",
         "type": "error",
