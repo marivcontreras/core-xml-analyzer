@@ -181,6 +181,9 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
             else:
                 message = f"En {router_name}, los paquetes dirigidos hacia las redes: {', '.join(route_names)} están siendo direccionados incorrectamente a través de la entrada por default"
         
+        elif code == "invalid_route_field_minimization" and route_names:
+            message = f"{prefix_type}: Router {router_name} tiene {len(route_names)} advertencias de minimización por default no realizada para rutas: {', '.join(route_names)}"
+
         elif route_names:
             message = f"Router {router_name} tiene {len(route_names)} advertencias '{code}' para rutas: {', '.join(route_names)}"
         
