@@ -107,7 +107,9 @@ def parse_routes(text, data, node_id):
         dst = re.search(r'(?:blackhole|prohibit|unreachable|unicast)?\s*(default|[0-9a-fA-F\.:/]+)', line)
         
         if dst:
-            route["dst"] = dst.group(1)
+            route["dst"] = dst.group(1)            
+            if route["dst"] == "::/0":
+                route["dst"] = "default"
 
         route["networks"] = resolve_route_networks(route["dst"], data)
         # ----------------------------------
