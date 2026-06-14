@@ -235,7 +235,7 @@ WARNINGS = {
     },
 
     "invalid_route_field": {
-        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
+        "message": "La ruta hacia la red {prefix_type} {route_name} en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
         "type": "error",
         "category": "routing"
     },
@@ -260,13 +260,13 @@ WARNINGS = {
     },
 
     "invalid_route_field_via_info": {
-        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
+        "message": "La ruta hacia la red {prefix_type} {route_name}  en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}.",
         "type": "error",
         "category": "routing"
     },
 
     "invalid_route_field_via_info_none": {
-        "message": "La ruta hacia la red {prefix_type} {route_name} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: la dirección IP es inválida o no está asignada.",
+        "message": "La ruta hacia la red {prefix_type} {route_name}  en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: la dirección IP es inválida o no está asignada.",
         "type": "error",
         "category": "routing"
     },

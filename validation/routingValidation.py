@@ -490,7 +490,8 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                 route_name=route,
                 route_id=route_id,
                 prefix_type=prefix_type,
-                field="via",               
+                field="via", 
+                table=table,               
                 expected=format_via_info(expected),
                 actual=format_via_info(actual)
                 )
@@ -504,7 +505,8 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                     route_name=route,
                     route_id=route_id,
                     prefix_type=prefix_type,
-                    field="via",               
+                    field="via", 
+                    table=table,               
                     expected=format_via_info(expected),
                     actual=format_via_info(actual)
                     )
@@ -518,7 +520,8 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                 route_name=route,
                 route_id=route_id,
                 prefix_type=prefix_type,
-                field="via",                
+                field="via",     
+                table=table,            
                 expected=format_via_info(expected)
                 )
     elif field == "dst" and expected == "default":
@@ -549,6 +552,7 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                         prefix_type=prefix_type,
                         field=field,                
                         expected=expected,
+                        table=table, 
                         actual=actual
                         )
     else:
@@ -561,7 +565,8 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
                     route_name=route,
                     route_id=route_id,
                     prefix_type=prefix_type,
-                    field=field,                
+                    field=field,      
+                    table=table,           
                     expected=expected,
                     actual=actual
                     )
