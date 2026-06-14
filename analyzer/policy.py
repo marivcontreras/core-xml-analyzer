@@ -40,13 +40,13 @@ def build_behavior_and_tag(item, data, initial_tag=None, behavior_type="rule"):
     # Check src attribute
     if item.get("src"):
         behavior["options"]["src"] = item['src']
-        tag = f"{tag}_src" if tag else "src"
+        tag = f"{tag}_src_{item.get("src")}" if tag else "src"
         behavior["src_networks"] = resolve_route_networks(item["src"], data)
     
     # Check dst attribute
     if item.get("dst"):
         behavior["options"]["dst"] = item['dst']
-        tag = f"{tag}_dst" if tag else "dst"
+        tag = f"{tag}_dst_{item.get("dst")}" if tag else "dst"
         behavior["dst_networks"] = resolve_route_networks(item["dst"], data)
     
     # Check iif attribute
