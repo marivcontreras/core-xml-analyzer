@@ -238,7 +238,7 @@ def parse_rules(text):
         # ----------------------------------
         # TABLE
         # ----------------------------------
-        table = re.search(r'table\s+(\S+)', line)
+        table = re.search(r'(?:lookup|table)\s+(\S+)', line)
         if table:
             rule["table"] = table.group(1)
 
