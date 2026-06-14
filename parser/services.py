@@ -217,7 +217,7 @@ def parse_rules(text):
         # SOURCE / DEST / IN/OUT INTERFACES
         # ----------------------------------
         src = re.search(r'from\s+(\S+)', line)
-        dst = re.search(r'to\s+(\S+)', line)
+        dst = re.search(r' to\s+(\S+)', line)
 
 
         if src:
