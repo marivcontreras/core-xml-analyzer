@@ -200,6 +200,7 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                         is_default = best_candidate["interpreted_route"].get("dst") == "default"
                         is_policy = best_candidate["interpreted_route"].get("is_policy")
                         table_name = best_candidate["interpreted_route"].get("table")
+                        via = best_candidate["interpreted_route"].get("via")
                         expected_prefix_type =  next((k for k, v in PREFIX_TYPE.items() if v == expected_route.get("prefix_type")), None)
 
                         for field_name, field_result in best_candidate["field_results"].items():
@@ -215,7 +216,8 @@ def validate_routing_matrix(interpreted_matrix, expected_matrix):
                                     is_default,
                                     is_policy,
                                     route_id=route_id,
-                                    table=table_name
+                                    table=table_name,
+                                    via= via
                                 )
 
                 if not matched:
@@ -477,9 +479,9 @@ def match_via_info(actual, expected_options):
 # Creates a human-friendly warning message for an invalid field, 
 # with special formatting for certain fields like via_info.
 # -------------------------------------------------------------
-def build_invalid_field_warning(warnings, router, prefix_type, route, field, expected, actual, is_default, is_policy, route_id=None, table=None):
+def build_invalid_field_warning(warnings, router, prefix_type, route, field, expected, actual, is_default, is_policy, route_id=None, table=None, via=None):
     if field == "via_info":
-        if (actual is not None):
+        if (actual is not None or via == "-"):
             if (is_default):
                 add_routing_warning(
                 None,

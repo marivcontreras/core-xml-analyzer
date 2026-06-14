@@ -132,10 +132,9 @@ def parse_routes(text, data, node_id):
             #print(f"Resolving route dev for {route['dst']} via {route['via']} with dev {route['dev']}")
 
         if not route["via"] and route["dev"]:
-            via_ip = resolve_p2p_route_via(node_id, route["dev"], route["family"], data)
-            print(f"Debug {node_id} | {route["dev"]} | {route["type"]} | {via_ip}")
-            if via_ip:
-                route["via"] = via_ip
+            via_ip = resolve_p2p_route_via(node_id, route["dev"], route["family"], data)            
+            route["via"] = via_ip if via_ip else "-"
+
         # ----------------------------------
         # TABLE
         # ----------------------------------
