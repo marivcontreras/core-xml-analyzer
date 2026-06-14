@@ -111,10 +111,7 @@ def process_rules(policy, rules, routes, data, mode="ipproto", add_priority=Fals
           'action' to use rule['action'] as initial tag.
     """
     for rule in rules:
-        if mode == "ipproto":
-            initial_tag = "tcp" if rule.get("ipproto") == "tcp" else None
-        else:
-            initial_tag = rule.get("action") if rule.get("action") else None
+        initial_tag = "tcp" if rule.get("ipproto") == "tcp" else rule.get("action") if rule.get("action") else None
 
         tag, behavior = build_behavior_and_tag(rule, data, initial_tag, "rule")
 

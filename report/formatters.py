@@ -174,7 +174,13 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
                 message = f"{prefix_type}: En {router_name} hay información inválida en el campo via en las rutas hacia las redes {', '.join(route_names)}"
             else:
                 message = f"En {router_name} hay información inválida en el campo via en las rutas hacia las redes: {', '.join(route_names)}"
-        
+
+        elif code == "invalid_route_field_via_info_none" and route_names:
+            if prefix_type != None:
+                message = f"{prefix_type}: {router_name} tiene rutas donde se están utilizando direcciones inválidas o no asignadas en el campo via hacia las redes {', '.join(route_names)}"
+            else:
+                message = f"{router_name} tiene rutas donde se están utilizando direcciones inválidas o no asignadas en el campo via hacia las redes: {', '.join(route_names)}"
+
         elif code == "invalid_route_field_default" and route_names:
             if prefix_type != None: 
                 message = f"{prefix_type}: En {router_name}, los paquetes dirigidos hacia las redes  {', '.join(route_names)} están siendo direccionados incorrectamente a través de la entrada por default"
