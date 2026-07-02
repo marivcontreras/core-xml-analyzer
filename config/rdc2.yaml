@@ -14,3 +14,26 @@ devices:
 
   other_routers:
     - R-Casa
+
+networks:
+  intranet_lans:
+    - SwDataCenter
+    - WVentas
+    - SwVentas
+    - WGuest
+    - SwAdmin
+    - SwOfiAdmin
+
+  intranet_p2p:
+    - R4<>R1-DC
+    - R4<>R5
+    - R5<>R6
+    - R5<>R3
+    - R4<>R3
+    - R2<>R3
+    - R2<>R4
+
+  internet_networks:
+    - ISP-Casa<>R-Casa
+    - R2<>ISP-Intranet
+    - ISP-Casa<>ISP-Intranet
