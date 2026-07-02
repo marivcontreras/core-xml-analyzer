@@ -1,6 +1,6 @@
 from webbrowser import get
 
-from resources.warnings import get_warning
+from validation.warnings import get_warning
 
 
 def validate_policy(data, node_id, policy):

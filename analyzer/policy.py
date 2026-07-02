@@ -1,6 +1,6 @@
 from analyzer.prefixes import resolve_ip_owner
 from parser.services import resolve_route_networks
-from resources.warnings import get_warning
+from validation.warnings import get_warning
 from validation.policy_validation import validate_policy
 
 

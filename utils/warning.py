@@ -1,4 +1,4 @@
-from resources.warnings import get_warning_message, get_warning_type, get_warning_scope
+from validation.warnings import get_warning_message, get_warning_type, get_warning_scope
 from validation.routingHelper import TABLES
 
 def add_warning(data, code, *, wtype=None, scope=None,

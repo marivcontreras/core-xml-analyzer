@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>CORE XML Analyzer</title>
 </head>
+
 <body>
     <h1>CORE XML Analyzer</h1>
 
     <form action="/analyze" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".xml" required>
+        <div>
+            <label for="config">Configuration:</label>
+            <select id="config" name="config">
+                <option value="rdc1">Redes de Computadoras 1</option>
+                <option value="rdc2" selected>Redes de Computadoras 2</option>
+            </select>
+        </div>
+
+        <br>
+
+        <div>
+            <input type="file" name="file" accept=".xml" required>
+        </div>
+
+        <br>
+
         <button type="submit">Analyze</button>
     </form>
 </body>
+
 </html>

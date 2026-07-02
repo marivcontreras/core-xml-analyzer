@@ -6,7 +6,7 @@ from utils.ip import TYPE_LABELS
 
 env = Environment(loader=FileSystemLoader("templates"))
 
-def render_report_html(xml_text, filename="uploaded.xml"):
+def render_report_html(xml_text, filename="uploaded.xml", cfg=None):
     result = parse_xml(xml_text)
 
     summary = summarize(result)

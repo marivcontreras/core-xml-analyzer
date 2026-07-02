@@ -1,6 +1,7 @@
-from parser.devices import INTRANET_ROUTERS, get_node
+from parser.devices import get_node
 from collections import defaultdict
 
+from utils import config_helper
 from utils.ip import PREFIX_TYPE, TYPE_LABELS
 
 # -------------------------------------------------
@@ -437,10 +438,11 @@ def reverse_network_name(route_name):
 # Checks if a network name corresponds to an intranet network
 # -------------------------------------------------------------
 def is_intranet_network(net_name):
+    intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
     # 1. incluir p2p SI ambos extremos son intranet
     if "<>" in net_name:
         parts = [p.strip() for p in net_name.split("<>")]
-        return all(p in INTRANET_ROUTERS for p in parts)
+        return all(p in intranet_routers for p in parts)
 
     # 2. excluir cosas obvias
     if net_name.lower() in ["default", "internet", "isp"]:
@@ -460,8 +462,8 @@ def is_intranet_network(net_name):
 def build_matrix_table(matrix, networks_data, validation_result=None):
 
     import copy
-
-    routers = [r for r in matrix.keys() if r in INTRANET_ROUTERS]
+    intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
+    routers = [r for r in matrix.keys() if r in intranet_routers]
 
     validation_table = {}
     warnings = []
