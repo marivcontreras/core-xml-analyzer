@@ -246,116 +246,81 @@ def policy_default(table, iface, via, onlySite = False):
         clone_with_prefix_type(base_route, PREFIX_TYPE["site"])
     ]
 
-EXPECTED_ROUTING_MATRIX = {
-    "R1-DC": {
-        "SwDataCenter": direct("eth0"),
-        "WVentas": default("eth1", "R4-eth1"),
-        "SwVentas": default("eth1", "R4-eth1"),
-        "WGuest": default("eth1", "R4-eth1"),
-        "SwAdmin": default("eth1", "R4-eth1", True),
-        "SwOfiAdmin": default("eth1", "R4-eth1", True),
-        "R4<>R1-DC": direct("eth1"),
-        "R4<>R5": default("eth1", "R4-eth1"),
-        "R5<>R6": default("eth1", "R4-eth1"),
-        "R5<>R3": default("eth1", "R4-eth1"),
-        "R4<>R3": default("eth1", "R4-eth1"),
-        "R2<>R3": default("eth1", "R4-eth1"),
-        "R2<>R4": default("eth1", "R4-eth1")
-    },
 
-    "R6": {
-        "SwDataCenter": default("eth2", "R5-eth0"),
-        "WVentas": direct("eth0"),
-        "SwVentas": direct("eth1"),
-        "WGuest": default("eth2", "R5-eth0"),
-        "SwAdmin": default("eth2", "R5-eth0", True),
-        "SwOfiAdmin": default("eth2", "R5-eth0", True),
-        "R4<>R1-DC": default("eth2", "R5-eth0"),
-        "R4<>R5": default("eth2", "R5-eth0"),
-        "R5<>R6": direct("eth2"),
-        "R5<>R3": default("eth2", "R5-eth0"),
-        "R4<>R3": default("eth2", "R5-eth0"),
-        "R2<>R3": default("eth2", "R5-eth0"),
-        "R2<>R4": default("eth2", "R5-eth0")
-    },
+# Routing matrices are now loaded from YAML config files (resources/{class}/routing.yaml)
+# See: get_expected_routing_matrix() and get_expected_isp_routing_matrix()
+# Removing hardcoded matrices - they have been migrated to:
+# - resources/rdc2/routing.yaml (intranet_routers and internet_routers sections)
+# - resources/rdc1/routing.yaml (placeholder with same structure)
 
-    "R3": {
-        "SwDataCenter": indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "WVentas":  indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "SwVentas":  indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "WGuest":  indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "SwAdmin": direct("eth0"),
-        "SwOfiAdmin": direct("eth1"),
-        "R4<>R1-DC": indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "R4<>R5":  indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "R5<>R6":  indirect(["R2-eth1", "R4-eth3", "R5-eth3"]),
-        "R5<>R3": direct("eth2"),
-        "R4<>R3": direct("eth4"),
-        "R2<>R3": direct("eth3"),
-        "R2<>R4": indirect(["R2-eth1", "R4-eth3", "R5-eth3"])
-    },
 
-    "R5": {
-        "SwDataCenter": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "WVentas": indirect(["R6-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "SwVentas": indirect(["R6-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "WGuest": direct("eth1"),
-        "SwAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_default("guest-isolation", "eth3", "R3-eth2", True) ,
-        "SwOfiAdmin": indirect(["R4-eth0", "R3-eth2"], onlySite=True)  + policy_default("guest-isolation", "eth3", "R3-eth2", True),
-        "R1-DC<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R4<>R5": direct("eth2") + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R5<>R6": direct("eth0") + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R5<>R3": direct("eth3") + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R4<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R2<>R3": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-        "R2<>R4": indirect(["R4-eth0", "R3-eth2"]) + policy_default("guest-isolation", "eth3", "R3-eth2"),
-    },
+def get_expected_routing_matrix():
+    """
+    Load the expected intranet routing matrix from YAML config.
+    Returns empty dict if config or loading fails.
+    
+    Checks if a routing config path is configured in the current config,
+    loads it, and returns the normalized routing matrix for intranet routers.
+    
+    Returns:
+        Dict in format {router: {network: [route_dicts]}}
+    """
+    from utils.config_helper import get_config
+    from utils.routing_config import get_routing_matrix
+    
+    current_config = get_config()
+    
+    # Try to load routing config from YAML
+    if current_config and "routing_config" in current_config:
+        routing_yaml_path = current_config["routing_config"]
+        
+        # Extract class name from routing config path (e.g., "rdc2" from "resources/rdc2/routing.yaml")
+        import os
+        class_name = os.path.basename(os.path.dirname(routing_yaml_path))
+        
+        try:
+            loaded_matrix = get_routing_matrix(class_name, router_type="intranet_routers")
+            if loaded_matrix:
+                return loaded_matrix
+        except Exception as e:
+            print(f"Warning: Failed to load routing matrix from YAML: {e}")
+    
+    # Fallback: return empty matrix if no config or loading failed
+    return {}
 
-    "R4": {
-        "SwDataCenter": indirect(["R1-DC-eth1"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "WVentas": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "SwVentas": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "WGuest": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "SwAdmin": indirect(["R5-eth2", "R3-eth4"], onlySite=True) + policy_default("to-r3", "eth3", "R3-eth4", True),
-        "SwOfiAdmin": indirect(["R5-eth2", "R3-eth4"], onlySite=True) + policy_default("to-r3", "eth3", "R3-eth4", True),
-        "R1-DC<>R4": direct("eth1") + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R4<>R5": direct("eth0") + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R5<>R6": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R5<>R3": indirect(["R5-eth2", "R3-eth4"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R4<>R3": direct("eth3") + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R2<>R3": indirect(["R5-eth2", "R3-eth4", "R2-eth0"]) + policy_default("to-r3", "eth3", "R3-eth4"),
-        "R2<>R4": direct("eth2") + policy_default("to-r3", "eth3", "R3-eth4"),
-    },
 
-    "R2": {
-        "SwDataCenter": indirect(["R4-eth2", "R3-eth3"]),
-        "WVentas": indirect(["R4-eth2", "R3-eth3"]),
-        "SwVentas": indirect(["R4-eth2", "R3-eth3"]),
-        "WGuest": indirect(["R4-eth2", "R3-eth3"]),
-        "SwAdmin": indirect(["R4-eth2", "R3-eth3"], onlySite=True),
-        "SwOfiAdmin": indirect(["R4-eth2", "R3-eth3"], onlySite=True),
-        "R1-DC<>R4": indirect(["R4-eth2", "R3-eth3"]),
-        "R4<>R5": indirect(["R4-eth2", "R3-eth3"]),
-        "R5<>R6": indirect(["R4-eth2", "R3-eth3"]),
-        "R5<>R3": indirect(["R4-eth2", "R3-eth3"]),
-        "R4<>R3": indirect(["R4-eth2", "R3-eth3"]),
-        "R2<>R3": direct("eth1"),
-        "R2<>R4": direct("eth0")
-    }
-}
-
-ISP_EXPECTED = {
-        "ISP-Intranet": {
-            "ISP-Casa<>R-Casa": indirectISP(["ISP-Casa-eth0"], devs=["eth1"]),
-            "R2<>ISP-Intranet": direct("eth0"),
-            "ISP-Casa<>ISP-Intranet": direct("eth1")
-        },
-
-        "ISP-Casa": {
-            "R2<>ISP-Intranet": indirectISP(["ISP-Intranet-eth1"], devs=["eth0"]),
-            "R-Casa<>ISP-Casa": direct("eth1"),
-            "ISP-Casa<>ISP-Intranet": direct("eth0")
-        }
-    }
+def get_expected_isp_routing_matrix():
+    """
+    Load the expected internet (ISP) routing matrix from YAML config.
+    Returns empty dict if config or loading fails.
+    
+    Checks if a routing config path is configured in the current config,
+    loads it, and returns the normalized routing matrix for internet routers.
+    
+    Returns:
+        Dict in format {router: {network: [route_dicts]}}
+    """
+    from utils.config_helper import get_config
+    from utils.routing_config import get_routing_matrix
+    
+    current_config = get_config()
+    
+    # Try to load routing config from YAML
+    if current_config and "routing_config" in current_config:
+        routing_yaml_path = current_config["routing_config"]
+        
+        # Extract class name from routing config path (e.g., "rdc2" from "resources/rdc2/routing.yaml")
+        import os
+        class_name = os.path.basename(os.path.dirname(routing_yaml_path))
+        
+        try:
+            loaded_matrix = get_routing_matrix(class_name, router_type="internet_routers")
+            if loaded_matrix:
+                return loaded_matrix
+        except Exception as e:
+            print(f"Warning: Failed to load ISP routing matrix from YAML: {e}")
+    
+    # Fallback: return empty matrix if no config or loading failed
+    return {}
 
 

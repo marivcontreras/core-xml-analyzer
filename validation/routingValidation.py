@@ -4,7 +4,7 @@ from parser.routing import build_routing_matrix
 from report.formatters import format_route, format_via_info, reverse_network_name
 from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning, replicate_routing_warning
-from validation.routingHelper import ANY, ISP_EXPECTED, TABLES
+from validation.routingHelper import ANY, TABLES, get_expected_isp_routing_matrix
 
 # -------------------------------------------------------------
 # Creates a validation table and a list of warnings related to routing configuration.
@@ -576,10 +576,11 @@ def build_invalid_field_warning(warnings, router, prefix_type, route, field, exp
 def validate_isp_routes(data):
     routing_data = data["routing"]
     matrix = build_routing_matrix(data, intranet=False)
+    
+    # Load ISP routing matrix from YAML or use hardcoded fallback
+    expected_isp_matrix = get_expected_isp_routing_matrix()
 
-    #print(f"Matriz de rutas interpretada para validación ISP: {matrix}")
-
-    for router_name, expected_routes in ISP_EXPECTED.items():
+    for router_name, expected_routes in expected_isp_matrix.items():
 
         node_id = get_node_id(data, router_name)
 

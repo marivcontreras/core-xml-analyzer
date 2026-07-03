@@ -1,4 +1,7 @@
 
+# Configuration for RDC2 (Primary Data Center)
+routing_config: "resources/rdc2/routing.yaml"
+
 devices:
   intranet_routers:
     - R1-DC
@@ -16,7 +19,8 @@ devices:
     - R-Casa
 
 networks:
-  intranet_lans:
+  # defined by the name of the switch
+  intranet_lan_networks:
     - SwDataCenter
     - WVentas
     - SwVentas
@@ -24,7 +28,8 @@ networks:
     - SwAdmin
     - SwOfiAdmin
 
-  intranet_p2p:
+  # name of the routers combined
+  intranet_p2p_networks:
     - R4<>R1-DC
     - R4<>R5
     - R5<>R6
@@ -33,7 +38,11 @@ networks:
     - R2<>R3
     - R2<>R4
 
+  # name of the internet routers combined
   internet_networks:
     - ISP-Casa<>R-Casa
     - R2<>ISP-Intranet
     - ISP-Casa<>ISP-Intranet
+
+  other_networks:
+    - R-Casa<>PC-Casa

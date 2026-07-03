@@ -1,0 +1,13 @@
+# Configuration for RDC1 (Secondary Data Center)
+routing_config: "resources/rdc1/routing.yaml"
+
+devices:
+  intranet_routers: []
+  internet_routers: []
+  other_routers: []
+
+networks:
+  intranet_lan_networks: []
+  intranet_p2p_networks: []
+  internet_networks: []
+  other_networks: []

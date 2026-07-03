@@ -1,0 +1,19 @@
+# RDC1 Routing Matrix Configuration
+#
+# Placeholder for RDC1 routing configuration.
+# To be populated when RDC1 topology is defined.
+# 
+# Schema:
+# intranet_routers/internet_routers:
+#   Router:
+#     NetworkDestination:
+#       - type: (indirect|direct|policy)
+#         vias: [list of "ROUTER-INTERFACE" entries]
+#         dev: output interface (or "any" for flexible)
+#         table: routing table name
+#         prefix_types: [global, site] or [ipv4]
+#         is_policy: true|false (only for policy routes)
+
+intranet_routers: {}
+
+internet_routers: {}
