@@ -12,7 +12,7 @@ import yaml
 import os
 from pathlib import Path
 from utils.ip import PREFIX_TYPE
-
+import traceback
 
 # Constants matching routingHelper
 ANY = "__ANY__"
@@ -31,12 +31,21 @@ def normalize_vias(vias_list):
     """
     normalized = []
     for via in vias_list:
-        node, interface = via.rsplit("-", 1)
-        normalized.append({
-            "node": node,
-            "interface": interface,
-            "type": "neighbor"
-        })
+        if "-" in via:            
+            node, interface = via.rsplit("-", 1)
+            normalized.append({
+                "node": node,
+                "interface": interface,
+                "type": "neighbor"
+            })
+        else:
+            # If no interface specified, treat as node only
+            normalized.append({
+                "node": via,
+                "interface": "any",
+                "type": "neighbor"
+            })
+
     return normalized
 
 
@@ -123,7 +132,6 @@ def convert_yaml_route_to_internal(yaml_route):
     
     # Expand by prefix types
     routes = expand_by_prefix_types(base_route, prefix_types)
-    
     return routes
 
 
@@ -240,8 +248,10 @@ def load_routing_config(class_name, base_path=None, router_type="intranet_router
                     except (yaml.YAMLError, IOError) as e:
                         print(f"Warning: Failed to load routing YAML from {routing_yaml_path}: {e}")
                         print(f"Falling back to hardcoded routing matrix for {class_name}")
+                        traceback.print_exc()
         except (yaml.YAMLError, IOError) as e:
             print(f"Warning: Failed to load config from {config_file}: {e}")
+            traceback.print_exc()
     
     # Fallback: return empty dict or could import hardcoded matrix here
     # For now, return empty to indicate load failure

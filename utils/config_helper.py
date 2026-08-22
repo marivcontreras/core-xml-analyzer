@@ -13,3 +13,21 @@ def get_config():
 def load_config(filename: str):
     with open(Path("config") / filename, encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+def is_intranet_network(network):
+    networks = get_config().get("networks", {})
+    intranet_networks = (
+        networks.get("intranet_lan_networks", [])
+        + networks.get("intranet_p2p_networks", [])
+    )
+    print(f"Checking if network {network} is intranet. Intranet networks: {intranet_networks}")
+    return network in intranet_networks
+
+def is_internet_network(network):
+    networks = get_config().get("networks", {})
+    internet_networks = (
+        networks.get("internet_networks", [])
+        + networks.get("internet_p2p_networks", [])
+    )
+    print(f"Checking if network {network} is internet. Internet networks: {internet_networks}")
+    return network in internet_networks

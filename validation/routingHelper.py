@@ -89,6 +89,8 @@ IMPORTANT NOTES
 - Consider adding comments to non-obvious routing decisions
 """
 
+import traceback
+
 from utils.ip import PREFIX_TYPE
 
 ANY = "__ANY__"
@@ -277,6 +279,7 @@ def get_expected_routing_matrix():
         # Extract class name from routing config path (e.g., "rdc2" from "resources/rdc2/routing.yaml")
         import os
         class_name = os.path.basename(os.path.dirname(routing_yaml_path))
+        print(f"Loading expected routing matrix for class '{class_name}' from '{routing_yaml_path}'")
         
         try:
             loaded_matrix = get_routing_matrix(class_name, router_type="intranet_routers")
@@ -284,6 +287,7 @@ def get_expected_routing_matrix():
                 return loaded_matrix
         except Exception as e:
             print(f"Warning: Failed to load routing matrix from YAML: {e}")
+            traceback.print_exc()
     
     # Fallback: return empty matrix if no config or loading failed
     return {}

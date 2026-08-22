@@ -435,28 +435,6 @@ def reverse_network_name(route_name):
     return route_name
 
 # -------------------------------------------------------------
-# Checks if a network name corresponds to an intranet network
-# -------------------------------------------------------------
-def is_intranet_network(net_name):
-    intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
-    # 1. incluir p2p SI ambos extremos son intranet
-    if "<>" in net_name:
-        parts = [p.strip() for p in net_name.split("<>")]
-        return all(p in intranet_routers for p in parts)
-
-    # 2. excluir cosas obvias
-    if net_name.lower() in ["default", "internet", "isp"]:
-        return False
-
-    # 3. redes LAN/WiFi por nombre (ajustable)
-    intranet_keywords = [
-        "SwDataCenter", "WVentas", "SwVentas",
-        "WGuest", "SwAdmin", "SwOfiAdmin"
-    ]
-
-    return any(k in net_name for k in intranet_keywords)
-
-# -------------------------------------------------------------
 # Builds a matrix table for displaying network information
 # -------------------------------------------------------------
 def build_matrix_table(matrix, networks_data, validation_result=None):
@@ -487,7 +465,7 @@ def build_matrix_table(matrix, networks_data, validation_result=None):
     # filter networks
     # ----------------------------------------------------------
 
-    networks = sorted(n for n in networks if is_intranet_network(n))
+    networks = sorted(n for n in networks if config_helper.is_intranet_network(n))
 
     network_prefixes = {}
 

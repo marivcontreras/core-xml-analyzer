@@ -3,7 +3,7 @@ import ipaddress
 from utils.ip import PREFIX_TYPE, classify_prefix_type
 from analyzer.prefixes import resolve_ip_owner
 from parser.devices import get_node, is_intranet_router
-from report.formatters import is_intranet_network
+from utils import config_helper
 
 # ----------------------------------------------------------
 # Returns normalized IP network object, treating "default" as a special case.
@@ -203,15 +203,15 @@ def build_routing_matrix(data, intranet = True):
         
         matrix[router_name] = {}
         routes = routing.get("routes", [])
-
+        
         for net in data.get("networks", {}).values():
+            
             net_name = net.get("name")
-
             if intranet:
-                if not is_intranet_network(net_name):
+                if not config_helper.is_intranet_network(net_name):
                     continue
             else:
-                if is_intranet_network(net_name):
+                if config_helper.is_intranet_network(net_name):
                     continue
 
             prefixes = [p for p in net.get("prefixes", []) if p != "-"]
