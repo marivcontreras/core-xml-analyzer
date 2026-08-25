@@ -220,13 +220,15 @@ def resolve_ip_owner(ip_str, data):
     try:
         ip = ipaddress.ip_address(ip_str)
     except:
+        print(f"Invalid IP address: {ip_str}")
         return None
-
+    #print(f"Checking for IP {ip_str}...") 
     for net in data["networks"].values():
         for member in net.get("member_interfaces", []):
             node_id = member["node"]
             iface = member["iface"]
             addrs = get_staticroute_interface_addresses(data, node_id, iface)
+            #print(f"Found addresses for node {node_id} in {net['name']}, interface {iface}: {addrs}")
             for addr in addrs:
                 if addr.ip == ip:
                     node = data["devices"].get(node_id, {"name": f"node{node_id}"})
@@ -238,6 +240,7 @@ def resolve_ip_owner(ip_str, data):
                         "type": "neighbor"
                     }
 
+    print(f"IP address {ip_str} not found in any network")
     return {
                 "node": None,
                 "interface": None,

@@ -1,6 +1,11 @@
 # Configuration for RDC1 (Secondary Data Center)
 routing_config: "resources/rdc1/routing.yaml"
 
+subjects:
+  - Networks
+  - Routing
+  - Firewall
+
 devices:
   intranet_routers:
     - R2

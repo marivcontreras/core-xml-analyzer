@@ -15,95 +15,95 @@
 #         is_policy: true|false (only for policy routes)
 
 intranet_routers:
-  R1-DC:
-    SwDataCenter:
-      - type: direct
-        dev: eth0
-        table: local
-        prefix_types: [global, site]
+R1-DC:
+  SwDataCenter:
+    - type: direct
+      dev: eth0
+      table: local
+      prefix_types: [global, site]
 
-    WVentas:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  WVentas:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    SwVentas:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  SwVentas:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    WGuest:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  WGuest:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    SwAdmin:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [site]
+  SwAdmin:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [site]
 
-    SwOfiAdmin:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [site]
+  SwOfiAdmin:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [site]
 
-    R4<>R1-DC:
-      - type: direct
-        dev: eth1
-        table: local
-        prefix_types: [global, site]
+  R4<>R1-DC:
+    - type: direct
+      dev: eth1
+      table: local
+      prefix_types: [global, site]
 
-    R4<>R5:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R4<>R5:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    R5<>R6:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R5<>R6:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    R5<>R3:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R5<>R3:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    R4<>R3:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R4<>R3:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    R2<>R3:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R2<>R3:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
-    R2<>R4:
-      - type: indirect
-        vias: [R4-eth1]
-        dev: eth1
-        table: main
-        prefix_types: [global, site]
+  R2<>R4:
+    - type: indirect
+      vias: [R4-eth1]
+      dev: eth1
+      table: main
+      prefix_types: [global, site]
 
 R6:
   SwDataCenter:
@@ -673,25 +673,25 @@ R2:
       prefix_types: [global, site]
 
 internet_routers:
-  ISP-Intranet:
-    ISP-Casa<>R-Casa:
-      - type: indirect
-        vias: [ISP-Casa-eth0]
-        dev: eth1
-        table: main
-        prefix_types: [ipv4]
+ISP-Intranet:
+  ISP-Casa<>R-Casa:
+    - type: indirect
+      vias: [ISP-Casa-eth0]
+      dev: eth1
+      table: main
+      prefix_types: [ipv4]
 
-    R2<>ISP-Intranet:
-      - type: direct
-        dev: eth0
-        table: local
-        prefix_types: [ipv4]
+  R2<>ISP-Intranet:
+    - type: direct
+      dev: eth0
+      table: local
+      prefix_types: [ipv4]
 
-    ISP-Casa<>ISP-Intranet:
-      - type: direct
-        dev: eth1
-        table: local
-        prefix_types: [ipv4]
+  ISP-Casa<>ISP-Intranet:
+    - type: direct
+      dev: eth1
+      table: local
+      prefix_types: [ipv4]
 
 ISP-Casa:
   R2<>ISP-Intranet:

@@ -2,6 +2,13 @@
 # Configuration for RDC2 (Primary Data Center)
 routing_config: "resources/rdc2/routing.yaml"
 
+subjects:
+  - Networks
+  - Routing
+  - RPDB
+  - Firewall
+  - Tunneling
+
 devices:
   intranet_routers:
     - R1-DC

@@ -15,252 +15,252 @@
 #         is_policy: true|false (only for policy routes)
 
 intranet_routers:
-  R2:
-    Sw-Adm:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-      
-    Sw-Troncal:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-DC:
-      - type: direct
-        dev: eth0
-        table: local
-        prefix_types: [ipv4]
-
-    SW-Comp:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-Esc:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Inv:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Reu:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    R5<>R6:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-  R3:
-    Sw-Adm:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-      
-    Sw-Troncal:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-
-    SW-DC:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-
-    SW-Comp:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-Esc:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Inv:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Reu:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-
-    R5<>R6:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-
-  R4:
-    Sw-Adm:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-      
-    Sw-Troncal:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-DC:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-Comp:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-Esc:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Inv:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Reu:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
+R2:
+  Sw-Adm:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
     
-    R5<>R6:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-  
-  R5:
-    Sw-Adm:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-      
-    Sw-Troncal:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  Sw-Troncal:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    SW-DC:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-      
-    SW-Comp:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  SW-DC:
+    - type: direct
+      dev: eth0
+      table: local
+      prefix_types: [ipv4]
 
-    SW-Esc:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  SW-Comp:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    wlan-Inv:
-      - type: indirect
-        vias: [R6]
-        table: main
-        prefix_types: [ipv4]
+  SW-Esc:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    wlan-Reu:
-      - type: indirect
-        vias: [R6]
-        table: main
-        prefix_types: [ipv4]
+  wlan-Inv:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    R5<>R6:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-  
-  R6:
-    Sw-Adm:
-      - type: indirect
-        vias: [R5]
-        table: main
-        prefix_types: [ipv4]
-      
-    Sw-Troncal:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
+  wlan-Reu:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    SW-DC:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  R5<>R6:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
 
-    SW-Comp:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    SW-Esc:
-      - type: indirect
-        vias: [R3]
-        table: main
-        prefix_types: [ipv4]
-
-    wlan-Inv:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
-
-    wlan-Reu:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+R3:
+  Sw-Adm:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
     
-    R5<>R6:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  Sw-Troncal:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  SW-DC:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  SW-Comp:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-Esc:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Inv:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Reu:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+
+  R5<>R6:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+
+R4:
+  Sw-Adm:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+    
+  Sw-Troncal:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-DC:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-Comp:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-Esc:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Inv:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Reu:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+  
+  R5<>R6:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+R5:
+  Sw-Adm:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+    
+  Sw-Troncal:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  SW-DC:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+    
+  SW-Comp:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  SW-Esc:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  wlan-Inv:
+    - type: indirect
+      vias: [R6]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Reu:
+    - type: indirect
+      vias: [R6]
+      table: main
+      prefix_types: [ipv4]
+
+  R5<>R6:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+R6:
+  Sw-Adm:
+    - type: indirect
+      vias: [R5]
+      table: main
+      prefix_types: [ipv4]
+    
+  Sw-Troncal:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-DC:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  SW-Comp:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  SW-Esc:
+    - type: indirect
+      vias: [R3]
+      table: main
+      prefix_types: [ipv4]
+
+  wlan-Inv:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+
+  wlan-Reu:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
+  
+  R5<>R6:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
 
 internet_routers:
-  ISP:
-    ISP<>R4:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+ISP:
+  ISP<>R4:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
 
-    ISP<>R2:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  ISP<>R2:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]
 
-    ISP<>R1:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+  ISP<>R1:
+    - type: direct
+      table: local
+      prefix_types: [ipv4]

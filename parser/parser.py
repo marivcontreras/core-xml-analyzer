@@ -1,6 +1,7 @@
 from analyzer.policy import analyze_policies
 from parser.routing import build_routing_matrix
 from report.formatters import build_matrix_table, build_text_warning_summary
+from utils.config_helper import get_subjects
 from validation.ip_commands import validate_ip_addr_commands
 from validation.routingHelper import get_expected_routing_matrix
 from validation.routingValidation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
@@ -18,6 +19,7 @@ def parse_xml(xml_text):
     root = ET.fromstring(xml_text)
 
     data = {
+        "subjects": get_subjects(),
         "devices": {},
         "links": [],
         "services": {},

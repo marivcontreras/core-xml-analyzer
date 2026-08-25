@@ -122,7 +122,7 @@
 
             border-radius: 4px;
 
-            background: #eceff1;
+            background: #eaf9ed;
         }
 
         .network-prefix-global {
@@ -201,6 +201,9 @@
             border-width: 1px;
             border-style: solid;
             border-radius: 4px;
+
+            background-color: #e3fdef;
+            border-color: #297649;
         }
 
 
@@ -667,6 +670,7 @@
     </div>
     {% endif %}
 
+    {% if "Routing" in data.subjects %}
     <div class="card">
         <h2>Matriz de Routing</h2>
         <div>
@@ -856,6 +860,7 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
 
     {% for node_id, routing in data.routing.items() %}
     <details class="card">
@@ -865,77 +870,86 @@
         {% endif %}">
             Reglas configuradas (Router {{ data.devices[node_id].name if node_id in data.devices else node_id }})
         </summary>
+
         <!-- RULES -->
-        <h4>Reglas (ip rule)</h4>
-        {% if routing.rules %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Prioridad</th>
-                    <th>Acción</th>
-                    <th>Eth-IN</th>
-                    <th>Eth-OUT</th>
-                    <th>Src</th>
-                    <th>Dst</th>
-                    <th>Proto</th>
-                    <th>FwMark</th>
-                    <th>Tabla</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rule in routing.rules %}
-                <tr>
-                    <td>{{ rule.priority if rule.priority else "-" }}</td>
-                    <td>{{ rule.action if rule.action else "-" }}</td>
-                    <td>{{ rule.iif if rule.iif else "-" }}</td>
-                    <td>{{ rule.oif if rule.oif else "-" }}</td>
-                    <td>{{ rule.src if rule.src else "-" }}</td>
-                    <td>{{ rule.dst if rule.dst else "-" }}</td>
-                    <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
-                    <td>{{ rule.fwmark if rule.fwmark else "-" }}</td>
-                    <td>{{ rule.table }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No hay reglas</p>
+        {% if "RPDB" in data.subjects %}
+
+            <h4>Reglas (ip rule)</h4>
+            {% if routing.rules %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Prioridad</th>
+                        <th>Acción</th>
+                        <th>Eth-IN</th>
+                        <th>Eth-OUT</th>
+                        <th>Src</th>
+                        <th>Dst</th>
+                        <th>Proto</th>
+                        <th>FwMark</th>
+                        <th>Tabla</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rule in routing.rules %}
+                    <tr>
+                        <td>{{ rule.priority if rule.priority else "-" }}</td>
+                        <td>{{ rule.action if rule.action else "-" }}</td>
+                        <td>{{ rule.iif if rule.iif else "-" }}</td>
+                        <td>{{ rule.oif if rule.oif else "-" }}</td>
+                        <td>{{ rule.src if rule.src else "-" }}</td>
+                        <td>{{ rule.dst if rule.dst else "-" }}</td>
+                        <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
+                        <td>{{ rule.fwmark if rule.fwmark else "-" }}</td>
+                        <td>{{ rule.table }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay reglas</p>
+            {% endif %}
+
         {% endif %}
 
-        <!-- ROUTES -->
-        <h4>Rutas (ip route)</h4>
+        {% if "Routing" in data.subjects %}
 
-        {% if routing.routes %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tipo</th>
-                    <th>Destino</th>
-                    <th>Redes</th>
-                    <th>Via</th>
-                    <th>Interfaz</th>
-                    <th>Tabla</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for route in routing.routes %}
+            <!-- ROUTES -->
+            <h4>Rutas (ip route)</h4>
 
-                <tr class="{% if route.has_warnings %} tr-has-warning {% endif %}">
-                    <td>{{ route.id if route.id else "-" }}</td>
-                    <td>{{ route.type }}</td>
-                    <td>{{ route.dst }}</td>
-                    <td>{{ route.networks | join(", ") }}</td>
-                    <td>{{ route.via if route.via else "-" }}</td>
-                    <td>{{ route.dev if route.dev else "-" }}</td>
-                    <td>{{ route.table }}</td>
+            {% if routing.routes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Destino</th>
+                        <th>Redes</th>
+                        <th>Via</th>
+                        <th>Interfaz</th>
+                        <th>Tabla</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for route in routing.routes %}
 
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No hay rutas</p>
+                    <tr class="{% if route.has_warnings %} tr-has-warning {% endif %}">
+                        <td>{{ route.id if route.id else "-" }}</td>
+                        <td>{{ route.type }}</td>
+                        <td>{{ route.dst }}</td>
+                        <td>{{ route.networks | join(", ") }}</td>
+                        <td>{{ route.via if route.via else "-" }}</td>
+                        <td>{{ route.dev if route.dev else "-" }}</td>
+                        <td>{{ route.table }}</td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay rutas</p>
+            {% endif %}
+
         {% endif %}
 
         {% set routing_warnings = routing.warnings["routing"] %}
@@ -975,203 +989,212 @@
         </details>
 
         {% endif %}
+        
+        {% if "Tunneling" in data.subjects %}
 
-        <!-- TUNNELS -->
-        <h4>Túneles</h4>
+            <!-- TUNNELS -->
+            <h4>Túneles</h4>
 
-        {% if routing.tunnels %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Interfaz</th>
-                    <th>Modo</th>
-                    <th>Local</th>
-                    <th>Remote</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for tunnel in routing.tunnels %}
-
-                <tr>
-                    <td>{{ tunnel.name if tunnel.name else "-" }}</td>
-                    <td>{{ tunnel.dev if tunnel.dev else "-" }}</td>
-                    <td>{{ tunnel.mode if tunnel.mode else "-" }}</td>
-                    <td>{{ tunnel.local if tunnel.local else "-" }}</td>
-                    <td>{{ tunnel.remote if tunnel.remote else "-" }}</td>
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-        </table>
-
-        {% else %}
-
-        <p>No hay túneles</p>
-
-        {% endif %}
-
-        {% set tunnel_warnings = routing.warnings["tunnels"] %}
-        {% if tunnel_warnings %}
-
-        <details class="warning-subgroup">
-            <summary class="warning-subgroup-title">
-                Advertencias de Túneles
-            </summary>
-
-            {% for warning in tunnel_warnings %}
-
-            <div class="warning-item warning-{{ warning.severity }}">
-                {{ warning.message }}
-            </div>
-
-            {% endfor %}
-
-        </details>
-
-        {% endif %}
-
-        <!-- IPTABLES -->
-        <h4>Marcado de tráfico (ip6tables)</h4>
-        {% if routing.iptables %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Chain</th>
-                    <th>Src</th>
-                    <th>Dst</th>
-                    <th>Eth-IN</th>
-                    <th>Eth-OUT</th>
-                    <th>Proto</th>
-                    <th>Mark</th>
-                    <th>Target</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for rule in routing.iptables %}
-                <tr>
-                    <td>{{ rule.chain if rule.chain else "-" }}</td>
-                    <td>{{ rule.src if rule.src else "-" }}</td>
-                    <td>{{ rule.dst if rule.dst else "-" }}</td>
-                    <td>{{ rule.iif if rule.iif else "-" }}</td>
-                    <td>{{ rule.oif if rule.oif else "-" }}</td>
-                    <td>{{ rule.protocol if rule.protocol else "-" }}</td>
-                    <td>{{ rule.mark if rule.mark else "-" }}</td>
-                    <td>{{ rule.target if rule.target else "-" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No hay reglas de ip6tables</p>
-        {% endif %}
-
-    </details>
-    {% endfor %}
-
-    <!-- POLICY -->
-    {% for node_id, routing in data.routing.items() %}
-    {% if routing.policy %}
-    {% set policy = routing.policy %}
-    <div class="card">
-        <div class="policy-header">
-            <span class="policy-router">{{policy.router}} | Solución/es utilizada/s: </span>
-            {% for approach in policy.approach %}
-                <span class="policy-approach">{{approach}}</span>
-            {% endfor %}
-        </div>
-
-        {% if policy.behavior %}
-        <div class="policy-section">
-            <h4>Comportamiento</h4>
-
-            <table class="policy-table">
+            {% if routing.tunnels %}
+            <table>
                 <thead>
                     <tr>
-                        <th>Herramienta</th>
-                        <th>Tag</th>
-                        <th>Opciones</th>
-                        <th>Solución (tabla usada y su entrada default)</th>
+                        <th>Nombre</th>
+                        <th>Interfaz</th>
+                        <th>Modo</th>
+                        <th>Local</th>
+                        <th>Remote</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for tunnel in routing.tunnels %}
+
+                    <tr>
+                        <td>{{ tunnel.name if tunnel.name else "-" }}</td>
+                        <td>{{ tunnel.dev if tunnel.dev else "-" }}</td>
+                        <td>{{ tunnel.mode if tunnel.mode else "-" }}</td>
+                        <td>{{ tunnel.local if tunnel.local else "-" }}</td>
+                        <td>{{ tunnel.remote if tunnel.remote else "-" }}</td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+            {% else %}
+
+            <p>No hay túneles</p>
+
+            {% endif %}       
+
+            {% set tunnel_warnings = routing.warnings["tunnels"] %}
+            {% if tunnel_warnings %}
+
+            <details class="warning-subgroup">
+                <summary class="warning-subgroup-title">
+                    Advertencias de Túneles
+                </summary>
+
+                {% for warning in tunnel_warnings %}
+
+                <div class="warning-item warning-{{ warning.severity }}">
+                    {{ warning.message }}
+                </div>
+
+                {% endfor %}
+
+            </details>
+
+            {% endif %}
+
+        {% endif %}
+
+        {% if "Firewall" in data.subjects %}
+            <!-- IPTABLES -->
+            <h4>Marcado de tráfico (iptables)</h4>
+            {% if routing.iptables %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Chain</th>
+                        <th>Src</th>
+                        <th>Dst</th>
+                        <th>Eth-IN</th>
+                        <th>Eth-OUT</th>
+                        <th>Proto</th>
+                        <th>Mark</th>
+                        <th>Target</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for key, value in policy.behavior.items() %}
+                    {% for rule in routing.iptables %}
                     <tr>
-                        <td>{{value.type}}</td>
-                        <td>{{key}}</td>
-                        <td>
-                            {% if value.options %}
-                            <div class="policy-entry">
-                                {% for op_name, op_value in value.options.items() %}
-                                <div class="route-field">
-
-                                    <span class="route-field-name">
-                                        {{ op_name }}:
-                                    </span>
-
-                                    <span class="route-field-value">
-                                        {{ op_value }}
-                                    </span>
-                                </div>
-
-                                {% endfor %}
-                            </div>
-
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div>
-                                {% if value.table %}
-                                    {% if value.type == 'route' %}
-                                        Tabla {{ value.table }} |
-                                    {% else %}
-                                        Se usa la tabla {{ value.table }} |
-                                    {% endif %}
-                                {% endif %}
-                                {% if value.via %} Via: {{ value.via.node }} - {{ value.via.interface }} | {% endif %}
-                                {% if value.networks %}  Redes incluidas: {{ value.networks | join(", ") }} | {% endif %}
-                                {% if value.src_networks %} Redes de origen: {{ value.src_networks | join(", ") }} | {%
-                                endif %}
-                                {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | join(", ") }} {%
-                                endif %}
-                            </div>
-                        </td>
+                        <td>{{ rule.chain if rule.chain else "-" }}</td>
+                        <td>{{ rule.src if rule.src else "-" }}</td>
+                        <td>{{ rule.dst if rule.dst else "-" }}</td>
+                        <td>{{ rule.iif if rule.iif else "-" }}</td>
+                        <td>{{ rule.oif if rule.oif else "-" }}</td>
+                        <td>{{ rule.protocol if rule.protocol else "-" }}</td>
+                        <td>{{ rule.mark if rule.mark else "-" }}</td>
+                        <td>{{ rule.target if rule.target else "-" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+            {% else %}
+            <p>No hay reglas de iptables</p>
+            {% endif %}
         {% endif %}
+    </details>
+    {% endfor %}
 
-        {% if policy.evidence %}
-        <div class="policy-section">
-            <h4>Elementos Detectados</h4>
-
-            <ul class="policy-list">
-                {% for item in policy.evidence %}
-                <li>{{item.message}}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        {% if policy.warnings %}
-        <div class="policy-section">
-            <h4>Advertencias</h4>
-
-            <div class="policy-warning-list">
-                {% for warning in policy.warnings %}
-                <div class="warning-item warning-{{ warning.type }}">{{warning.message}}</div>
+    {% if "RPDB" in data.subjects %}
+    
+        <!-- POLICY -->
+        {% for node_id, routing in data.routing.items() %}
+        {% if routing.policy %}
+        {% set policy = routing.policy %}
+        <div class="card">
+            <div class="policy-header">
+                <span class="policy-router">{{policy.router}} | Solución/es utilizada/s: </span>
+                {% for approach in policy.approach %}
+                    <span class="policy-approach">{{approach}}</span>
                 {% endfor %}
             </div>
+
+            {% if policy.behavior %}
+            <div class="policy-section">
+                <h4>Comportamiento</h4>
+
+                <table class="policy-table">
+                    <thead>
+                        <tr>
+                            <th>Herramienta</th>
+                            <th>Tag</th>
+                            <th>Opciones</th>
+                            <th>Solución (tabla usada y su entrada default)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in policy.behavior.items() %}
+                        <tr>
+                            <td>{{value.type}}</td>
+                            <td>{{key}}</td>
+                            <td>
+                                {% if value.options %}
+                                <div class="policy-entry">
+                                    {% for op_name, op_value in value.options.items() %}
+                                    <div class="route-field">
+
+                                        <span class="route-field-name">
+                                            {{ op_name }}:
+                                        </span>
+
+                                        <span class="route-field-value">
+                                            {{ op_value }}
+                                        </span>
+                                    </div>
+
+                                    {% endfor %}
+                                </div>
+
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    {% if value.table %}
+                                        {% if value.type == 'route' %}
+                                            Tabla {{ value.table }} |
+                                        {% else %}
+                                            Se usa la tabla {{ value.table }} |
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if value.via %} Via: {{ value.via.node }} - {{ value.via.interface }} | {% endif %}
+                                    {% if value.networks %}  Redes incluidas: {{ value.networks | join(", ") }} | {% endif %}
+                                    {% if value.src_networks %} Redes de origen: {{ value.src_networks | join(", ") }} | {%
+                                    endif %}
+                                    {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | join(", ") }} {%
+                                    endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if policy.evidence %}
+            <div class="policy-section">
+                <h4>Elementos Detectados</h4>
+
+                <ul class="policy-list">
+                    {% for item in policy.evidence %}
+                    <li>{{item.message}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if policy.warnings %}
+            <div class="policy-section">
+                <h4>Advertencias</h4>
+
+                <div class="policy-warning-list">
+                    {% for warning in policy.warnings %}
+                    <div class="warning-item warning-{{ warning.type }}">{{warning.message}}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
         {% endif %}
-    </div>
+        {% endfor %}
+
     {% endif %}
-    {% endfor %}
 
     {% if warning_summary_text %}
     <div class="card">
