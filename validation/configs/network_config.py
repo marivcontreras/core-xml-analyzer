@@ -10,17 +10,6 @@ To adjust validation rules:
 3. Run tests to verify behavior
 """
 
-# Prefix length requirements by network kind
-# These define what IPv6 prefix length is expected for each network type
-# Examples:
-#   - LAN networks should use /64 (link-local + site-local scoping)
-#   - P2P links should use /127 (point-to-point requires exactly 2 addresses)
-PREFIX_LENGTH_REQUIREMENTS = {
-    "lan": 64,
-    "wireless": 64,
-    "point-to-point": 127,
-}
-
 # Maximum number of prefixes allowed per network
 # Currently allows IPv6 global + IPv6 site-local prefixes (2 total)
 # Increase if you want to support additional address families

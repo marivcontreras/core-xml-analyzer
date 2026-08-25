@@ -28,28 +28,45 @@ devices:
 networks:
   # defined by the name of the switch
   intranet_lan_networks:
-    - SwDataCenter
-    - WVentas
-    - SwVentas
-    - WGuest
-    - SwAdmin
-    - SwOfiAdmin
+    - name: SwDataCenter
+      mask: 64
+    - name: WVentas
+      mask: 64
+    - name: SwVentas
+      mask: 64
+    - name: WGuest
+      mask: 64
+    - name: SwAdmin
+      mask: 64
+    - name: SwOfiAdmin
+      mask: 64
 
   # name of the routers combined
   intranet_p2p_networks:
-    - R4<>R1-DC
-    - R4<>R5
-    - R5<>R6
-    - R5<>R3
-    - R4<>R3
-    - R2<>R3
-    - R2<>R4
+    - name: R4<>R1-DC
+      mask: 127
+    - name: R4<>R5
+      mask: 127
+    - name: R5<>R6
+      mask: 127
+    - name: R5<>R3
+      mask: 127
+    - name: R4<>R3
+      mask: 127
+    - name: R2<>R3
+      mask: 127
+    - name: R2<>R4
+      mask: 127
 
   # name of the internet routers combined
   internet_networks:
-    - ISP-Casa<>R-Casa
-    - R2<>ISP-Intranet
-    - ISP-Casa<>ISP-Intranet
+    - name: ISP-Casa<>R-Casa
+      mask: 24
+    - name: R2<>ISP-Intranet
+      mask: 24
+    - name: ISP-Casa<>ISP-Intranet
+      mask: 24
 
   other_networks:
-    - R-Casa<>PC-Casa
+    - name: R-Casa<>PC-Casa
+      mask: 64

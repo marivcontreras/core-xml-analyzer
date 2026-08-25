@@ -3,9 +3,9 @@ import ipaddress
 
 from analyzer.prefixes import get_staticroute_interface_addresses
 from utils.ip import PREFIX_TYPE, same_block, classify_prefix_type
+from utils import config_helper
 from utils.warning import add_warning
 from validation.configs.network_config import (
-    PREFIX_LENGTH_REQUIREMENTS,
     MAX_PREFIXES_PER_NETWORK,
     ADMIN_NETWORK_PATTERN,
 )
@@ -20,7 +20,7 @@ def validate_networks(data):
     used_prefixes = {}
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
-
+        print(f"Validating network {net['name']} with prefixes: {prefixes}")
         if not prefixes:
             continue
 
@@ -46,6 +46,24 @@ def validate_networks(data):
 
             else:
                 used_prefixes[prefix] = net["name"]
+
+            # ----------------------------------
+            # Wrong mask
+            # ----------------------------------
+
+            net_obj = ipaddress.ip_network(prefix, strict=False)
+            expected_mask = config_helper.get_network_mask(net["name"])
+            print(f"Checking network {net['name']} with prefix {prefix}. Expected mask: {expected_mask}, actual mask: {net_obj.prefixlen}")
+            if expected_mask is not None and net_obj.prefixlen != int(expected_mask):
+                add_warning(
+                    data,
+                    "invalid_prefix_length",
+                    network=net["name"],
+                    net_name=net["name"],
+                    prefix=prefix,
+                    expected=expected_mask,
+                    details={"prefix": prefix, "expected": expected_mask}
+                )
 
         kinds = [classify_prefix_type(p) for p in prefixes]
 
@@ -84,34 +102,6 @@ def validate_networks(data):
                 prefixes=', '.join(prefixes),
                 details={"prefixes": prefixes}
             )
-
-        # ----------------------------------
-        # 2. Wrong mask
-        # ----------------------------------
-        for p in prefixes:
-            net_obj = ipaddress.ip_network(p, strict=False)
-
-            if net["kind"] in ["lan", "wireless"] and net_obj.prefixlen != PREFIX_LENGTH_REQUIREMENTS["lan"]:
-                add_warning(
-                    data,
-                    "invalid_prefix_length",
-                    network=net["name"],
-                    net_name=net["name"],
-                    prefix=p,
-                    expected=PREFIX_LENGTH_REQUIREMENTS["lan"],
-                    details={"prefix": p, "expected": PREFIX_LENGTH_REQUIREMENTS["lan"]}
-                )
-
-            if net["kind"] == "point-to-point" and net_obj.prefixlen != PREFIX_LENGTH_REQUIREMENTS["point-to-point"]:
-                add_warning(
-                    data,
-                    "invalid_prefix_length",
-                    network=net["name"],
-                    net_name=net["name"],
-                    prefix=p,
-                    expected=PREFIX_LENGTH_REQUIREMENTS["point-to-point"],
-                    details={"prefix": p, "expected": PREFIX_LENGTH_REQUIREMENTS["point-to-point"]}
-                )
 
         # ----------------------------------
         # 3. Missing addresses (global + site)
