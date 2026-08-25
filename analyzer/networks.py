@@ -14,7 +14,7 @@ def infer_networks(data):
     # 1. REAL NETWORKS (switch / wifi)
     # -----------------------------------------
     for nid, l2 in data.get("l2nodes", {}).items():
-
+        print(f"Inferring network for L2 node {l2['name']} (ID: {nid})")
         members = []
         member_ifaces = []
 
@@ -34,6 +34,7 @@ def infer_networks(data):
             "name": l2["name"],
             "kind": "wireless" if "WIRELESS" in l2["type"] else "lan",
             "members": members,
+            "member_interfaces": [{"node": node_id, "iface": iface["name"]} for node_id, iface in member_ifaces],
             "prefixes": set()
         }
 
@@ -125,3 +126,4 @@ def infer_networks(data):
         net_counter += 1
 
     data["networks"] = dict(sorted(data["networks"].items(), key=lambda item: item[1]["prefixes"]))
+
