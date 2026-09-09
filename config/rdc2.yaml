@@ -1,5 +1,6 @@
 
 # Configuration for RDC2 (Primary Data Center)
+class_name: "rdc2"
 routing_config: "resources/rdc2/routing.yaml"
 
 subjects:

@@ -10,12 +10,19 @@ def set_config(config):
 def get_config():
     return _current_config
 
+def get_class_name():
+    config = get_config()
+    if config is None:
+        raise ValueError("Configuration has not been loaded.")
+    return config.get("class_name", None)
+
 def load_config(filename: str):
     with open(Path("config") / filename, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 def get_subjects():
     config = get_config()
+    print(f"Current config: {config}")
     if config is None:
         raise ValueError("Configuration has not been loaded.")
     return config.get("subjects", [])

@@ -64,7 +64,7 @@ def parse_xml(xml_text):
     if("Tunneling" in config_helper.get_subjects()):
         validate_tunnels(data)
 
-    analyze_policies(data, )
+    analyze_policies(data, config_helper.get_class_name())
     #print(data["routing_validation"]);
 
     return data

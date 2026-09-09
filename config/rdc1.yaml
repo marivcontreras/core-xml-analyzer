@@ -1,4 +1,5 @@
 # Configuration for RDC1 (Secondary Data Center)
+class_name: "rdc1"
 routing_config: "resources/rdc1/routing.yaml"
 
 subjects:

@@ -30,6 +30,6 @@ async def analyze(request: Request, file: UploadFile = File(...), config: str = 
 
     cfg = load_config(f"{config}.yaml")
     config_helper.set_config(cfg)
-    html = render_report_html(text, file.filename, cfg)
+    html = render_report_html(text, cfg, file.filename)
 
     return HTMLResponse(content=html)
