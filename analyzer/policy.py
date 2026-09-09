@@ -156,17 +156,17 @@ def process_routes(policy, routes, data):
                 behavior["via"] = resolve_ip_owner(r.get("via"), data)
             policy["behavior"][tag] = behavior
 
-def analyze_policies(data, instance):
+def analyze_policies(data):
     for node_id, router in data["routers"].items():
         name = router["name"]
-        if config_helper.get_config() == "rdc2":
+        if config_helper.get_class_name() == "rdc2":
             if name == "R4":
                 analyze_r4_policy(data, node_id)
 
             elif name == "R5":
                 analyze_r5_policy(data, node_id)
 
-        elif config_helper.get_config() == "rdc1":
+        elif config_helper.get_class_name() == "rdc1":
             # check firewall rules
             continue
 
