@@ -611,7 +611,14 @@
         </table>
     </div>
 
-    {% if warnings.items() %}
+    {% set known_network_warnings = namespace(found=false) %}
+    {% for net in networks %}
+    {% if warnings.get(net.name) %}
+    {% set known_network_warnings.found = true %}
+    {% endif %}
+    {% endfor %}
+
+    {% if known_network_warnings.found %}
     <div class="card">
         <h2>Desglose de Advertencias por Red</h2>
 
@@ -639,6 +646,21 @@
 
         </div>
         {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if uncategorized_warnings %}
+    <div class="card">
+        <h2>Advertencias sin categorizar</h2>
+        <ul class="warning-list">
+            {% for types in uncategorized_warnings.values() %}
+            {% for items in types.values() %}
+            {% for w in items %}
+            <li class="warning-item">{{ w.message }}</li>
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+        </ul>
     </div>
     {% endif %}
 

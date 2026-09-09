@@ -1,5 +1,6 @@
 from analyzer.prefixes import resolve_ip_owner
 from parser.services import resolve_route_networks
+from utils import config_helper
 from validation.warnings import get_warning
 from validation.policy_validation import validate_policy
 
@@ -155,17 +156,19 @@ def process_routes(policy, routes, data):
                 behavior["via"] = resolve_ip_owner(r.get("via"), data)
             policy["behavior"][tag] = behavior
 
-
-
-def analyze_policies(data):
+def analyze_policies(data, instance):
     for node_id, router in data["routers"].items():
         name = router["name"]
+        if config_helper.get_config() == "rdc2":
+            if name == "R4":
+                analyze_r4_policy(data, node_id)
 
-        if name == "R4":
-            analyze_r4_policy(data, node_id)
+            elif name == "R5":
+                analyze_r5_policy(data, node_id)
 
-        elif name == "R5":
-            analyze_r5_policy(data, node_id)
+        elif config_helper.get_config() == "rdc1":
+            # check firewall rules
+            continue
 
 def analyze_r4_policy(data, node_id):
     routing = data["routing"][node_id]

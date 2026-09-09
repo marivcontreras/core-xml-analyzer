@@ -6,6 +6,18 @@ WARNINGS = {
     # NETWORK VALIDATION WARNINGS
     # ================================================================
 
+    "missing_configured_router": {
+        "message": "El router {node_name} no está presente en la sección de dispositivos de nivel 3",
+        "type": "missing",
+        "scope": "node"
+    },
+
+    "missing_configured_network": {
+        "message": "El nodo {net_name} no está presente en la sección de dispositivos de nivel 2",
+        "type": "missing",
+        "scope": "network"
+    },
+
     "duplicated_prefix": {
         "message": "{net_name}: el prefijo {prefix} ya fue asignado a la red {other_network}",
         "type": "invalid",

@@ -1,5 +1,6 @@
 import ipaddress
 
+from report.formatters import format_route
 from utils.ip import PREFIX_TYPE, classify_prefix_type
 from analyzer.prefixes import resolve_ip_owner
 from parser.devices import get_node, is_intranet_router
@@ -8,9 +9,13 @@ from utils import config_helper
 # ----------------------------------------------------------
 # Returns normalized IP network object, treating "default" as a special case.
 # ----------------------------------------------------------
-def normalize_route_network(value):
+def normalize_route_network(value, ip_version=None):
     if value == PREFIX_TYPE["default"]:
-        return ipaddress.ip_network("::/0")
+        if ip_version == None or ip_version == 6:
+            return ipaddress.ip_network("::/0")
+        else:
+            if ip_version == 4:
+                return ipaddress.ip_network("0.0.0.0/0")
 
     return ipaddress.ip_network(value, strict=False)
 
@@ -24,8 +29,8 @@ def calculate_lpm_score(route_dst, target_prefix):
         return None
 
     try:
-        route_network = normalize_route_network(route_dst)
         target_network = normalize_route_network(target_prefix)
+        route_network = normalize_route_network(route_dst, target_network.version)
 
     except Exception:
         return None
@@ -76,7 +81,7 @@ def find_best_routes_by_table(routes, target_prefix):
         table = route.get("table", "main")
 
         score = calculate_lpm_score(dst, target_prefix)
-
+        
         if score is None:
             continue
 
@@ -250,6 +255,7 @@ def build_routing_matrix(data, intranet = True):
             for prefix in prefixes:
 
                 best_routes = find_best_routes_by_table(routes, prefix)
+                print(f"Router: {router_name}, Network: {net_name}, Prefix: {prefix}, Best Routes: {best_routes}")
 
                 for table_name, best_route in best_routes.items():
 

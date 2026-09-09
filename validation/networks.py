@@ -17,7 +17,9 @@ from validation.configs.network_config import (
 # - Missing addresses
 # -------------------------------------------------------------
 def validate_networks(data):
+    validate_existing_devices(data)
     used_prefixes = {}
+
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
         print(f"Validating network {net['name']} with prefixes: {prefixes}")
@@ -52,7 +54,9 @@ def validate_networks(data):
             # ----------------------------------
 
             net_obj = ipaddress.ip_network(prefix, strict=False)
-            expected_mask = config_helper.get_network_mask(net["name"])
+            expected_mask = config_helper.get_network_mask(
+                net.get("original_name", net["name"])
+            )
             print(f"Checking network {net['name']} with prefix {prefix}. Expected mask: {expected_mask}, actual mask: {net_obj.prefixlen}")
             if expected_mask is not None and net_obj.prefixlen != int(expected_mask):
                 add_warning(
@@ -146,6 +150,59 @@ def validate_networks(data):
         # ----------------------------------
         if net["kind"] == "point-to-point":
             check_p2p_consistency(net, data)
+
+
+def validate_existing_devices(data):
+    config = config_helper.get_config() or {}
+    configured_devices = config.get("devices", {})
+    configured_networks = config.get("networks", {})
+
+    device_names = {
+        device.get("name")
+        for device in data.get("devices", {}).values()
+        if device.get("name")
+    }
+
+    l2_network_names = {
+        network.get("original_name", network.get("name"))
+        for network in data.get("l2nodes", {}).values()
+        if network.get("original_name", network.get("name"))
+    }
+
+    configured_router_names = [
+        router
+        for routers in configured_devices.values()
+        if isinstance(routers, (list, tuple, set))
+        for router in routers
+        if router not in device_names
+    ]
+    
+    for router in dict.fromkeys(configured_router_names):
+        add_warning(
+            data,
+            "missing_configured_router",
+            node_name=router,
+            details={"router": router}
+        )
+
+    configured_network_names = [
+        network_name
+        for networks in configured_networks.values()
+        for network_name in config_helper._network_names(networks)
+        if network_name
+        and "<>" not in network_name
+        and network_name not in l2_network_names
+    ]
+
+    for network_name in dict.fromkeys(configured_network_names):
+        print(f"Configured network {network_name} is missing in the XML data.")
+        add_warning(
+            data,
+            "missing_configured_network",
+            network=network_name,
+            net_name=network_name,
+            details={"network": network_name}
+        )
 
 # -------------------------------------------------------------
 # Creates a list of warnings related to p2p network design and configuration issues, such as:

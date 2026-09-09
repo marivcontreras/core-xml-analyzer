@@ -22,7 +22,7 @@ networks:
   # defined by the name of the switch
   intranet_lan_networks:
     - name: Sw-Adm
-      mask: 27
+      mask: 28
     - name: Sw-Troncal
       mask: 27
     - name: SW-DC

@@ -12,6 +12,12 @@ def render_report_html(xml_text, filename="uploaded.xml", cfg=None):
     summary = summarize(result)
     networks = pretty_networks(result)
     grouped_warnings = group_warnings(result)
+    network_names = {network["name"] for network in networks}
+    uncategorized_warnings = {
+        network_name: warnings
+        for network_name, warnings in grouped_warnings.items()
+        if network_name not in network_names
+    }
     router_warnings = group_router_warnings_by_type(result)
 
     template = env.get_template("report.html")
@@ -21,6 +27,7 @@ def render_report_html(xml_text, filename="uploaded.xml", cfg=None):
         summary=summary,
         networks=networks,
         warnings=grouped_warnings,
+        uncategorized_warnings=uncategorized_warnings,
         router_warnings=router_warnings,
         data=result,
         warning_summary=build_warning_summary(result, grouped_warnings, router_warnings),

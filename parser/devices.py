@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 
 from utils import config_helper
 
@@ -9,6 +10,25 @@ def is_intranet_router(router):
 def is_internet_router(router):
     internet_routers = config_helper.get_config().get("devices", {}).get("internet_routers", [])
     return router in internet_routers
+
+
+def _network_names(section):
+    networks = section.findall("network") if section is not None else []
+    counts = Counter(network.get("name") for network in networks)
+    occurrences = {}
+    names = {}
+
+    for network in networks:
+        network_id = network.get("id")
+        original_name = network.get("name")
+        occurrences[original_name] = occurrences.get(original_name, 0) + 1
+        names[network_id] = (
+            f"{original_name}{occurrences[original_name]}"
+            if counts[original_name] > 1
+            else original_name
+        )
+
+    return names
 
 # ----------------------------------------------------------
 # Infers devices/nodes from devices section (level 3 nodes)
@@ -43,11 +63,14 @@ def parse_network_nodes(root, data):
     if section is None:
         return
 
+    network_names = _network_names(section)
     for net in section.findall("network"):
         nid = net.get("id")
+        original_name = net.get("name")
         item = {
             "id": nid,
-            "name": net.get("name"),
+            "name": network_names[nid],
+            "original_name": original_name,
             "type": net.get("type")
         }
 
@@ -62,15 +85,17 @@ def parse_l2_networks(root, data):
         return
 
     data["l2nodes"] = {}
+    network_names = _network_names(nets)
 
     for net in nets.findall("network"):
         nid = net.get("id")
-        name = net.get("name")
+        original_name = net.get("name")
         ntype = net.get("type")
 
         data["l2nodes"][nid] = {
             "id": nid,
-            "name": name,
+            "name": network_names[nid],
+            "original_name": original_name,
             "type": ntype
         }
 

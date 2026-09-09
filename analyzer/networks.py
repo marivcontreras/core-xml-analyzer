@@ -32,6 +32,7 @@ def infer_networks(data):
         net = {
             "id": net_counter,
             "name": l2["name"],
+            "original_name": l2.get("original_name", l2["name"]),
             "kind": "wireless" if "WIRELESS" in l2["type"] else "lan",
             "members": members,
             "member_interfaces": [{"node": node_id, "iface": iface["name"]} for node_id, iface in member_ifaces],

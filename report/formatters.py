@@ -281,7 +281,7 @@ def get_router_config_warnings(data):
         if w.get("scope") != "node" and w.get("scope") != "interface":
             continue
 
-        node = w.get("node", "unknown")
+        node = w.get("node", "Desconocido")
 
         if node not in result:
             result[node] = []
