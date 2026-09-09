@@ -61,7 +61,7 @@ def parse_xml(xml_text):
 
     validate_isp_routes(data)
 
-    if("Tunneling" in config_helper.get_config().get_subjects()):
+    if("Tunneling" in config_helper.get_subjects()):
         validate_tunnels(data)
 
     analyze_policies(data, )
