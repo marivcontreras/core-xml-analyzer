@@ -27,27 +27,34 @@ def get_subjects():
         raise ValueError("Configuration has not been loaded.")
     return config.get("subjects", [])
 
-def _network_names(networks):
+def get_network_names(networks):
     if isinstance(networks, dict):
-        return list(networks)
+        return [name.lower() for name in networks]
     return [
-        item if isinstance(item, str) else item.get("name")
+        (item if isinstance(item, str) else item.get("name")).lower()
         for item in networks or []
-        if isinstance(item, str) or isinstance(item, dict)
+        if (isinstance(item, str) or isinstance(item, dict))
+        and (item if isinstance(item, str) else item.get("name"))
     ]
 
-def _get_network_mask_direct(networks, network_name):
+def get_network_mask_direct(networks, network_name):
+    network_name = network_name.lower()
     for network_group in networks.values():
         if isinstance(network_group, dict):
-            if network_name not in network_group:
+            matching_name = next(
+                (name for name in network_group if name.lower() == network_name),
+                None,
+            )
+            if matching_name is None:
                 continue
-            network_config = network_group[network_name]
+            network_config = network_group[matching_name]
             if isinstance(network_config, list):
                 network_config = network_config[0] if network_config else {}
         elif isinstance(network_group, list):
             network_config = next(
                 (item for item in network_group
-                 if isinstance(item, dict) and item.get("name") == network_name),
+                 if isinstance(item, dict)
+                 and item.get("name", "").lower() == network_name),
                 None,
             )
         else:
@@ -59,17 +66,18 @@ def _get_network_mask_direct(networks, network_name):
     return None
 
 def get_network_mask(network_name):
+    network_name = network_name.lower()
     networks = get_config().get("networks", {})
-    mask = _get_network_mask_direct(networks, network_name)
+    mask = get_network_mask_direct(networks, network_name)
     if mask is not None or "<>" not in network_name:
         return mask
 
     left, right = network_name.split("<>", 1)
-    return _get_network_mask_direct(networks, f"{right}<>{left}")
+    return get_network_mask_direct(networks, f"{right}<>{left}")
 
 
 def _with_reverse_p2p_networks(networks):
-    expanded = _network_names(networks)
+    expanded = get_network_names(networks)
     for network in expanded:
         if "<>" not in network:
             continue
@@ -80,18 +88,20 @@ def _with_reverse_p2p_networks(networks):
     return expanded
 
 def is_intranet_network(network):
+    network = network.lower()
     networks = get_config().get("networks", {})
     intranet_networks = (
-        _network_names(networks.get("intranet_lan_networks", []))
+        get_network_names(networks.get("intranet_lan_networks", []))
         + _with_reverse_p2p_networks(networks.get("intranet_p2p_networks", []))
     )
     #print(f"Checking if network {network} is intranet. Intranet networks: {intranet_networks}")
     return network in intranet_networks
 
 def is_internet_network(network):
+    network = network.lower()
     networks = get_config().get("networks", {})
     internet_networks = (
-        _network_names(networks.get("internet_networks", []))
+        get_network_names(networks.get("internet_networks", []))
         + _with_reverse_p2p_networks(networks.get("internet_p2p_networks", []))
     )
     #print(f"Checking if network {network} is internet. Internet networks: {internet_networks}")

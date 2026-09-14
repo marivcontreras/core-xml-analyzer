@@ -23,9 +23,9 @@ def _network_names(section):
         original_name = network.get("name")
         occurrences[original_name] = occurrences.get(original_name, 0) + 1
         names[network_id] = (
-            f"{original_name}{occurrences[original_name]}"
+            f"{original_name}{occurrences[original_name]}".lower()
             if counts[original_name] > 1
-            else original_name
+            else original_name.lower()
         )
 
     return names

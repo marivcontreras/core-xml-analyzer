@@ -164,7 +164,7 @@ def validate_existing_devices(data):
     }
 
     l2_network_names = {
-        network.get("original_name", network.get("name"))
+        network.get("original_name", network.get("name")).lower()
         for network in data.get("l2nodes", {}).values()
         if network.get("original_name", network.get("name"))
     }
@@ -188,7 +188,7 @@ def validate_existing_devices(data):
     configured_network_names = [
         network_name
         for networks in configured_networks.values()
-        for network_name in config_helper._network_names(networks)
+        for network_name in config_helper.get_network_names(networks)
         if network_name
         and "<>" not in network_name
         and network_name not in l2_network_names

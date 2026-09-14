@@ -257,6 +257,12 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 # ------------------------------------
 # Formats networks for networks panel
 # ------------------------------------
+def format_network_name(name):
+    if "<>" in str(name):
+        return str(name)
+    return str(name).lower().title()
+
+
 def pretty_networks(data):
     rows = []
 
@@ -378,7 +384,7 @@ def format_via_info(via_info):
         text = f"{node}-{interface}"
 
         if network:
-            text += f" en red {network}"
+            text += f" en red {format_network_name(network)}"
 
         formatted.append(text)
 

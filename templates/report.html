@@ -591,7 +591,7 @@
 
             {% for net in networks %}
             <tr>
-                <td>{{ net.name }}</td>
+                <td>{{ net.name | network_name }}</td>
                 <td>
                     {{ net.kind }}
                 </td>
@@ -626,7 +626,7 @@
         <div class="network">
             {% set net_warnings = warnings.get(net.name) %}
             {% if net_warnings %}
-            <h3>{{ net.name }} ({{ net.kind }})</h3>
+            <h3>{{ net.name | network_name }} ({{ net.kind }})</h3>
 
             <p>Equipos: {{ net.members | join(", ") }} | Prefijos: {{ net.prefixes | join(", ") }}</p>
 
@@ -716,7 +716,7 @@
                         <td class="network-cell">
 
                             <div class="network-name">
-                                <strong> {{ row.network }} </strong>
+                                <strong> {{ row.network | network_name }} </strong>
                             </div>
 
                             {% if row.prefixes %}
@@ -959,7 +959,7 @@
                         <td>{{ route.id if route.id else "-" }}</td>
                         <td>{{ route.type }}</td>
                         <td>{{ route.dst }}</td>
-                        <td>{{ route.networks | join(", ") }}</td>
+                        <td>{{ route.networks | map("network_name") | join(", ") }}</td>
                         <td>{{ route.via if route.via else "-" }}</td>
                         <td>{{ route.dev if route.dev else "-" }}</td>
                         <td>{{ route.table }}</td>
@@ -1175,10 +1175,10 @@
                                         {% endif %}
                                     {% endif %}
                                     {% if value.via %} Via: {{ value.via.node }} - {{ value.via.interface }} | {% endif %}
-                                    {% if value.networks %}  Redes incluidas: {{ value.networks | join(", ") }} | {% endif %}
-                                    {% if value.src_networks %} Redes de origen: {{ value.src_networks | join(", ") }} | {%
+                                    {% if value.networks %}  Redes incluidas: {{ value.networks | map("network_name") | join(", ") }} | {% endif %}
+                                    {% if value.src_networks %} Redes de origen: {{ value.src_networks | map("network_name") | join(", ") }} | {%
                                     endif %}
-                                    {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | join(", ") }} {%
+                                    {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | map("network_name") | join(", ") }} {%
                                     endif %}
                                 </div>
                             </td>
