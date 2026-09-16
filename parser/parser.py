@@ -3,6 +3,7 @@ from parser.routing import build_routing_matrix
 from report.formatters import build_matrix_table, build_text_warning_summary
 from utils import config_helper
 from utils.config_helper import get_subjects
+from utils.subjects import Subject
 from validation.ip_commands import validate_ip_addr_commands
 from validation.routingHelper import get_expected_routing_matrix
 from validation.routingValidation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
@@ -61,7 +62,7 @@ def parse_xml(xml_text):
 
     validate_isp_routes(data)
 
-    if("Tunneling" in config_helper.get_subjects()):
+    if Subject.TUNNELING in config_helper.get_subjects():
         validate_tunnels(data)
 
     analyze_policies(data)

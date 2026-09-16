@@ -2,9 +2,11 @@
 # Configuration for RDC2 (Primary Data Center)
 class_name: "rdc2"
 routing_config: "resources/rdc2/routing.yaml"
+max_prefixes_per_network: 2
 
 subjects:
   - Networks
+  - RADVD
   - Routing
   - RPDB
   - Firewall

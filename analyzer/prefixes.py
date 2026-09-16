@@ -3,6 +3,8 @@ import re
 
 from parser.devices import get_node
 from report.formatters import reverse_network_name
+from utils import config_helper
+from utils.subjects import Subject
 
 # ----------------------------------------------------------
 # Obtains net prefixes for a given node interface:
@@ -20,7 +22,8 @@ def get_prefixes_for_interface(node_id, iface, data):
     prefixes.update(get_prefixes_from_staticroute(node_id, iface_name, data))
 
     # 2. RADVD
-    prefixes.update(get_radvd_interfaces(data, node_id, iface_name))
+    if Subject.RADVD in config_helper.get_subjects():
+        prefixes.update(get_radvd_interfaces(data, node_id, iface_name))
 
     # 3. Fallback (only if nothing found)
     if not prefixes:

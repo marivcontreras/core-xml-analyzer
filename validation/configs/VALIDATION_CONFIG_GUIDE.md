@@ -15,20 +15,19 @@ All validation parameters are organized into domain-specific configuration modul
 
 ### Example 1: Adjust Maximum Prefix Count Per Network
 
-**Current behavior:** Networks can have a maximum of 2 prefixes (IPv6 global + IPv6 site-local).
+**Current behavior:** RDC1 networks can have a maximum of 1 prefix, while RDC2 networks can have a maximum of 2 prefixes.
 
-**To change to 3 prefixes maximum:**
+**To change the limit:**
 
-1. Open `validation/network_config.py`
-2. Find the line:
+1. Open the relevant class configuration file: `config/rdc1.yaml` or `config/rdc2.yaml`
+2. Find the setting:
    ```python
-   MAX_PREFIXES_PER_NETWORK = 2
+    max_prefixes_per_network: 2
    ```
-3. Change it to:
+3. Change its value to the desired maximum, then run your tests to verify the new behavior
    ```python
-   MAX_PREFIXES_PER_NETWORK = 3
+    max_prefixes_per_network: 3
    ```
-4. Run your tests to verify the new behavior
 
 ### Example 2: Change Prefix Length Requirements for LAN Networks
 
@@ -97,12 +96,13 @@ Controls validation of network topology and IPv6 addressing.
 | Parameter | Type | Current Value | Purpose |
 |-----------|------|---------------|---------|
 | `PREFIX_LENGTH_REQUIREMENTS` | dict | `{"lan": 64, "wireless": 64, "point-to-point": 127}` | Expected IPv6 prefix length by network type |
-| `MAX_PREFIXES_PER_NETWORK` | int | `2` | Maximum number of address prefixes per network |
+| `max_prefixes_per_network` | int | RDC1: `1`, RDC2: `2` | Maximum number of address prefixes per network |
 | `ADMIN_NETWORK_PATTERN` | str | `"admin"` | Pattern identifying admin networks (case-insensitive substring) |
 | `REQUIRED_PREFIX_TYPES` | dict | `{"lan": ["site", "global"], ...}` | Required prefix types per network kind |
 
 **When to modify:**
 - Network topology changes with different prefix requirements
+- Different RDC classes need different maximum prefix counts
 - Naming conventions for special network types change
 - Prefix type requirements become more/less strict
 

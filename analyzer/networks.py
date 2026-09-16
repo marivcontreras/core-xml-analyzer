@@ -43,7 +43,7 @@ def infer_networks(data):
         for node_id, iface in member_ifaces:
             node = get_node(data, node_id)
 
-            if node.get("type") != "router":
+            if node.get("type") not in ["router","PC"]:
                 continue
 
             prefixes = get_prefixes_for_interface(node_id, iface, data)

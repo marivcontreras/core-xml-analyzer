@@ -258,9 +258,7 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 # Formats networks for networks panel
 # ------------------------------------
 def format_network_name(name):
-    if "<>" in str(name):
-        return str(name)
-    return str(name).lower().title()
+    return config_helper.format_network_name(name)
 
 
 def pretty_networks(data):

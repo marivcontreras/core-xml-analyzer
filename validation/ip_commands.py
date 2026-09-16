@@ -94,7 +94,7 @@ def validate_ip_addr_commands(node_id, data):
             )
        
 # -------------------------------------------------------------
-# Checks if a network name corresponds to an intranet network
+# Checks if an interface name exists for a given node in the data structure.
 # -------------------------------------------------------------
 def interface_exists(node_id, iface, data):
     for link in data["links"]:

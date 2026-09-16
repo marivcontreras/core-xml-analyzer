@@ -1,6 +1,8 @@
 from pathlib import Path
 import yaml
 
+from utils.subjects import Subject
+
 _current_config = None
 
 def set_config(config):
@@ -16,33 +18,47 @@ def get_class_name():
         raise ValueError("Configuration has not been loaded.")
     return config.get("class_name", None)
 
+def get_max_prefixes_per_network():
+    config = get_config()
+    if config is None:
+        raise ValueError("Configuration has not been loaded.")
+    return config.get("max_prefixes_per_network", 2)
+
 def load_config(filename: str):
     with open(Path("config") / filename, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+def format_network_name(name):
+    name = str(name)
+    if "<>" in name:
+        return name
+    return name.lower().title()
+
 def get_subjects():
     config = get_config()
-    print(f"Current config: {config}")
     if config is None:
         raise ValueError("Configuration has not been loaded.")
-    return config.get("subjects", [])
+
+    subjects = config.get("subjects", [])
+    return [Subject.from_value(subject) for subject in subjects]
 
 def get_network_names(networks):
     if isinstance(networks, dict):
-        return [name.lower() for name in networks]
+        return [format_network_name(name) for name in networks]
     return [
-        (item if isinstance(item, str) else item.get("name")).lower()
+        format_network_name(item if isinstance(item, str) else item.get("name"))
         for item in networks or []
         if (isinstance(item, str) or isinstance(item, dict))
         and (item if isinstance(item, str) else item.get("name"))
     ]
 
 def get_network_mask_direct(networks, network_name):
-    network_name = network_name.lower()
+    network_name = format_network_name(network_name)
     for network_group in networks.values():
         if isinstance(network_group, dict):
             matching_name = next(
-                (name for name in network_group if name.lower() == network_name),
+                (name for name in network_group
+                 if format_network_name(name) == network_name),
                 None,
             )
             if matching_name is None:
@@ -54,7 +70,7 @@ def get_network_mask_direct(networks, network_name):
             network_config = next(
                 (item for item in network_group
                  if isinstance(item, dict)
-                 and item.get("name", "").lower() == network_name),
+                 and format_network_name(item.get("name", "")) == network_name),
                 None,
             )
         else:
@@ -66,7 +82,7 @@ def get_network_mask_direct(networks, network_name):
     return None
 
 def get_network_mask(network_name):
-    network_name = network_name.lower()
+    network_name = format_network_name(network_name)
     networks = get_config().get("networks", {})
     mask = get_network_mask_direct(networks, network_name)
     if mask is not None or "<>" not in network_name:
@@ -88,7 +104,7 @@ def _with_reverse_p2p_networks(networks):
     return expanded
 
 def is_intranet_network(network):
-    network = network.lower()
+    network = format_network_name(network)
     networks = get_config().get("networks", {})
     intranet_networks = (
         get_network_names(networks.get("intranet_lan_networks", []))
@@ -98,7 +114,7 @@ def is_intranet_network(network):
     return network in intranet_networks
 
 def is_internet_network(network):
-    network = network.lower()
+    network = format_network_name(network)
     networks = get_config().get("networks", {})
     internet_networks = (
         get_network_names(networks.get("internet_networks", []))

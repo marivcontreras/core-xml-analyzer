@@ -10,11 +10,6 @@ To adjust validation rules:
 3. Run tests to verify behavior
 """
 
-# Maximum number of prefixes allowed per network
-# Currently allows IPv6 global + IPv6 site-local prefixes (2 total)
-# Increase if you want to support additional address families
-MAX_PREFIXES_PER_NETWORK = 2
-
 # Pattern to identify admin networks (case-insensitive substring matching)
 # Used to determine if special rules apply to a network
 # For example: "admin" networks should not have global IPv6 prefixes

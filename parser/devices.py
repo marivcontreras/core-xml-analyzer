@@ -12,7 +12,7 @@ def is_internet_router(router):
     return router in internet_routers
 
 
-def _network_names(section):
+def get_network_names_from_xml(section):
     networks = section.findall("network") if section is not None else []
     counts = Counter(network.get("name") for network in networks)
     occurrences = {}
@@ -22,10 +22,11 @@ def _network_names(section):
         network_id = network.get("id")
         original_name = network.get("name")
         occurrences[original_name] = occurrences.get(original_name, 0) + 1
+        formatted_name = config_helper.format_network_name(original_name)
         names[network_id] = (
-            f"{original_name}{occurrences[original_name]}".lower()
+            f"{formatted_name}{occurrences[original_name]}"
             if counts[original_name] > 1
-            else original_name.lower()
+            else formatted_name
         )
 
     return names
@@ -63,10 +64,10 @@ def parse_network_nodes(root, data):
     if section is None:
         return
 
-    network_names = _network_names(section)
+    network_names = get_network_names_from_xml(section)
     for net in section.findall("network"):
         nid = net.get("id")
-        original_name = net.get("name")
+        original_name = config_helper.format_network_name(net.get("name"))
         item = {
             "id": nid,
             "name": network_names[nid],
@@ -85,11 +86,11 @@ def parse_l2_networks(root, data):
         return
 
     data["l2nodes"] = {}
-    network_names = _network_names(nets)
+    network_names = get_network_names_from_xml(nets)
 
     for net in nets.findall("network"):
         nid = net.get("id")
-        original_name = net.get("name")
+        original_name = config_helper.format_network_name(net.get("name"))
         ntype = net.get("type")
 
         data["l2nodes"][nid] = {

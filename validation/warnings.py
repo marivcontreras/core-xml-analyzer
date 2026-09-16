@@ -37,7 +37,7 @@ WARNINGS = {
     },
 
     "too_many_prefixes": {
-        "message": "{net_name}: se asignaron mas de 2 bloques de red ({prefixes})",
+        "message": "{net_name}: se asignaron mas de {max_prefixes} bloque/s de red ({prefixes})",
         "type": "design",
         "scope": "network"
     },
@@ -86,6 +86,18 @@ WARNINGS = {
 
     "p2p_missing_site": {
         "message": "{net_name}: {node_name} ({iface}) sin dirección site",
+        "type": "inconsistent",
+        "scope": "link"
+    },
+
+    "p2p_ipv4_mismatch": {
+        "message": "{net_name}: direcciones IPv4 de distintos bloques ({ipv4_a} - {ipv4_b})",
+        "type": "inconsistent",
+        "scope": "link"
+    },
+
+    "p2p_missing_ipv4": {
+        "message": "{net_name}: {node_name} ({iface}) sin dirección IPv4",
         "type": "inconsistent",
         "scope": "link"
     },
