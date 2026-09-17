@@ -1,6 +1,7 @@
 from analyzer.prefixes import get_prefixes_for_interface
 from parser.devices import get_node
 from report.formatters import reverse_network_name
+from utils import config_helper
 from utils.warning import add_warning
 
 # -----------------------------------------------------------------
@@ -35,7 +36,7 @@ def infer_networks(data):
             "original_name": l2.get("original_name", l2["name"]),
             "kind": "wireless" if "WIRELESS" in l2["type"] else "lan",
             "members": members,
-            "member_interfaces": [{"node": node_id, "iface": iface["name"]} for node_id, iface in member_ifaces],
+            "member_interfaces": [{"node": node_id, "iface": iface} for node_id, iface in member_ifaces],
             "prefixes": set()
         }
 
@@ -49,6 +50,9 @@ def infer_networks(data):
             prefixes = get_prefixes_for_interface(node_id, iface, data)
 
             if not prefixes:
+                if (config_helper.get_class_name() == "rdc2" and node.get("type") == "PC"):
+                    continue  # skip missing IP warnings for PC nodes in RDC2 (radvd)
+
                 add_warning(
                     data,
                     "missing_ip_interface",
@@ -87,8 +91,8 @@ def infer_networks(data):
             "kind": "point-to-point",
             "members": [n1["name"], n2["name"]],
             "member_interfaces": [
-                {"node": link["node1"], "iface": link["iface1"]["name"]},
-                {"node": link["node2"], "iface": link["iface2"]["name"]}
+                {"node": link["node1"], "iface": link["iface1"]},
+                {"node": link["node2"], "iface": link["iface2"]}
             ],
             "prefixes": set()
         }

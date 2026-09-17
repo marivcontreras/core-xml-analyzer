@@ -255,7 +255,7 @@ def build_routing_matrix(data, intranet = True):
             for prefix in prefixes:
 
                 best_routes = find_best_routes_by_table(routes, prefix)
-                print(f"Router: {router_name}, Network: {net_name}, Prefix: {prefix}, Best Routes: {best_routes}")
+                #print(f"Router: {router_name}, Network: {net_name}, Prefix: {prefix}, Best Routes: {best_routes}")
 
                 for table_name, best_route in best_routes.items():
 

@@ -1,11 +1,31 @@
 
 import ipaddress
 
-from analyzer.prefixes import get_staticroute_interface_addresses
+from analyzer.prefixes import get_prefixes_for_interface, get_staticroute_interface_addresses
 from utils.ip import PREFIX_TYPE, same_block, classify_prefix_type
 from utils import config_helper
 from utils.warning import add_warning
 from validation.configs.network_config import ADMIN_NETWORK_PATTERN
+
+
+def resolve_prefix_device(net, prefix, data):
+    """Return the device name that contributed the given prefix to a network."""
+    #print(f"Resolving device for prefix {prefix} in network {net['name']} with members: {net.get('member_interfaces', [])}")
+    for member in net.get("member_interfaces", []):
+        node_id = member.get("node")
+        iface = member.get("iface")
+        iface_name = iface.get("name") if isinstance(iface, dict) else iface
+
+        if not node_id or not iface_name:
+            continue
+
+        interface_prefixes = get_prefixes_for_interface(node_id, iface, data)
+        print(f"Node {node_id}, Interface {iface_name}: Found prefixes {interface_prefixes}")
+        if prefix in interface_prefixes:
+            node = data.get("devices", {}).get(node_id, {})
+            return node.get("name") or node_id
+
+    return None
 
 # -------------------------------------------------------------
 # Creates a list of warnings related to network design and configuration issues, such as:
@@ -19,7 +39,7 @@ def validate_networks(data):
 
     for net in data["networks"].values():
         prefixes = [p for p in net["prefixes"] if p != "-"]
-        print(f"Validating network {net['name']} with prefixes: {prefixes}")
+        #print(f"Validating network {net['name']} with prefixes: {prefixes}")
         if not prefixes:
             continue
 
@@ -54,8 +74,12 @@ def validate_networks(data):
             expected_mask = config_helper.get_network_mask(
                 net.get("original_name", net["name"])
             )
-            print(f"Checking network {net['name']} with prefix {prefix}. Expected mask: {expected_mask}, actual mask: {net_obj.prefixlen}")
+
+            #print(f"Checking network {net['name']} with prefix {prefix}. Expected mask: {expected_mask}, actual mask: {net_obj.prefixlen}")
+            
             if expected_mask is not None and net_obj.prefixlen != int(expected_mask):
+                device = resolve_prefix_device(net, prefix, data)
+                print(f"Network {net['name']} has prefix {prefix} with wrong mask. Expected: /{expected_mask}, actual: /{net_obj.prefixlen}. Device: {device}")
                 add_warning(
                     data,
                     "invalid_prefix_length",
@@ -63,7 +87,8 @@ def validate_networks(data):
                     net_name=net["name"],
                     prefix=prefix,
                     expected=expected_mask,
-                    details={"prefix": prefix, "expected": expected_mask}
+                    device=device,
+                    details={"prefix": prefix, "expected": expected_mask, "device": device}
                 )
 
         kinds = [classify_prefix_type(p) for p in prefixes]

@@ -49,7 +49,9 @@ def parse_xml(xml_text):
     parse_routing(data)
     
     validate_networks(data)
-    validate_radvd_interfaces(data)
+    
+    if Subject.RADVD in config_helper.get_subjects():
+        validate_radvd_interfaces(data)
 
     data["routing_matrix"] = build_routing_matrix(data)
 

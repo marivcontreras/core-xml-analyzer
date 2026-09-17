@@ -157,7 +157,7 @@ def resolve_p2p_route_via(node_id, dev, family, data):
 
         members = net.get("member_interfaces", [])
         local_member = next(
-            (member for member in members if member["node"] == node_id and member["iface"] == dev),
+            (member for member in members if member["node"] == node_id and member["iface"]["name"] == dev),
             None
         )
 

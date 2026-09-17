@@ -43,7 +43,7 @@ WARNINGS = {
     },
 
     "invalid_prefix_length": {
-        "message": "{net_name}: prefijo {prefix} deberia ser /{expected}",
+        "message": "{net_name}: prefijo {prefix} deberia ser /{expected}. Equipo que presenta conflictos {device}",
         "type": "invalid",
         "scope": "network"
     },

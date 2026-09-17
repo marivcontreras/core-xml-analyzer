@@ -140,7 +140,8 @@ def get_prefixes_from_link_iface(iface):
 # ----------------------------------------------------------------------------
 # Gets IP address for a given node interface from static route ip addr commands
 # ----------------------------------------------------------------------------
-def get_staticroute_interface_addresses(data, node_id, iface_name = None):
+def get_staticroute_interface_addresses(data, node_id, iface = None):
+    iface_name = iface.get("name") if iface else None
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
@@ -238,7 +239,7 @@ def resolve_ip_owner(ip_str, data):
 
                     return {
                         "node": node["name"],
-                        "interface": iface,
+                        "interface": iface["name"],
                         "network": net["name"],
                         "type": "neighbor"
                     }
@@ -283,6 +284,6 @@ def resolve_route_dev(node_id, via_ip, data):
 
         if member["node"] == node_id:
             #print(f"Found interface {member['iface']} for node {node_id}")
-            return member["iface"]
+            return member["iface"]["name"]
 
     return None
