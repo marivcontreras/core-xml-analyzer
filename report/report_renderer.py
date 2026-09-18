@@ -8,6 +8,17 @@ from utils.ip import TYPE_LABELS
 env = Environment(loader=FileSystemLoader("templates"))
 env.filters["network_name"] = format_network_name
 
+IPTABLES_COLUMN_LABELS = {
+    "chain": "Chain",
+    "src": "Src",
+    "dst": "Dst",
+    "iif": "Eth-IN",
+    "oif": "Eth-OUT",
+    "protocol": "Proto",
+    "mark": "Mark",
+    "target": "Target",
+}
+
 def render_report_html(xml_text, config, filename="uploaded.xml"):
     config_helper.set_config(config)
     result = parse_xml(xml_text)
@@ -35,7 +46,9 @@ def render_report_html(xml_text, config, filename="uploaded.xml"):
         data=result,
         warning_summary=build_warning_summary(result, grouped_warnings, router_warnings),
         warning_summary_text=build_text_warning_summary(result, grouped_warnings, router_warnings),
-        TYPE_LABELS=TYPE_LABELS
+        TYPE_LABELS=TYPE_LABELS,
+        IPTABLES_COLUMN_LABELS=IPTABLES_COLUMN_LABELS,
+        iptables_columns=config_helper.get_iptables_columns(),
     )
 
     return html

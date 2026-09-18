@@ -55,3 +55,14 @@ networks:
   other_networks:
     - name: wlan-Casa
       mask: 24
+
+firewall:
+  iptables_table:
+    columns:
+      - chain
+      - src
+      - dst
+      - iif
+      - oif
+      - mark
+      - target

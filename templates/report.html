@@ -1081,27 +1081,17 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Chain</th>
-                        <th>Src</th>
-                        <th>Dst</th>
-                        <th>Eth-IN</th>
-                        <th>Eth-OUT</th>
-                        <th>Proto</th>
-                        <th>Mark</th>
-                        <th>Target</th>
+                        {% for column in iptables_columns %}
+                        <th>{{ IPTABLES_COLUMN_LABELS.get(column, column) }}</th>
+                        {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for rule in routing.iptables %}
                     <tr>
-                        <td>{{ rule.chain if rule.chain else "-" }}</td>
-                        <td>{{ rule.src if rule.src else "-" }}</td>
-                        <td>{{ rule.dst if rule.dst else "-" }}</td>
-                        <td>{{ rule.iif if rule.iif else "-" }}</td>
-                        <td>{{ rule.oif if rule.oif else "-" }}</td>
-                        <td>{{ rule.protocol if rule.protocol else "-" }}</td>
-                        <td>{{ rule.mark if rule.mark else "-" }}</td>
-                        <td>{{ rule.target if rule.target else "-" }}</td>
+                        {% for column in iptables_columns %}
+                        <td>{{ rule.get(column) if rule.get(column) else "-" }}</td>
+                        {% endfor %}
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -73,3 +73,15 @@ networks:
   other_networks:
     - name: R-Casa<>PC-Casa
       mask: 64
+
+firewall:
+  iptables_table:
+    columns:
+      - chain
+      - src
+      - dst
+      - iif
+      - oif
+      - protocol
+      - mark
+      - target

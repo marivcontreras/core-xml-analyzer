@@ -276,11 +276,11 @@ def parse_rules(text):
 # --------------
 # Firewall parser
 # --------------
-def parse_ip6tables(text):
+def parse_iptables(text):
     rules = []
 
     matches = re.findall(
-        r'ip6tables\s+(.*)',
+        r'\b(?:ip6tables|iptables)(?:\s+-[46])?\s+(.*)',
         text
     )
 
@@ -302,7 +302,7 @@ def parse_ip6tables(text):
         mark = re.search(r'(!)?\s*--set-mark\s+(\S+)', line)
         target = re.search(r'(!)?\s*-j\s+(\S+)', line)
         src = re.search(r'(!)?\s*-s\s+(\S+)', line)
-        dst = re.search(r'(!)?\s*-d\s+(\S+)', line)      
+        dst = re.search(r'(!)?\s*-d\s+(\S+)', line)
         iif = re.search(r'(!)?\s*-i\s+(\S+)', line)
         oif = re.search(r'(!)?\s*-o\s+(\S+)', line)
 
@@ -347,6 +347,10 @@ def parse_ip6tables(text):
         rules.append(rule)
 
     return rules
+
+
+def parse_ip6tables(text):
+    return parse_iptables(text)
 
 def parse_tunnels(text):
 

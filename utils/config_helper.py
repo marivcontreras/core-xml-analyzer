@@ -42,6 +42,25 @@ def get_subjects():
     subjects = config.get("subjects", [])
     return [Subject.from_value(subject) for subject in subjects]
 
+
+def get_iptables_columns():
+    config = get_config()
+    if config is None:
+        return []
+
+    firewall = config.get("firewall", {})
+    iptables_table = firewall.get("iptables_table", {})
+    columns = iptables_table.get("columns")
+
+    if columns:
+        return list(columns)
+
+    if config.get("class_name") == "rdc1":
+        return ["chain", "src", "dst", "iif", "oif", "mark", "target"]
+
+    return ["chain", "src", "dst", "iif", "oif", "protocol", "mark", "target"]
+
+
 def get_network_names(networks):
     if isinstance(networks, dict):
         return [format_network_name(name) for name in networks]
