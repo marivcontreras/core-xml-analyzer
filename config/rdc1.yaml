@@ -25,23 +25,31 @@ networks:
   intranet_lan_networks:
     - name: Sw-Adm
       mask: 28
+      last_octet: 160
     - name: Sw-Troncal
       mask: 27
+      last_octet: 128
     - name: SW-DC
       mask: 24
+      last_octet: 0
     - name: SW-Comp
       mask: 29
+      last_octet: 112
     - name: SW-Esc
       mask: 27
+      last_octet: 64
     - name: wlan-Inv
       mask: 26
+      last_octet: 0
     - name: wlan-Reu
       mask: 28
+      last_octet: 96
 
   # name of the routers combined
   intranet_p2p_networks:
     - name: R5<>R6
       mask: 30
+      last_octet: 120
 
   # name of the internet routers combined
   internet_networks:

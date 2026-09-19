@@ -601,7 +601,15 @@
                 </td>
                 <td>
                     {% if net.prefixes %}
-                    {{ net.prefixes | join( ', ' )}}
+                    {% for prefix in net.prefixes %}
+                    <div>
+                        {{ prefix }}
+                        {% set sources = net.prefix_sources.get(prefix, []) %}
+                        {% if sources %}
+                        <small>({{ sources | join(', ') }})</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
                     {% else %}
                     <p>- none detected -</p>
                     {% endif %}
@@ -628,7 +636,11 @@
             {% if net_warnings %}
             <h3>{{ net.name | network_name }} ({{ net.kind }})</h3>
 
-            <p>Equipos: {{ net.members | join(", ") }} | Prefijos: {{ net.prefixes | join(", ") }}</p>
+            <p>Equipos: {{ net.members | join(", ") }} | Prefijos: 
+                {% for prefix in net.prefixes %}
+                {{ prefix }}{% set sources = net.prefix_sources.get(prefix, []) %}{% if sources %} ({{ sources | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
 
             {% for type, items in net_warnings.items() %}
             <div class="warning-subgroup">

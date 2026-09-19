@@ -48,6 +48,12 @@ WARNINGS = {
         "scope": "network"
     },
 
+    "invalid_last_octet": {
+        "message": "{net_name}: prefijo {prefix} tiene el último octeto {actual} y debería ser {expected}",
+        "type": "invalid",
+        "scope": "network"
+    },
+
     "missing_site_prefix": {
         "message": "{net_name}: prefijo site faltante (existentes: {existing})",
         "type": "missing",

@@ -269,7 +269,8 @@ def pretty_networks(data):
             "name": net["name"],
             "kind": net["kind"],
             "members": net["members"],
-            "prefixes": net["prefixes"]
+            "prefixes": net["prefixes"],
+            "prefix_sources": net.get("prefix_sources", {})
         })
 
     return rows

@@ -43,6 +43,36 @@ def validate_networks(data):
         if not prefixes:
             continue
 
+        expected_last_octet = config_helper.get_network_last_octet(
+            net.get("original_name", net.get("name"))
+        )
+        
+        print(f"Network {net['name']} has expected last octet: {expected_last_octet}")
+
+        if expected_last_octet is not None:
+            for prefix in prefixes:
+                try:
+                    net_obj = ipaddress.ip_network(prefix, strict=False)
+                    if net_obj.version == 4:
+                        actual_last_octet = int(net_obj.network_address.packed[-1])
+                        if actual_last_octet != expected_last_octet:
+                            add_warning(
+                                data,
+                                "invalid_last_octet",
+                                network=net["name"],
+                                net_name=net["name"],
+                                prefix=prefix,
+                                expected=expected_last_octet,
+                                actual=actual_last_octet,
+                                details={
+                                    "prefix": prefix,
+                                    "expected": expected_last_octet,
+                                    "actual": actual_last_octet,
+                                }
+                            )
+                except ValueError:
+                    continue
+
         # ----------------------------------
         # duplicated prefixes across networks
         # ----------------------------------

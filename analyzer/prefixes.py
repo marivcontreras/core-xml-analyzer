@@ -6,28 +6,65 @@ from report.formatters import reverse_network_name
 from utils import config_helper
 from utils.subjects import Subject
 
+PREFIX_SOURCE_COMMANDS = "ip addr command"
+PREFIX_SOURCE_RADVD = "radvd"
+PREFIX_SOURCE_LINK = "interfaz core"
+
+
+def _add_prefix_source(prefixes, prefix, source):
+    if prefix not in prefixes:
+        prefixes[prefix] = []
+
+    if source not in prefixes[prefix]:
+        prefixes[prefix].append(source)
+
+
+def merge_prefix_sources(*source_maps):
+    merged = {}
+
+    for source_map in source_maps:
+        if not source_map:
+            continue
+
+        for prefix, sources in source_map.items():
+            if not isinstance(sources, list):
+                sources = [sources]
+
+            for source in sources:
+                _add_prefix_source(merged, prefix, source)
+
+    return merged
+
+
 # ----------------------------------------------------------
 # Obtains net prefixes for a given node interface:
 # looks up static route and radvd first,
 # then defaults to visually configurated ones if none present.
 # ----------------------------------------------------------
 def get_prefixes_for_interface(node_id, iface, data):
+    return set(get_prefixes_for_interface_with_sources(node_id, iface, data).keys())
+
+
+def get_prefixes_for_interface_with_sources(node_id, iface, data):
     if not iface:
-        return set()
+        return {}
 
     iface_name = iface.get("name")
-    prefixes = set()
+    prefixes = {}
 
     # 1. StaticRoute
-    prefixes.update(get_prefixes_from_staticroute(node_id, iface_name, data))
+    for prefix in get_prefixes_from_staticroute(node_id, iface_name, data):
+        _add_prefix_source(prefixes, prefix, PREFIX_SOURCE_COMMANDS)
 
     # 2. RADVD
     if Subject.RADVD in config_helper.get_subjects():
-        prefixes.update(get_radvd_interfaces(data, node_id, iface_name))
+        for prefix in get_radvd_interfaces(data, node_id, iface_name):
+            _add_prefix_source(prefixes, prefix, PREFIX_SOURCE_RADVD)
 
     # 3. Fallback (only if nothing found)
     if not prefixes:
-        prefixes.update(get_prefixes_from_link_iface(iface))
+        for prefix in get_prefixes_from_link_iface(iface):
+            _add_prefix_source(prefixes, prefix, PREFIX_SOURCE_LINK)
 
     return prefixes
 
@@ -95,13 +132,13 @@ def get_radvd_interfaces(data, node_id, iface_name=None):
         for addr, mask in matches:
             try:
                 net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
-                prefixes.append(net)
+                prefixes.add(str(net))
             except:
                 pass
 
-        if iface_name == None and prefixes:
+        if iface_name is None and prefixes:
             result[iface] = prefixes
-        elif iface_name != None:
+        elif iface_name is not None:
             result = prefixes
 
     return result

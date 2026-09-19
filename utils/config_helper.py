@@ -111,6 +111,28 @@ def get_network_mask(network_name):
     return get_network_mask_direct(networks, f"{right}<>{left}")
 
 
+def get_network_last_octet(network_name, section="intranet_lan_networks"):
+    network_name = format_network_name(network_name)
+    networks = get_config().get("networks", {})
+    
+    intranet_networks = (networks.get("intranet_lan_networks", []) + networks.get("intranet_p2p_networks", []))
+
+    for network in intranet_networks:
+        if not isinstance(network, dict):
+            continue
+
+        if format_network_name(network.get("name", "")) != network_name:
+            continue
+
+        last_octet = network.get("last_octet")
+        if last_octet is None:
+            return None
+
+        return int(last_octet)
+
+    return None
+
+
 def _with_reverse_p2p_networks(networks):
     expanded = get_network_names(networks)
     for network in expanded:

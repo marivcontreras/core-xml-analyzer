@@ -1,4 +1,4 @@
-from analyzer.prefixes import get_prefixes_for_interface
+from analyzer.prefixes import get_prefixes_for_interface_with_sources, merge_prefix_sources
 from parser.devices import get_node
 from report.formatters import reverse_network_name
 from utils import config_helper
@@ -37,9 +37,11 @@ def infer_networks(data):
             "kind": "wireless" if "WIRELESS" in l2["type"] else "lan",
             "members": members,
             "member_interfaces": [{"node": node_id, "iface": iface} for node_id, iface in member_ifaces],
-            "prefixes": set()
+            "prefixes": set(),
+            "prefix_sources": {}
         }
 
+        print(f"Network {net['name']} has members: {members} and member interfaces: {member_ifaces}")
         # collect prefixes from all router interfaces in this network
         for node_id, iface in member_ifaces:
             node = get_node(data, node_id)
@@ -47,7 +49,9 @@ def infer_networks(data):
             if node.get("type") not in ["router","PC"]:
                 continue
 
-            prefixes = get_prefixes_for_interface(node_id, iface, data)
+            prefix_sources = get_prefixes_for_interface_with_sources(node_id, iface, data)
+            print(f"{net['name']} | Node {node['name']} interface {iface['name']} has prefixes: {prefix_sources}")
+            prefixes = set(prefix_sources)
 
             if not prefixes:
                 if (config_helper.get_class_name() == "rdc2" and node.get("type") == "PC"):
@@ -65,6 +69,7 @@ def infer_networks(data):
                 )
 
             net["prefixes"].update(prefixes)
+            net["prefix_sources"] = merge_prefix_sources(net["prefix_sources"], prefix_sources)
 
         net["prefixes"] = sorted(list(net["prefixes"])) if net["prefixes"] else ["-"]
 
@@ -94,14 +99,16 @@ def infer_networks(data):
                 {"node": link["node1"], "iface": link["iface1"]},
                 {"node": link["node2"], "iface": link["iface2"]}
             ],
-            "prefixes": set()
+            "prefixes": set(),
+            "prefix_sources": {}
         }
 
-        p1 = get_prefixes_for_interface(link["node1"], link["iface1"], data)
-        p2 = get_prefixes_for_interface(link["node2"], link["iface2"], data)
+        p1 = get_prefixes_for_interface_with_sources(link["node1"], link["iface1"], data)
+        p2 = get_prefixes_for_interface_with_sources(link["node2"], link["iface2"], data)
 
         net["prefixes"].update(p1)
         net["prefixes"].update(p2)
+        net["prefix_sources"] = merge_prefix_sources(net["prefix_sources"], p1, p2)
 
         if not p1:
             add_warning(
