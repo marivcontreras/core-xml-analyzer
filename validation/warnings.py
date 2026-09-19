@@ -124,6 +124,11 @@ WARNINGS = {
         "scope": "interface"
     },
 
+    "missing_ip_command": {
+        "message": "{node_name}: Comandos ip addr faltantes",
+        "type": "design",
+        "scope": "network"
+    },
     # ================================================================
     # IP COMMANDS VALIDATION WARNINGS
     # ================================================================

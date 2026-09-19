@@ -16,6 +16,7 @@ def validate_ip_addr_commands(node_id, data):
 
     node = data["devices"].get(node_id, {"name": f"node{node_id}"})
     node_name = node["name"]
+    ip_addr_count = 0
 
     for line_num, line in enumerate(text.splitlines(), start=1):
         line = line.strip()
@@ -26,6 +27,7 @@ def validate_ip_addr_commands(node_id, data):
         elif line.startswith("ip addr add") or line.startswith("ip -4 addr add"):
             cmd_type = "ipv4"
             regex = IPV4_CMD_REGEX
+            ip_addr_count += 1
         else:
             continue
 
@@ -92,6 +94,14 @@ def validate_ip_addr_commands(node_id, data):
                 interface_name=iface,
                 line=line
             )
+
+    if (ip_addr_count == 0 and node.get("type") == "router"):
+        add_warning(
+            data,
+            "missing_ip_command",
+            node=node_name,
+            node_name=node_name
+        )
        
 # -------------------------------------------------------------
 # Checks if an interface name exists for a given node in the data structure.
