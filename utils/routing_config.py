@@ -14,6 +14,8 @@ from pathlib import Path
 from utils.ip import PREFIX_TYPE
 import traceback
 
+from validation import routingHelper
+
 # Constants matching routingHelper
 ANY = "__ANY__"
 AUTO = "__AUTO__"
@@ -42,7 +44,7 @@ def normalize_vias(vias_list):
             # If no interface specified, treat as node only
             normalized.append({
                 "node": via,
-                "interface": "any",
+                "interface": routingHelper.ANY,
                 "type": "neighbor"
             })
 
@@ -101,7 +103,7 @@ def convert_yaml_route_to_internal(yaml_route):
     
     # Normalize dev and vias
     normalized_dev = ANY if dev == "any" else dev
-    normalized_vias = normalize_vias(vias) if vias else []
+    normalized_vias = normalize_vias(vias) if vias else None
     
     # Determine route type
     if route_type == "direct":
@@ -177,6 +179,7 @@ def normalize_routing_matrix_section(yaml_matrix):
         normalized[router] = {}
         
         for network, yaml_routes in networks.items():
+            net_name = network.lower().title()
             # Handle both direct lists and single dicts
             if not isinstance(yaml_routes, list):
                 yaml_routes = [yaml_routes]
@@ -186,7 +189,7 @@ def normalize_routing_matrix_section(yaml_matrix):
             for yaml_route in yaml_routes:
                 internal_routes.extend(convert_yaml_route_to_internal(yaml_route))
             
-            normalized[router][network] = internal_routes
+            normalized[router][net_name] = internal_routes
     
     return normalized
 

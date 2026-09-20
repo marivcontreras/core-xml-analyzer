@@ -4,6 +4,7 @@ from parser.routing import build_routing_matrix
 from report.formatters import format_route, format_via_info, reverse_network_name
 from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning, replicate_routing_warning
+from validation import routingHelper
 from validation.routingHelper import ANY, TABLES, get_expected_isp_routing_matrix
 
 # -------------------------------------------------------------
@@ -467,8 +468,8 @@ def match_via_info(actual, expected_options):
         return False
 
     for expected in expected_options:
-        same_node = actual.get("node") == expected.get("node")
-        same_interface = actual.get("interface") == expected.get("interface")
+        same_node = actual.get("node") == expected.get("node") or expected.get("node") == routingHelper.ANY
+        same_interface = actual.get("interface") == expected.get("interface") or expected.get("interface") == routingHelper.ANY
 
         if same_node and same_interface:
             return True

@@ -30,7 +30,6 @@ intranet_routers:
 
     SW-DC:
       - type: direct
-        dev: eth0
         table: local
         prefix_types: [ipv4]
 
@@ -212,7 +211,7 @@ intranet_routers:
       
     Sw-Troncal:
       - type: indirect
-        vias: [R3]
+        vias: [R5]
         table: main
         prefix_types: [ipv4]
 
@@ -223,13 +222,13 @@ intranet_routers:
 
     SW-Comp:
       - type: indirect
-        vias: [R3]
+        vias: [R5]
         table: main
         prefix_types: [ipv4]
 
     SW-Esc:
       - type: indirect
-        vias: [R3]
+        vias: [R5]
         table: main
         prefix_types: [ipv4]
 
