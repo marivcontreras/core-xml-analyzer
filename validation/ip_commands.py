@@ -82,6 +82,7 @@ def validate_ip_addr_commands(node_id, data):
         try:
             if cmd_type == "ipv4":
                 ipaddress.IPv4Interface(f"{addr}/{mask}")
+                
             else:
                 ipaddress.IPv6Interface(f"{addr}/{mask}")
         except Exception:
@@ -94,7 +95,19 @@ def validate_ip_addr_commands(node_id, data):
                 interface_name=iface,
                 line=line
             )
-
+            
+        ip = ipaddress.ip_interface(f"{addr}/{mask}")
+        net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)                
+        if ip.ip == net.network_address:
+            print(f"IP: {ip}, Network: {net}")
+            add_warning(
+                        data,
+                        "net_ip_assigned",
+                        node=node_name,
+                        node_name=node_name,
+                        line=line
+                    )
+        
     if (ip_addr_count == 0 and node.get("type") == "router"):
         add_warning(
             data,

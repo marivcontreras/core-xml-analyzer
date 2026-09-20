@@ -139,6 +139,12 @@ WARNINGS = {
         "scope": "node"
     },
 
+    "net_ip_assigned": {
+            "message": "{node_name}: se asignó una direccón base de red '{line}'",
+            "type": "invalid",
+            "scope": "node"
+    },
+    
     "interface_not_found": {
         "message": "{node_name}: interfaz {interface_name} no existe",
         "type": "invalid",
