@@ -3,13 +3,14 @@
 class_name: "rdc2"
 routing_config: "resources/rdc2/routing.yaml"
 max_prefixes_per_network: 2
+ipv6_support: true
 
 subjects:
   - Networks
+  - Sintaxis
   - RADVD
   - Routing
-  - RPDB
-  - Firewall
+  - Policy
   - Tunneling
 
 devices:

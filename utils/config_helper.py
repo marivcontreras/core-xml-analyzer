@@ -43,6 +43,19 @@ def get_subjects():
     return [Subject.from_value(subject) for subject in subjects]
 
 
+def has_subject(subject):
+    """True if the given Subject is active for the current class."""
+    return subject in get_subjects()
+
+
+def get_ipv6_support():
+    """True if the current class works with IPv6 (e.g. rdc2)."""
+    config = get_config()
+    if config is None:
+        raise ValueError("Configuration has not been loaded.")
+    return bool(config.get("ipv6_support", False))
+
+
 def get_iptables_columns():
     config = get_config()
     if config is None:

@@ -1,5 +1,37 @@
-from validation.warnings import get_warning_message, get_warning_type, get_warning_scope
+from validation.warnings import (
+    get_warning_message, get_warning_type, get_warning_scope,
+    get_warning_subject, get_warning_requires_ipv6,
+)
+from utils import config_helper
+from utils.subjects import Subject
 from utils.routing_config import TABLES
+
+
+def _should_emit(code):
+    """Decide whether a warning code applies to the current class.
+
+    A warning is suppressed when its subject is not among the class's active
+    subjects, or when it requires IPv6 and the class has no IPv6 support.
+    Warnings with no subject declared are always emitted (fail-open).
+    """
+    subject = get_warning_subject(code)
+    if subject is not None:
+        try:
+            active = config_helper.get_subjects()
+        except ValueError:
+            active = None
+        if active is not None and Subject.from_value(subject) not in active:
+            return False
+
+    if get_warning_requires_ipv6(code):
+        try:
+            if not config_helper.get_ipv6_support():
+                return False
+        except ValueError:
+            pass
+
+    return True
+
 
 def add_warning(data, code, *, wtype=None, scope=None,
                 network=None, node=None, interface=None,
@@ -16,6 +48,9 @@ def add_warning(data, code, *, wtype=None, scope=None,
         details: Additional details dictionary
         **format_kwargs: Format parameters for message template
     """
+    if not _should_emit(code):
+        return
+
     message = get_warning_message(code, **format_kwargs)
     if not message:
         raise ValueError(f"Unknown warning code: {code}")
@@ -51,7 +86,9 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
         route_id: Optional route identifier to attach to the warning
         **format_kwargs: Format parameters for message template
     """
-    #print(f"Format kwargs: {format_kwargs}")
+    if not _should_emit(code):
+        return
+
     warning = {
         "router": format_kwargs.get("router_name", router),
         "route": format_kwargs.get("route_name", route),
