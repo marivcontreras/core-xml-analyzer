@@ -171,7 +171,11 @@ def analyze_policies(data):
             continue
 
 def analyze_r4_policy(data, node_id):
-    routing = data["routing"][node_id]
+    routing = data["routing"].get(node_id)
+    if not routing:
+        # No routing data for this router (e.g. topology-only XML): nothing to
+        # analyze for policy routing.
+        return
 
     routes = routing["routes"]
     rules = routing["rules"]
@@ -234,7 +238,11 @@ def analyze_r4_policy(data, node_id):
 
 
 def analyze_r5_policy(data, node_id):
-    routing = data["routing"][node_id]
+    routing = data["routing"].get(node_id)
+    if not routing:
+        # No routing data for this router (e.g. topology-only XML): nothing to
+        # analyze for policy routing.
+        return
 
     routes = routing["routes"]
     rules = routing["rules"]
