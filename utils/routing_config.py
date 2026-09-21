@@ -14,9 +14,9 @@ from pathlib import Path
 from utils.ip import PREFIX_TYPE
 import traceback
 
-from validation import routingHelper
+from validation import routing_helper
 
-# Constants matching routingHelper
+# Constants matching routing_helper
 ANY = "__ANY__"
 AUTO = "__AUTO__"
 
@@ -44,7 +44,7 @@ def normalize_vias(vias_list):
             # If no interface specified, treat as node only
             normalized.append({
                 "node": via,
-                "interface": routingHelper.ANY,
+                "interface": routing_helper.ANY,
                 "type": "neighbor"
             })
 

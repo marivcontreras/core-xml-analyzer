@@ -9,7 +9,7 @@ All validation parameters are organized into domain-specific configuration modul
 - **`network_config.py`** - Network topology validation rules
 - **`ip_commands_config.py`** - IP address command validation rules
 - **`radvd_config.py`** - Router advertisement daemon validation rules
-- **`routingHelper.py`** - Expected routing matrix (topology-specific)
+- **`routing_helper.py`** - Expected routing matrix (topology-specific)
 
 ## Quick Start: Changing a Validation Rule
 
@@ -129,7 +129,7 @@ Controls validation of router advertisement daemon configuration (currently no p
 **When to modify:**
 - If radvd-specific thresholds or patterns are needed in the future
 
-### routingHelper.py
+### routing_helper.py
 
 Defines the expected routing topology matrix and routing builders.
 
@@ -221,11 +221,11 @@ validation/
 ├── network_config.py           ← Network validation parameters
 ├── ip_commands_config.py       ← IP command validation parameters
 ├── radvd_config.py             ← Radvd validation parameters (placeholder)
-├── routingHelper.py            ← Routing matrix & builders
+├── routing_helper.py            ← Routing matrix & builders
 ├── networks.py                 ← Network validation logic (reads from network_config)
 ├── ip_commands.py              ← IP command validation logic (reads from ip_commands_config)
 ├── radvd.py                    ← Radvd validation logic (data-driven)
-└── routingValidation.py        ← Routing matrix validation (reads from routingHelper)
+└── routing_validation.py        ← Routing matrix validation (reads from routingHelper)
 ```
 
 ## Next Steps

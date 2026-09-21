@@ -1,5 +1,5 @@
 from validation.warnings import get_warning_message, get_warning_type, get_warning_scope
-from validation.routingHelper import TABLES
+from validation.routing_helper import TABLES
 
 def add_warning(data, code, *, wtype=None, scope=None,
                 network=None, node=None, interface=None,
