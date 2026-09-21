@@ -15,14 +15,3 @@ To adjust validation rules:
 # For example: "admin" networks should not have global IPv6 prefixes
 # Example network names that match: "Admin", "ADMIN", "admin-net", "network-admin"
 ADMIN_NETWORK_PATTERN = "admin"
-
-# Required prefix types per network kind
-# Defines which IPv6 address families are mandatory for each network type
-# Keys: network kinds ("lan", "wireless", "point-to-point")
-# Values: list of required prefix type names ("site", "global")
-# Modify to enforce different prefix requirements
-REQUIRED_PREFIX_TYPES = {
-    "lan": ["site", "global"],
-    "wireless": ["site", "global"],
-    "point-to-point": ["site", "global"],
-}

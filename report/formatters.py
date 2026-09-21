@@ -1,6 +1,6 @@
-from parser.devices import get_node
 from collections import defaultdict
 
+from parser.devices import get_node
 from utils import config_helper
 from utils.ip import PREFIX_TYPE, TYPE_LABELS
 
@@ -15,71 +15,6 @@ def summarize(data):
         "networks": len(data["networks"]),
         "warnings": [w["message"] for w in data["warnings"]]
     }
-
-from collections import defaultdict
-
-def build_warning_summary2(data, warnings, router_warnings):
-    summary = {
-        "total": 0,
-        "by_severity": defaultdict(int),
-        "by_category": defaultdict(int)
-    }
-
-    # --------------------------------------------------
-    # network warnings
-    # --------------------------------------------------
-
-    for net_name, type_groups in warnings.items():
-
-        for warning_type, items in type_groups.items():
-
-            summary["by_category"][warning_type] += len(items)
-
-            for item in items:
-
-                severity = item.get("severity", "warning")
-
-                summary["by_severity"][severity] += 1
-                summary["total"] += 1
-
-    # --------------------------------------------------
-    # router warnings
-    # --------------------------------------------------
-
-    for router_name, type_groups in router_warnings.items():
-
-        for warning_type, items in type_groups.items():
-
-            summary["by_category"][warning_type] += len(items)
-
-            for item in items:
-
-                severity = item.get("severity", "warning")
-
-                summary["by_severity"][severity] += 1
-                summary["total"] += 1
-
-    # --------------------------------------------------
-    # parsed routing/tunnel/isp warnings
-    # --------------------------------------------------
-
-    for routing in data.get("routing", {}).values():
-
-        for category, items in routing.get("warnings", {}).items():
-
-            summary["by_category"][category] += len(items)
-
-            for item in items:
-
-                severity = item.get("severity", "warning")
-
-                summary["by_severity"][severity] += 1
-                summary["total"] += 1
-
-    return summary
-
-
-from collections import defaultdict
 
 def build_warning_summary(data, warnings, router_warnings):
     summary = {
