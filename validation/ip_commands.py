@@ -82,7 +82,7 @@ def validate_ip_addr_commands(node_id, data):
         try:
             if cmd_type == "ipv4":
                 ipaddress.IPv4Interface(f"{addr}/{mask}")
-                
+
             else:
                 ipaddress.IPv6Interface(f"{addr}/{mask}")
         except Exception:
@@ -95,9 +95,12 @@ def validate_ip_addr_commands(node_id, data):
                 interface_name=iface,
                 line=line
             )
-            
+            # Address is malformed: report it and skip the checks below that
+            # would otherwise re-parse it and raise.
+            continue
+
         ip = ipaddress.ip_interface(f"{addr}/{mask}")
-        net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)                
+        net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
         if ip.ip == net.network_address:
             print(f"IP: {ip}, Network: {net}")
             add_warning(
