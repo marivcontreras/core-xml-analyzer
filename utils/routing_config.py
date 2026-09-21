@@ -14,11 +14,16 @@ from pathlib import Path
 from utils.ip import PREFIX_TYPE
 import traceback
 
-from validation import routing_helper
-
-# Constants matching routing_helper
 ANY = "__ANY__"
 AUTO = "__AUTO__"
+
+# Special routing tables for policy-based routing.
+TABLES = {
+    "main": "main",
+    "local": "local",
+    "to-r3": "redireccionar paquetes TCP hacia R3",
+    "guest-isolation": "redireccionar el tráfico con origen en wguest",
+}
 
 
 def normalize_vias(vias_list):
@@ -44,7 +49,7 @@ def normalize_vias(vias_list):
             # If no interface specified, treat as node only
             normalized.append({
                 "node": via,
-                "interface": routing_helper.ANY,
+                "interface": ANY,
                 "type": "neighbor"
             })
 
@@ -282,6 +287,64 @@ def get_routing_matrix(class_name, base_path=None, fallback_matrix=None, router_
     # Use fallback if provided
     if fallback_matrix:
         return fallback_matrix
-    
+
     # Return empty matrix
+    return {}
+
+
+def get_expected_routing_matrix():
+    """
+    Load the expected intranet routing matrix from the YAML config referenced
+    by the current config. Returns an empty dict if config or loading fails.
+
+    Returns:
+        Dict in format {router: {network: [route_dicts]}}
+    """
+    from utils.config_helper import get_config
+
+    current_config = get_config()
+
+    if current_config and "routing_config" in current_config:
+        routing_yaml_path = current_config["routing_config"]
+
+        # Extract class name from routing config path
+        # (e.g. "rdc2" from "resources/rdc2/routing.yaml")
+        class_name = os.path.basename(os.path.dirname(routing_yaml_path))
+        print(f"Loading expected routing matrix for class '{class_name}' from '{routing_yaml_path}'")
+
+        try:
+            loaded_matrix = get_routing_matrix(class_name, router_type="intranet_routers")
+            if loaded_matrix:
+                return loaded_matrix
+        except Exception as e:
+            print(f"Warning: Failed to load routing matrix from YAML: {e}")
+            traceback.print_exc()
+
+    return {}
+
+
+def get_expected_isp_routing_matrix():
+    """
+    Load the expected internet (ISP) routing matrix from the YAML config
+    referenced by the current config. Returns an empty dict on failure.
+
+    Returns:
+        Dict in format {router: {network: [route_dicts]}}
+    """
+    from utils.config_helper import get_config
+
+    current_config = get_config()
+
+    if current_config and "routing_config" in current_config:
+        routing_yaml_path = current_config["routing_config"]
+
+        class_name = os.path.basename(os.path.dirname(routing_yaml_path))
+
+        try:
+            loaded_matrix = get_routing_matrix(class_name, router_type="internet_routers")
+            if loaded_matrix:
+                return loaded_matrix
+        except Exception as e:
+            print(f"Warning: Failed to load ISP routing matrix from YAML: {e}")
+
     return {}

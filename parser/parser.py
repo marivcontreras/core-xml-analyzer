@@ -5,7 +5,7 @@ from utils import config_helper
 from utils.config_helper import get_subjects
 from utils.subjects import Subject
 from validation.ip_commands import validate_ip_addr_commands
-from validation.routing_helper import get_expected_routing_matrix
+from utils.routing_config import get_expected_routing_matrix
 from validation.routing_validation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
 
 from .devices import parse_devices, parse_l2_networks, parse_network_nodes
