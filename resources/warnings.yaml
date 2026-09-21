@@ -1,0 +1,347 @@
+# ============================================================================
+# Centralized warning catalog
+# ----------------------------------------------------------------------------
+# Each entry maps a warning code to its message template and metadata:
+#   message        : format template ({placeholders} filled at emit time)
+#   type           : severity/kind (missing, invalid, design, inconsistent,
+#                    syntax, error, warning, information)
+#   scope          : object granularity the warning refers to
+#                    (node, interface, link, network) - used for grouping
+#   subject        : report section / course topic this warning belongs to
+#                    (Networks, Sintaxis, RADVD, Routing, Tunneling, Policy,
+#                     Firewall). A warning is only emitted when its subject is
+#                    active for the current class (config subjects).
+#   requires_ipv6  : (optional) when true, the warning is only emitted for
+#                    classes with ipv6_support: true (e.g. rdc2).
+#
+# Subject coverage by class:
+#   rdc1 -> Networks, Sintaxis, Routing, Firewall
+#   rdc2 -> Networks, Sintaxis, RADVD, Routing, Tunneling, Policy
+# ============================================================================
+
+# ============================================================
+# NETWORK VALIDATION WARNINGS
+# ============================================================
+
+missing_configured_router:
+  message: "El router {node_name} no está presente en la sección de dispositivos de nivel 3"
+  type: missing
+  scope: node
+  subject: Networks
+
+missing_configured_network:
+  message: "El nodo {net_name} no está presente en la sección de dispositivos de nivel 2"
+  type: missing
+  scope: network
+  subject: Networks
+
+duplicated_prefix:
+  message: "{net_name}: el prefijo {prefix} ya fue asignado a la red {other_network}"
+  type: invalid
+  scope: network
+  subject: Networks
+
+ipv4_with_other_prefixes:
+  message: "{net_name}: se asignaron direcciones adicionales en internet ({prefixes})"
+  type: design
+  scope: network
+  subject: Networks
+
+invalid_prefixes:
+  message: "{net_name}: prefijo invalido ({prefixes})"
+  type: design
+  scope: network
+  subject: Networks
+
+too_many_prefixes:
+  message: "{net_name}: se asignaron mas de {max_prefixes} bloque/s de red ({prefixes})"
+  type: design
+  scope: network
+  subject: Networks
+
+invalid_prefix_length:
+  message: "{net_name}: prefijo {prefix} deberia ser /{expected}. Equipo que presenta conflictos {device}"
+  type: invalid
+  scope: network
+  subject: Networks
+
+invalid_last_octet:
+  message: "{net_name}: prefijo {prefix} tiene el último octeto {actual} y debería ser {expected}"
+  type: invalid
+  scope: network
+  subject: Networks
+
+missing_site_prefix:
+  message: "{net_name}: prefijo site faltante (existentes: {existing})"
+  type: missing
+  scope: network
+  subject: Networks
+  requires_ipv6: true
+
+missing_global_prefix:
+  message: "{net_name}: prefijo global faltante (existentes: {existing})"
+  type: missing
+  scope: network
+  subject: Networks
+  requires_ipv6: true
+
+admin_with_global:
+  message: "{net_name}: red admin no debería usar direcciones globales"
+  type: design
+  scope: network
+  subject: Networks
+  requires_ipv6: true
+
+p2p_global_mismatch:
+  message: "{net_name}: direcciones globales de distintos bloques ({global_a} - {global_b})"
+  type: inconsistent
+  scope: link
+  subject: Networks
+  requires_ipv6: true
+
+p2p_site_mismatch:
+  message: "{net_name}: direcciones site de distintos bloques ({site_a} - {site_b})"
+  type: inconsistent
+  scope: link
+  subject: Networks
+  requires_ipv6: true
+
+p2p_missing_global:
+  message: "{net_name}: {node_name} ({iface}) sin dirección global"
+  type: inconsistent
+  scope: link
+  subject: Networks
+  requires_ipv6: true
+
+p2p_missing_site:
+  message: "{net_name}: {node_name} ({iface}) sin dirección site"
+  type: inconsistent
+  scope: link
+  subject: Networks
+  requires_ipv6: true
+
+p2p_ipv4_mismatch:
+  message: "{net_name}: direcciones IPv4 de distintos bloques ({ipv4_a} - {ipv4_b})"
+  type: inconsistent
+  scope: link
+  subject: Networks
+
+p2p_missing_ipv4:
+  message: "{net_name}: {node_name} ({iface}) sin dirección IPv4"
+  type: inconsistent
+  scope: link
+  subject: Networks
+
+# ============================================================
+# NETWORK INFERENCE WARNINGS (analyzer/networks.py)
+# ============================================================
+
+missing_ip_interface:
+  message: "{node_name} no tiene una dirección IP en {interface_name} (red {net_name})"
+  type: missing
+  scope: interface
+  subject: Networks
+
+missing_ip_p2p:
+  message: "{node_name} no tiene una dirección IP en {interface_name} (p2p)"
+  type: missing
+  scope: interface
+  subject: Networks
+
+missing_ip_command:
+  message: "{node_name}: Comandos ip addr faltantes"
+  type: design
+  scope: network
+  subject: Networks
+
+# ============================================================
+# IP COMMANDS VALIDATION WARNINGS (command interpretation)
+# ============================================================
+
+invalid_ip_command:
+  message: "{node_name}: comando inválido → '{line}'"
+  type: syntax
+  scope: node
+  subject: Sintaxis
+
+net_ip_assigned:
+  message: "{node_name}: se asignó una direccón base de red '{line}'"
+  type: invalid
+  scope: node
+  subject: Sintaxis
+
+interface_not_found:
+  message: "{node_name}: interfaz {interface_name} no existe"
+  type: invalid
+  scope: interface
+  subject: Sintaxis
+
+invalid_prefix_length_ipv6:
+  message: "{node_name}: máscara inválida en '{line}'"
+  type: invalid
+  scope: interface
+  subject: Sintaxis
+  requires_ipv6: true
+
+invalid_ipv4:
+  message: "{node_name}: dirección IPv4 inválida en '{line}'"
+  type: invalid
+  scope: interface
+  subject: Sintaxis
+
+invalid_prefix_length_ipv4:
+  message: "{node_name}: máscara inválida en '{line}'"
+  type: invalid
+  scope: interface
+  subject: Sintaxis
+
+invalid_ipv6:
+  message: "{node_name}: dirección IPv6 inválida en '{line}'"
+  type: invalid
+  scope: interface
+  subject: Sintaxis
+  requires_ipv6: true
+
+# ============================================================
+# RADVD VALIDATION WARNINGS
+# ============================================================
+
+radvd_without_ip:
+  message: "{node_name}: La interfaz {interface_name} tiene configurado radvd pero no se encontraron direcciones asignadas correspondientes al bloque anunciado"
+  type: missing
+  scope: interface
+  subject: RADVD
+  requires_ipv6: true
+
+ip_outside_radvd_prefix:
+  message: "{node_name}: La dirección {ip} en la interfaz {interface_name} no pertenece a los bloques anunciados"
+  type: invalid
+  scope: interface
+  subject: RADVD
+  requires_ipv6: true
+
+# ============================================================
+# ROUTING VALIDATION WARNINGS
+# ============================================================
+
+missing_route:
+  message: "Ruta faltante hacia '{route_name}'"
+  type: error
+  subject: Routing
+
+no_indirect_routes:
+  message: "No se encontraron las rutas indirectas necesarias para alcanzar las redes publicas IPv4."
+  type: warning
+  subject: Routing
+
+missing_isp_route:
+  message: "No se encontró la ruta ISP hacia {route_name}"
+  type: warning
+  subject: Routing
+
+invalid_isp_route:
+  message: "No se encontró una ruta ISP válida hacia {route_name}"
+  type: warning
+  subject: Routing
+
+invalid_field_error:
+  message: "Error en campo {field} para {route_name}: esperado -> {expected}, actual -> {actual}"
+  type: warning
+  subject: Routing
+
+invalid_default_route:
+  message: "Error de concepto: Ruta default invalida en {route}"
+  type: warning
+  subject: Routing
+
+unreachable_network:
+  message: "{prefix_type}: No se pueden alcanzar las redes {route_name} desde {router_name}"
+  type: error
+  subject: Routing
+
+missing_route_additional_table:
+  message: "{prefix_type}: No se encontraron las rutas hacia las redes {route_name} en la tabla adicional esperada para {table} en el router {router_name}. "
+  type: warning
+  subject: Routing
+
+invalid_route_field:
+  message: "La ruta hacia la red {prefix_type} {route_name} en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}."
+  type: error
+  subject: Routing
+
+invalid_route_field_minimization:
+  message: "La ruta hacia la red {prefix_type} {route_name} no está siendo minimizada por default. Destino esperado: {expected}. Actual: {actual}."
+  type: warning
+  subject: Routing
+
+invalid_route_field_minimization_policy:
+  message: "La ruta hacia la red {prefix_type} {route_name} no está siendo minimizada por default en la tabla {table}. Destino esperado: {expected}. Actual: {actual}."
+  type: warning
+  subject: Routing
+
+invalid_route_field_default:
+  message: "Los paquetes dirigidos hacia la red {prefix_type} {route_name} están siendo direccionados incorrectamente a través de la entrada por default. Campo via esperado: {expected}. "
+  type: error
+  subject: Routing
+
+invalid_route_field_via_info:
+  message: "La ruta hacia la red {prefix_type} {route_name}  en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: {actual}."
+  type: error
+  subject: Routing
+
+invalid_route_field_via_info_none:
+  message: "La ruta hacia la red {prefix_type} {route_name}  en la tabla {table} tiene un valor inválido en el campo {field}. Esperado: {expected}. Actual: la dirección IP es inválida o no está asignada."
+  type: error
+  subject: Routing
+
+# ============================================================
+# TUNNEL VALIDATION WARNINGS
+# ============================================================
+
+no_tunnel_configured:
+  message: "No se encontró un túnel configurado en {router_name}"
+  type: error
+  subject: Tunneling
+  requires_ipv6: true
+
+invalid_tunnel:
+  message: "Túnel invalido con local {local_ip} y remote {remote_ip} en {router_name}."
+  type: error
+  subject: Tunneling
+  requires_ipv6: true
+
+tunnel_invalid_local:
+  message: "La dirección local {local_ip} del túnel configurado en {router_name} no existe en el {router_name} en la interfaz {expected_interface}. Se resolvió como {resolved_local}"
+  type: warning
+  subject: Tunneling
+  requires_ipv6: true
+
+tunnel_invalid_remote:
+  message: "La dirección remota {remote_ip} del túnel configurado en {router_name} no existe en el {remote_router} en la interfaz {expected_interface}. Se resolvió como {resolved_remote}"
+  type: warning
+  subject: Tunneling
+  requires_ipv6: true
+
+# ============================================================
+# POLICY INFERENCE WARNINGS (RPDB / ip rule - rdc2)
+# ============================================================
+
+tcp_approach_iptables:
+  message: "Se detectaron reglas de iptables para marcar paquetes TCP"
+  type: information
+  subject: Policy
+
+tcp_option_missing:
+  message: "No se detectó la opción tcp en el comando iptables"
+  type: error
+  subject: Policy
+
+tcp_mark_mismatch:
+  message: "El valor de fwmark en ip rule no coincide con el valor configurado en iptables para marcar tráfico TCP"
+  type: error
+  subject: Policy
+
+tcp_approach_iprule:
+  message: "Se detectó una regla ip rule con la opción ipproto para TCP"
+  type: information
+  subject: Policy
