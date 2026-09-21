@@ -1,6 +1,26 @@
+import ipaddress
 
 from analyzer.prefixes import get_radvd_interfaces, get_staticroute_interface_addresses
 from utils.warning import add_warning
+
+
+def _ip_in_any_prefix(ip, prefixes):
+    """True if ip (an ip_interface) falls inside any of the given prefixes.
+
+    Prefixes may be strings ("2001::/64") or ip_network objects; addresses of a
+    different family than a prefix are simply skipped for that prefix.
+    """
+    for prefix in prefixes:
+        try:
+            net = prefix if isinstance(prefix, (ipaddress.IPv4Network, ipaddress.IPv6Network)) \
+                else ipaddress.ip_network(prefix, strict=False)
+        except ValueError:
+            continue
+        if ip.ip.version != net.version:
+            continue
+        if ip.ip in net:
+            return True
+    return False
 
 # -------------------------------------------------------------
 # Creates a list of warnings related to radvd configuration issues, such as:
@@ -33,7 +53,7 @@ def validate_radvd_interfaces(data):
                 continue
 
             for ip in assigned_ips:
-                if not any(ip.ip in prefix for prefix in prefixes):
+                if not _ip_in_any_prefix(ip, prefixes):
                     add_warning(
                         data,
                         "ip_outside_radvd_prefix",

@@ -12,49 +12,53 @@ To adjust validation rules:
 
 import re
 
-# IPv4 address assignment command pattern
-# Matches: ip addr add <IPv4_ADDRESS>/<PREFIX> dev <INTERFACE>
-# or:     ip -4 addr add <IPv4_ADDRESS>/<PREFIX> dev <INTERFACE>
-# Examples that match:
-#   ip addr add 192.168.1.1/24 dev eth0
-#   ip -4 addr add 10.0.0.1/30 dev eth1
-# To support additional IPv4 command variations, modify this regex
-IPV4_CMD_PATTERN = (
-    r'^\s*ip(?:\s+-4)?\s+addr\s+add\s+([0-9]{1,3}(?:\.[0-9]{1,3}){3})/(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)\s*$'
+# ---------------------------------------------------------------------------
+# Canonical "ip addr add" command patterns
+# ---------------------------------------------------------------------------
+# These are the single source of truth for parsing ip-addr assignment commands.
+# Two flavours are derived from one core body per address family:
+#   * *_CMD_EXTRACT_REGEX : unanchored, for scanning free-form StaticRoute text
+#                           with findall() (used by analyzer/prefixes.py).
+#   * *_CMD_REGEX         : anchored (^...$), for validating a single command
+#                           line with match() (used by validation/ip_commands.py).
+#
+# Capture groups (both flavours): (address, prefix_length, interface)
+#
+# Interface names use [a-zA-Z0-9_.-]+ (eth0, eth1.100, wlan0, ...).
+# A "/" separator tolerates surrounding whitespace (addr / mask).
+# IPv4 addresses are matched loosely ([0-9.]+) during extraction and strictly
+# (four octets) during validation, since validation is where malformed input
+# should be rejected.
+
+_IFACE = r'[a-zA-Z0-9_.-]+'
+_SLASH = r'\s*/\s*'
+
+# --- IPv6 ---
+# ip -6 addr add <ipv6>/<mask> dev <iface>
+IPV6_CMD_BODY = (
+    r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)' + _SLASH + r'(\d+)\s+dev\s+(' + _IFACE + r')'
 )
+IPV6_CMD_EXTRACT_REGEX = re.compile(IPV6_CMD_BODY)
+IPV6_CMD_REGEX = re.compile(r'^\s*' + IPV6_CMD_BODY + r'\s*$')
+IPV6_CMD_PATTERN = IPV6_CMD_REGEX.pattern  # backwards-compat alias
 
-# Compiled regex for performance
-IPV4_CMD_REGEX = re.compile(IPV4_CMD_PATTERN)
+# --- IPv4 ---
+# ip addr add <ipv4>/<mask> dev <iface>  |  ip -4 addr add ...
+IPV4_CMD_BODY = (
+    r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)' + _SLASH + r'(\d+)\s+dev\s+(' + _IFACE + r')'
+)
+IPV4_CMD_EXTRACT_REGEX = re.compile(IPV4_CMD_BODY)
+# Validation is stricter: require four octets.
+IPV4_CMD_REGEX = re.compile(
+    r'^\s*ip(?:\s+-4)?\s+addr\s+add\s+([0-9]{1,3}(?:\.[0-9]{1,3}){3})'
+    + _SLASH + r'(\d+)\s+dev\s+(' + _IFACE + r')\s*$'
+)
+IPV4_CMD_PATTERN = IPV4_CMD_REGEX.pattern  # backwards-compat alias
 
-# Valid range for IPv4 prefix length
-# IPv4 prefix lengths range from /0 to /32
-# Typical values:
-#   /24 - LAN subnet
-#   /30 - point-to-point link
-#   /16 - large internal network
+# Valid range for IPv4 prefix length (/0 .. /32)
 IPV4_PREFIX_LENGTH_MIN = 0
 IPV4_PREFIX_LENGTH_MAX = 32
 
-# IPv6 address assignment command pattern
-# Matches: ip -6 addr add <IPv6_ADDRESS>/<PREFIX> dev <INTERFACE>
-# Examples that match:
-#   ip -6 addr add 2001:db8::1/64 dev eth0
-#   ip -6 addr add fd00::1/64 dev eth1
-#   ip -6 addr add 2001:db8::1/127 dev wlan0
-# To support additional IPv6 command variations, modify this regex
-IPV6_CMD_PATTERN = (
-    r'^\s*ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)\s*$'
-)
-
-# Compiled regex for performance
-IPV6_CMD_REGEX = re.compile(IPV6_CMD_PATTERN)
-
-# Valid range for IPv6 prefix length
-# IPv6 prefix lengths range from /1 to /128
-# Typical values:
-#   /64 - subnet prefix
-#   /127 - point-to-point link
-#   /48 - organization prefix
-#   /32 - internet service provider assignment
+# Valid range for IPv6 prefix length (/0 .. /128)
 IPV6_PREFIX_LENGTH_MIN = 0
 IPV6_PREFIX_LENGTH_MAX = 128

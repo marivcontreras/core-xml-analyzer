@@ -5,6 +5,10 @@ from parser.devices import get_node
 from report.formatters import reverse_network_name
 from utils import config_helper
 from utils.subjects import Subject
+from validation.configs.ip_commands_config import (
+    IPV4_CMD_EXTRACT_REGEX,
+    IPV6_CMD_EXTRACT_REGEX,
+)
 
 PREFIX_SOURCE_COMMANDS = "ip addr command"
 PREFIX_SOURCE_RADVD = "radvd"
@@ -76,18 +80,9 @@ def get_prefixes_from_staticroute(node_id, iface_name, data):
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
-    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
-    ipv6_matches = re.findall(
-        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)/(\d+)\s+dev\s+(\S+)',
-        text
-    )
-    
-    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
-    ipv4_matches = re.findall(
-        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)/(\d+)\s+dev\s+(\S+)',
-        text
-    )
-    
+    ipv6_matches = IPV6_CMD_EXTRACT_REGEX.findall(text)
+    ipv4_matches = IPV4_CMD_EXTRACT_REGEX.findall(text)
+
     # Combine both patterns
     all_matches = ipv6_matches + ipv4_matches
 
@@ -178,39 +173,40 @@ def get_prefixes_from_link_iface(iface):
 # Gets IP address for a given node interface from static route ip addr commands
 # ----------------------------------------------------------------------------
 def get_staticroute_interface_addresses(data, node_id, iface = None):
+    """Collect the IP addresses assigned to a node's interfaces.
+
+    Return shape depends on the ``iface`` argument (mirrors
+    ``get_radvd_interfaces``):
+      * iface given   -> list of ip_interface for that single interface.
+      * iface is None -> dict {interface_name: [ip_interface, ...]} for all
+        interfaces of the node.
+    """
     iface_name = iface.get("name") if iface else None
+
     services = data["services"].get(node_id, {})
     text = services.get("StaticRoute", "")
 
-    result = []
+    by_iface = {}
     seen = set()
 
-    # IPv6 pattern: ip -6 addr add <ipv6>/<mask> dev <dev>
-    ipv6_matches = re.findall(
-        r'ip\s+-6\s+addr\s+add\s+([0-9a-fA-F:]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
-        text
-    )
-    
-    # IPv4 pattern: ip addr add <ipv4>/<mask> dev <dev> or ip -4 addr add ...
-    ipv4_matches = re.findall(
-        r'ip\s+(?:-4\s+)?addr\s+add\s+([0-9.]+)\s*/\s*(\d+)\s+dev\s+([a-zA-Z0-9_.-]+)',
-        text
-    )
-    
-    # Combine both patterns
-    all_matches = ipv6_matches + ipv4_matches
+    def _add(dev, addr, mask):
+        try:
+            ip = ipaddress.ip_interface(f"{addr}/{mask}")
+        except Exception:
+            return
+        key = (dev, ip)
+        if key in seen:
+            return
+        seen.add(key)
+        by_iface.setdefault(dev, []).append(ip)
 
-    for addr, mask, dev in all_matches:
-        if iface_name == None or dev == iface_name:
-            try:
-                ip = ipaddress.ip_interface(f"{addr}/{mask}")
-                if ip not in seen:
-                    result.append(ip)
-                    seen.add(ip)
+    ipv6_matches = IPV6_CMD_EXTRACT_REGEX.findall(text)
+    ipv4_matches = IPV4_CMD_EXTRACT_REGEX.findall(text)
 
-            except:
-                pass
-    
+    for addr, mask, dev in ipv6_matches + ipv4_matches:
+        if iface_name is None or dev == iface_name:
+            _add(dev, addr, mask)
+
     # ------------------------------------------------------------
     # Recover from parsed links
     # ------------------------------------------------------------
@@ -222,37 +218,33 @@ def get_staticroute_interface_addresses(data, node_id, iface = None):
             (link.get("node2"), link.get("iface2"))
         ]
 
-        for candidate_node_id, iface in candidates:
+        for candidate_node_id, link_iface in candidates:
 
-            if iface is None:
+            if link_iface is None:
                 continue
 
             if candidate_node_id != node_id:
                 continue
 
-            dev = iface.get("name")
+            dev = link_iface.get("name")
 
             if iface_name is not None and dev != iface_name:
                 continue
 
             for field in ["ip4", "ip6"]:
 
-                addr = iface.get(field)
-                mask = iface.get(f"{field}_mask")
+                addr = link_iface.get(field)
+                mask = link_iface.get(f"{field}_mask")
                 if not addr:
                     continue
 
-                try:
-                    ip = ipaddress.ip_interface(f"{addr}/{mask}")
+                _add(dev, addr, mask)
 
-                    if ip not in seen:
-                        result.append(ip)
-                        seen.add(ip)
+    if iface_name is not None:
+        # Single-interface query: preserve the historical flat-list contract.
+        return by_iface.get(iface_name, [])
 
-                except:
-                    pass
-
-    return result
+    return by_iface
 
 # -------------------------------------------------------------------
 # Returns node and interface information for a given IP address.
