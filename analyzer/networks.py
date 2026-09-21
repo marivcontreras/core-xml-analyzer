@@ -1,6 +1,6 @@
 from analyzer.prefixes import get_prefixes_for_interface_with_sources, merge_prefix_sources
 from parser.devices import get_node
-from report.formatters import reverse_network_name
+from utils.text import reverse_network_name
 from utils import config_helper
 from utils.warning import add_warning
 

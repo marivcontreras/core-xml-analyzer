@@ -2,7 +2,7 @@ import ipaddress
 import re
 
 from parser.devices import get_node
-from report.formatters import reverse_network_name
+from utils.text import reverse_network_name
 from utils import config_helper
 from utils.subjects import Subject
 from validation.configs.ip_commands_config import (

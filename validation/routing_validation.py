@@ -1,7 +1,7 @@
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner
 from parser.devices import get_node, get_node_id
 from parser.routing import build_routing_matrix
-from report.formatters import format_route, format_via_info, reverse_network_name
+from utils.text import format_route, format_via_info, reverse_network_name
 from utils.ip import PREFIX_TYPE
 from utils.warning import add_routing_warning, replicate_routing_warning
 from utils import routing_config

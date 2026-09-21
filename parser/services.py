@@ -1,7 +1,7 @@
 import re
 import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
-from report.formatters import strip_comments
+from utils.text import strip_comments
 from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type, same_family, contains
 
 # ---------------------------------------------------------------------

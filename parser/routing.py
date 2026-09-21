@@ -1,6 +1,6 @@
 import ipaddress
 
-from report.formatters import format_route
+from utils.text import format_route
 from utils.ip import PREFIX_TYPE, classify_prefix_type, same_family, contains
 from analyzer.prefixes import resolve_ip_owner
 from parser.devices import get_node, is_intranet_router
