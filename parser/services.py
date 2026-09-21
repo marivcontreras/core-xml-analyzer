@@ -2,7 +2,7 @@ import re
 import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
 from report.formatters import strip_comments
-from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type
+from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type, same_family, contains
 
 # ---------------------------------------------------------------------
 # Extracts service data into a structured format for later validation.
@@ -450,7 +450,7 @@ def resolve_route_networks(route_dst, data):
                 continue
 
             # different IP family
-            if route_network.version != candidate_network.version:
+            if not same_family(route_network, candidate_network):
                 continue
 
             # exact
@@ -459,12 +459,12 @@ def resolve_route_networks(route_dst, data):
                 break
 
             # route contains candidate
-            elif candidate_network.subnet_of(route_network):
+            elif contains(route_network, candidate_network):
                 matched_networks.append(network_name)
                 break
 
             # route more specific than candidate
-            elif route_network.subnet_of(candidate_network):
+            elif contains(candidate_network, route_network):
                 matched_networks.append(network_name)
                 break
 

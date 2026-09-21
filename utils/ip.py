@@ -38,6 +38,24 @@ def same_block(p1, p2):
 
     return n1.network_address == n2.network_address and n1.prefixlen == n2.prefixlen
 
+
+# ----------------------------------------------------------
+# Network comparison predicates (operate on ip_network objects)
+# ----------------------------------------------------------
+def same_family(a, b):
+    """True if both networks are the same IP version (both v4 or both v6)."""
+    return a.version == b.version
+
+
+def contains(outer, inner):
+    """True if ``outer`` contains ``inner`` (inner is a subnet of outer).
+
+    Networks of different families never contain each other.
+    """
+    if outer.version != inner.version:
+        return False
+    return inner.subnet_of(outer)
+
 # ----------------------------------------------------------
 # Prefix classification: default, site, global, ipv4, other
 # ----------------------------------------------------------

@@ -1,7 +1,7 @@
 import ipaddress
 
 from report.formatters import format_route
-from utils.ip import PREFIX_TYPE, classify_prefix_type
+from utils.ip import PREFIX_TYPE, classify_prefix_type, same_family, contains
 from analyzer.prefixes import resolve_ip_owner
 from parser.devices import get_node, is_intranet_router
 from utils import config_helper
@@ -39,7 +39,7 @@ def calculate_lpm_score(route_dst, target_prefix):
     # Different IP family
     # ------------------------------------------------------
 
-    if route_network.version != target_network.version:
+    if not same_family(route_network, target_network):
         return None
 
     # ------------------------------------------------------
@@ -56,7 +56,7 @@ def calculate_lpm_score(route_dst, target_prefix):
     # target:  2001::1/64
     # ------------------------------------------------------
 
-    if target_network.subnet_of(route_network):
+    if contains(route_network, target_network):
         return route_network.prefixlen
 
     # ------------------------------------------------------
