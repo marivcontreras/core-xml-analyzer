@@ -11,6 +11,7 @@ Supports fallback to hardcoded routing matrices if YAML configs are not availabl
 import yaml
 import os
 from pathlib import Path
+from utils.config_helper import format_network_name
 from utils.ip import PREFIX_TYPE
 import traceback
 
@@ -184,7 +185,7 @@ def normalize_routing_matrix_section(yaml_matrix):
         normalized[router] = {}
         
         for network, yaml_routes in networks.items():
-            net_name = network.lower().title()
+            net_name = format_network_name(network)
             # Handle both direct lists and single dicts
             if not isinstance(yaml_routes, list):
                 yaml_routes = [yaml_routes]

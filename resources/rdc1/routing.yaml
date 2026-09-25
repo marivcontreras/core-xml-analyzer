@@ -216,9 +216,10 @@ intranet_routers:
         prefix_types: [ipv4]
 
     SW-DC:
-      - type: direct
-        table: local
-        prefix_types: [ipv4]
+     - type: indirect
+       vias: [R5]
+       table: main
+       prefix_types: [ipv4]
 
     SW-Comp:
       - type: indirect

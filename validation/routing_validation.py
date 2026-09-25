@@ -613,7 +613,14 @@ def validate_isp_routes(data):
                 if (route["type"] == "IND" and route["via"] is not None):
                     indirect_routes.append(route)
 
-        if not indirect_routes:
+        expects_indirect = any(
+            route.get("type") == "IND"
+            for routes in expected_routes.values()
+            for route in (routes if isinstance(routes, list) else [routes])
+            if route is not None
+        )
+
+        if not indirect_routes and expects_indirect:
 
             add_routing_warning(
                 router_data,

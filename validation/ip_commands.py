@@ -24,6 +24,7 @@ def validate_ip_addr_commands(node_id, data):
         if line.startswith("ip -6 addr"):
             cmd_type = "ipv6"
             regex = IPV6_CMD_REGEX
+            ip_addr_count += 1
         elif line.startswith("ip addr add") or line.startswith("ip -4 addr add"):
             cmd_type = "ipv4"
             regex = IPV4_CMD_REGEX
@@ -98,18 +99,18 @@ def validate_ip_addr_commands(node_id, data):
             # Address is malformed: report it and skip the checks below that
             # would otherwise re-parse it and raise.
             continue
-
-        ip = ipaddress.ip_interface(f"{addr}/{mask}")
-        net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
-        if ip.ip == net.network_address:
-            print(f"IP: {ip}, Network: {net}")
-            add_warning(
-                        data,
-                        "net_ip_assigned",
-                        node=node_name,
-                        node_name=node_name,
-                        line=line
-                    )
+        
+        if cmd_type == "ipv4":
+            ip = ipaddress.ip_interface(f"{addr}/{mask}")
+            net = ipaddress.ip_network(f"{addr}/{mask}", strict=False)
+            if ip.ip == net.network_address:
+                add_warning(
+                            data,
+                            "net_ip_assigned",
+                            node=node_name,
+                            node_name=node_name,
+                            line=line
+                        )
         
     if (ip_addr_count == 0 and node.get("type") == "router"):
         add_warning(

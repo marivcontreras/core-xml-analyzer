@@ -16,7 +16,7 @@
     <network id="12" name="SW-Esc" icon="" canvas="1" type="SWITCH">
       <position x="712.4942016601562" y="641.9917602539062" lat="47.57333060054667" lon="-122.12272355228201" alt="2.0"/>
     </network>
-    <network id="18" name="WifiCasa" icon="" canvas="1" type="WIRELESS_LAN">
+    <network id="18" name="Wlan-Casa" icon="" canvas="1" type="WIRELESS_LAN">
       <position x="907.5906372070312" y="72.65516662597656" lat="47.57850599745155" lon="-122.12009468063307" alt="2.0"/>
     </network>
     <network id="20" name="wlan-Inv" icon="" canvas="1" type="WIRELESS_LAN">
@@ -28,52 +28,52 @@
   </networks>
   <devices>
     <device id="1" name="ISP" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
-      <position x="158.19989013671875" y="35.48359680175781" lat="47.57884387754178" lon="-122.13019251806115" alt="2.0"/>
+      <position x="155.60350036621094" y="61.44744110107422" lat="47.578607873047986" lon="-122.13022750371037" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="2" name="R2" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
       <position x="410.6438293457031" y="219.38284301757812" lat="47.57717225900094" lon="-122.12679090432651" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="3" name="R3" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
       <position x="199.93914794921875" y="494.7397766113281" lat="47.57466920303566" lon="-122.12963009286253" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="4" name="R4" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
       <position x="75.25181579589844" y="220.7461700439453" lat="47.57715986634882" lon="-122.13131022090568" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="5" name="R5" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
       <position x="418.3778076171875" y="682.817138671875" lat="47.57295946907567" lon="-122.1266866910632" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="7" name="R1" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
-      <position x="614.1591186523438" y="83.1070785522461" lat="47.578410991844834" lon="-122.12404859090248" alt="2.0"/>
+      <position x="629.248291015625" y="78.99185180664062" lat="47.57844839838171" lon="-122.12384526839008" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="13" name="PC1" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
       <position x="1108.7767333984375" y="533.888427734375" lat="47.57431332334688" lon="-122.11738375245567" alt="2.0"/>
       <services>
-        <service name="DefaultRoute"/>
         <service name="StaticRoute"/>
+        <service name="DefaultRoute"/>
       </services>
     </device>
     <device id="14" name="PC2" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
@@ -98,8 +98,8 @@
     <device id="19" name="CASA" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
       <position x="1118.769775390625" y="77.1993408203125" lat="47.578464691917404" lon="-122.11724909892031" alt="2.0"/>
       <services>
-        <service name="DefaultRoute"/>
         <service name="StaticRoute"/>
+        <service name="DefaultRoute"/>
       </services>
     </device>
     <device id="17" name="ServerA" icon="/root/.coregui/icons/host.png" canvas="1" type="PC" class="" image="" compose="" compose_name="">
@@ -111,13 +111,14 @@
     <device id="6" name="R6" icon="" canvas="1" type="router" class="" image="" compose="" compose_name="">
       <position x="591.6033935546875" y="873.7133178710938" lat="47.571224053324784" lon="-122.12435252319146" alt="2.0"/>
       <services>
-        <service name="IPForward"/>
         <service name="StaticRoute"/>
+        <service name="IPForward"/>
       </services>
     </device>
     <device id="24" name="Admin" icon="" canvas="1" type="PC" class="" image="" compose="" compose_name="">
       <position x="57.0418586730957" y="409.3883361816406" lat="47.575445079469254" lon="-122.13155559514776" alt="2.0"/>
       <services>
+        <service name="StaticRoute"/>
         <service name="DefaultRoute"/>
       </services>
     </device>
@@ -147,35 +148,35 @@
     <link node1="6" node2="21">
       <iface1 id="2" name="eth2" mac="00:00:00:aa:00:17" ip4="10.14.1.97" ip4_mask="28"/>
     </link>
-    <link node1="22" node2="20">
-      <iface1 id="0" name="eth0" mac="00:00:00:aa:00:0f" ip4="10.14.1.2" ip4_mask="26"/>
-    </link>
     <link node1="17" node2="11">
       <iface1 id="0" name="eth0" mac="00:00:00:aa:00:14" ip4="10.14.1.114" ip4_mask="29"/>
       <iface2 id="1" name="veth11.1.1"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
+    <link node1="22" node2="20">
+      <iface1 id="0" name="eth0" mac="00:00:00:aa:00:0f" ip4="10.14.1.2" ip4_mask="26"/>
+    </link>
     <link node1="23" node2="21">
       <iface1 id="0" name="eth0" mac="00:00:00:aa:00:18" ip4="10.14.1.98" ip4_mask="28"/>
-    </link>
-    <link node1="12" node2="13">
-      <iface1 id="1" name="veth12.1.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:10" ip4="10.14.1.66" ip4_mask="27"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
-    <link node1="9" node2="24">
-      <iface1 id="2" name="veth9.2.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:1d" ip4="10.14.1.163" ip4_mask="28"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
     <link node1="3" node2="10">
       <iface1 id="2" name="eth2" mac="00:00:00:aa:00:0a" ip4="10.14.1.129" ip4_mask="27"/>
       <iface2 id="0" name="veth10.0.1"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
-    <link node1="8" node2="15">
-      <iface1 id="3" name="veth8.3.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:13" ip4="10.14.0.3" ip4_mask="24"/>
+    <link node1="12" node2="13">
+      <iface1 id="1" name="veth12.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:10" ip4="10.14.1.66" ip4_mask="27"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="1" node2="7">
+      <iface1 id="0" name="eth0" mac="00:00:00:aa:00:00" ip4="201.0.2.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:01" ip4="201.0.2.2" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="9" node2="24">
+      <iface1 id="2" name="veth9.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:1d" ip4="10.14.1.163" ip4_mask="28"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
     <link node1="4" node2="9">
@@ -188,14 +189,44 @@
       <iface2 id="0" name="veth8.0.1"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
-    <link node1="1" node2="7">
-      <iface1 id="0" name="eth0" mac="00:00:00:aa:00:00" ip4="201.0.2.1" ip4_mask="24"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:01" ip4="201.0.2.2" ip4_mask="24"/>
+    <link node1="8" node2="15">
+      <iface1 id="3" name="veth8.3.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:13" ip4="10.14.0.3" ip4_mask="24"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
     <link node1="1" node2="4">
       <iface1 id="2" name="eth2" mac="00:00:00:aa:00:04" ip4="201.0.0.2" ip4_mask="24"/>
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:05" ip4="201.0.0.1" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="12" node2="14">
+      <iface1 id="2" name="veth12.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:11" ip4="10.14.1.67" ip4_mask="27"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="8" node2="16">
+      <iface1 id="2" name="veth8.2.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:12" ip4="10.14.0.4" ip4_mask="24"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="5" node2="11">
+      <iface1 id="1" name="eth1" mac="00:00:00:aa:00:0c" ip4="10.14.1.113" ip4_mask="29"/>
+      <iface2 id="0" name="veth11.0.1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="5" node2="12">
+      <iface1 id="2" name="eth2" mac="00:00:00:aa:00:0d" ip4="10.14.1.65" ip4_mask="27"/>
+      <iface2 id="0" name="veth12.0.1"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="9" node2="3">
+      <iface1 id="1" name="veth9.1.1"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:08" ip4="10.14.1.162" ip4_mask="28"/>
+      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
+    </link>
+    <link node1="8" node2="3">
+      <iface1 id="1" name="veth8.1.1"/>
+      <iface2 id="1" name="eth1" mac="00:00:00:aa:00:09" ip4="10.14.0.2" ip4_mask="24"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
     <link node1="1" node2="2">
@@ -208,44 +239,14 @@
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:0b" ip4="10.14.1.130" ip4_mask="27"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
-    <link node1="9" node2="3">
-      <iface1 id="1" name="veth9.1.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:08" ip4="10.14.1.162" ip4_mask="28"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
-    <link node1="8" node2="16">
-      <iface1 id="2" name="veth8.2.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:12" ip4="10.14.0.4" ip4_mask="24"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
-    <link node1="12" node2="14">
-      <iface1 id="2" name="veth12.2.1"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:11" ip4="10.14.1.67" ip4_mask="27"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
-    <link node1="5" node2="12">
-      <iface1 id="2" name="eth2" mac="00:00:00:aa:00:0d" ip4="10.14.1.65" ip4_mask="27"/>
-      <iface2 id="0" name="veth12.0.1"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
-    <link node1="8" node2="3">
-      <iface1 id="1" name="veth8.1.1"/>
-      <iface2 id="1" name="eth1" mac="00:00:00:aa:00:09" ip4="10.14.0.2" ip4_mask="24"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
     <link node1="5" node2="6">
       <iface1 id="3" name="eth3" mac="00:00:00:aa:00:19" ip4="10.14.1.121" ip4_mask="30"/>
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:1a" ip4="10.14.1.122" ip4_mask="30"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
-    <link node1="5" node2="11">
-      <iface1 id="1" name="eth1" mac="00:00:00:aa:00:0c" ip4="10.14.1.113" ip4_mask="29"/>
-      <iface2 id="0" name="veth11.0.1"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
-    </link>
   </links>
   <mobility_configurations>
-    <mobility_configuration node="18" model="basic_range">
+    <mobility_configuration node="21" model="basic_range">
       <configuration name="range" value="2750"/>
       <configuration name="bandwidth" value="54000000"/>
       <configuration name="jitter" value="0"/>
@@ -253,7 +254,7 @@
       <configuration name="error" value="0.0"/>
       <configuration name="promiscuous" value="0"/>
     </mobility_configuration>
-    <mobility_configuration node="21" model="basic_range">
+    <mobility_configuration node="18" model="basic_range">
       <configuration name="range" value="2750"/>
       <configuration name="bandwidth" value="54000000"/>
       <configuration name="jitter" value="0"/>
@@ -427,25 +428,25 @@ ip addr flush dev eth1
 ip addr flush dev eth2
 
 ip addr add 10.14.1.122/30 dev eth0
-ip addr add 10.14.1.1/29 dev eth1
-ip addr add 10.14.1.97/27 dev eth2
+ip addr add 10.14.1.1/26 dev eth1
+ip addr add 10.14.1.97/28 dev eth2
 
 #ip route add 10.14.1.160/28 via 10.14.1.121 dev eth0
 #ip route add 10.14.0.0/24 via 10.14.1.121 dev eth0
 #ip route add 10.14.1.128/27 via 10.14.1.121 dev eth0
 #ip route add 10.14.1.112/29 via 10.14.1.121 dev eth0
 #ip route add 10.14.1.64/27 via 10.14.1.121 dev eth0
-ip route add default via 10.14.1.121 dev eth0]]></template>
+ip route add default via 10.14.1.121 dev eth0
+
+iptables -t filter -A FORWARD -i eth1 -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT]]></template>
       </templates>
     </service>
     <service name="StaticRoute" node="24">
-<templates>
-<template name="staticroute.sh">
-<![CDATA[ #!/bin/sh
-iptables -t filter -A INPUT -s 10.14.1.0/26 -j REJECT ]]>
-</template>
-</templates>
-</service>
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+iptables -t filter -A INPUT -s 10.14.1.0/26 -j REJECT]]></template>
+      </templates>
+    </service>
   </service_configurations>
   <session_origin lat="47.579166412353516" lon="-122.13232421875" alt="2.0" scale="150.0"/>
   <session_options>
