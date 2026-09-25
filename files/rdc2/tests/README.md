@@ -18,6 +18,8 @@ Config a usar: `rdc2`.
 | `test_tunnels.xml` | `no_tunnel_configured`, `invalid_tunnel`, `tunnel_invalid_local` | OK |
 | `test_devices_faltantes.xml` | `missing_configured_router`, `missing_configured_network` | OK |
 
-Nota: `missing_ip_command: 3` aparece en TODOS (y en `bien.xml` base) — es un falso
-positivo preexistente (BUG #2). Romper direcciones/rutas produce warnings en cascada
+Nota: el `missing_ip_command` que aparecía en todos (y en `bien.xml` base) era por
+los ISP/R-Casa sin `ip addr add` en la topología base — se corrigió agregando esas
+direcciones a `bien.xml` (venían configuradas por la cátedra). `bien.xml` ahora da 0
+warnings. Romper direcciones/rutas produce warnings en cascada
 (`unreachable_network`, `invalid_route_field_*`) además del objetivo; es esperado.

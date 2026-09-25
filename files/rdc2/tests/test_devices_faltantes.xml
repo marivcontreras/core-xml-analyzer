@@ -565,6 +565,9 @@ ip -6 route add default via 2001:0:0:FF::E dev eth2]]></template>
 #ip route add 10.9.8.0/24 via 100.64.0.1
 #ip route add 10.9.8.0/24 via 162.120.0.1
 
+ip addr add 100.64.0.1/24 dev eth0
+ip addr add 162.120.0.1/24 dev eth1
+
 ip route add 100.64.1.0/24 via 162.120.0.2 dev eth1]]></template>
       </templates>
     </service>
@@ -575,6 +578,9 @@ ip route add 100.64.1.0/24 via 162.120.0.2 dev eth1]]></template>
 # NOTE: this service must be customized to be of any use
 #       Below are samples that you can uncomment and edit.
 #ip route add 10.9.8.0/24 via 162.120.0.1
+
+ip addr add 162.120.0.2/24 dev eth0
+ip addr add 100.64.1.1/24 dev eth1
 
 ip route add 100.64.0.0/24 via 162.120.0.1 dev eth0]]></template>
       </templates>
@@ -587,6 +593,9 @@ ip route add 100.64.0.0/24 via 162.120.0.1 dev eth0]]></template>
 #       Below are samples that you can uncomment and edit.
 
 #ip route add 3ffe:4::/64 via 2001:1::1
+
+ip addr add 100.64.1.2/24 dev eth0
+ip -6 addr add 2001:1::1/64 dev eth1
 
 ip route add default via 100.64.1.1 dev eth0
 
