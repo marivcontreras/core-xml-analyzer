@@ -162,4 +162,42 @@
       <iface2 id="4" name="eth4" mac="00:00:00:00:00:06"/>
     </link>
   </links>
+  <service_configurations>
+    <service name="StaticRoute" node="2">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+ip addr flush dev eth2
+
+ip addr add 100.64.0.2/24 dev eth2]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="7">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+ip addr flush dev eth0
+ip addr flush dev eth1
+
+ip addr add 100.64.0.1/24 dev eth0
+ip addr add 162.120.0.1/24 dev eth1]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="8">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+ip addr flush dev eth0
+ip addr flush dev eth1
+
+ip addr add 162.120.0.2/24 dev eth0
+ip addr add 100.64.1.1/24 dev eth1]]></template>
+      </templates>
+    </service>
+    <service name="StaticRoute" node="9">
+      <templates>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh
+ip addr flush dev eth0
+
+ip addr add 100.64.1.2/24 dev eth0]]></template>
+      </templates>
+    </service>
+  </service_configurations>
 </scenario>
