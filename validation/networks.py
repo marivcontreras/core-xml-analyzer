@@ -123,7 +123,7 @@ def validate_networks(data):
 
         kinds = [classify_prefix_type(p) for p in prefixes]
 
-        if "unknown" in kinds:
+        if PREFIX_TYPE["unknown"] in kinds:
             add_warning(
                 data,
                 "invalid_prefixes",

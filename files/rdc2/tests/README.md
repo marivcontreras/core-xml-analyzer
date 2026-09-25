@@ -8,7 +8,7 @@ Config a usar: `rdc2`.
 
 | Archivo | Warnings esperados | Estado observado |
 | --- | --- | --- |
-| `test_networks_prefijos.xml` | `invalid_prefix_length`, `too_many_prefixes`, `invalid_prefixes` (bloque + sintaxis), `duplicated_prefix` | OK salvo `invalid_prefixes` (BUG #1) |
+| `test_networks_prefijos.xml` | `invalid_prefix_length`, `too_many_prefixes`, `invalid_prefixes` (bloque + sintaxis), `duplicated_prefix` | OK (BUG #1 corregido) |
 | `test_networks_faltantes.xml` | `missing_site_prefix`, `missing_global_prefix`, `admin_with_global`, `ipv4_with_other_prefixes` | OK |
 | `test_p2p.xml` | `p2p_missing_global`, `p2p_missing_site`, `missing_ip_p2p`, `p2p_global_mismatch`, `p2p_site_mismatch` | OK |
 | `test_sintaxis.xml` | `invalid_ip_command`, `invalid_ipv6`, `invalid_prefix_length_ipv6`, `net_ip_assigned`, `interface_not_found`, `missing_ip_command` | OK salvo `net_ip_assigned` (BUG #3) |
