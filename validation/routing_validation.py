@@ -790,19 +790,18 @@ def validate_isp_routes(data):
         # --------------------------------------------------
         # invalid default routes
         # --------------------------------------------------
+        # NOTE: this must be checked against the router's actual (raw)
+        # routing table, not against `interpreted_router_routes` (the
+        # best-route-per-network matrix). A default route almost never
+        # wins that per-network scoring against a more specific route,
+        # so it would silently disappear from the matrix and this
+        # warning would never fire even when a default route is present.
 
-        default_routes = []
-
-        for routes in interpreted_router_routes.values():
-
-            if not isinstance(routes, list):
-                routes = [routes]
-
-            for route in routes:
-                if (route is None):
-                    continue
-                if route.get("dst") == PREFIX_TYPE["default"]:
-                    default_routes.append(route)
+        default_routes = [
+            route
+            for route in router_data.get("routes", [])
+            if route and route.get("dst") == PREFIX_TYPE["default"]
+        ]
 
         for route in default_routes:
 

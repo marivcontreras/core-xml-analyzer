@@ -102,6 +102,13 @@ def add_routing_warning(routing, category, code, warnings_list=None, router=None
     if format_kwargs.get("table"):
         format_kwargs["table"] = TABLES.get(format_kwargs["table"], format_kwargs["table"])
 
+    # `route` is consumed above as an explicit parameter (to populate
+    # warning["route"] when the caller doesn't pass route_name), so it
+    # never reaches **format_kwargs on its own. Some message templates
+    # (e.g. invalid_default_route) use a {route} placeholder, so make
+    # sure that value is still available for formatting.
+    format_kwargs.setdefault("route", route)
+
     message = get_warning_message(code, **format_kwargs)
     if not message:
         raise ValueError(f"Unknown warning code: {code}")
