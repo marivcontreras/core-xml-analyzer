@@ -279,6 +279,7 @@ def check_p2p_consistency(net, data):
         iface = m["iface"]
 
         addrs = get_staticroute_interface_addresses(data, node_id, iface)
+        print(f"Node {m}, Interface {iface}: Found addresses {addrs}")
         #data["warnings"].append(f"node {node_id} for {iface}: found {addrs} IP addresses")
 
         ipv4 = None
@@ -286,15 +287,14 @@ def check_p2p_consistency(net, data):
         site_ip = None
 
         for ip in addrs:
-            if class_name == "rdc1" and ip.version == 4:
+            if ip.version == 4 and not ipv4:
+                # levanta primero de static route y segundo de link, si hay una ipv4 en static route uso esa, sino recien ahi agarro la del link
                 ipv4 = ip
-            elif ip.version != 6:
-                continue
-            
-            if classify_prefix_type(ip) == PREFIX_TYPE["site"]:  # fd00::/8
-                site_ip = ip
-            elif classify_prefix_type(ip) == PREFIX_TYPE["global"]:  # 2001::/16
-                global_ip = ip
+            elif ip.version == 6:
+                if classify_prefix_type(ip) == PREFIX_TYPE["site"]:  # fd00::/8
+                    site_ip = ip
+                elif classify_prefix_type(ip) == PREFIX_TYPE["global"]:  # 2001::/16
+                    global_ip = ip
 
         endpoints.append({
             "node": node_id,
@@ -309,19 +309,20 @@ def check_p2p_consistency(net, data):
         return
 
     a, b = endpoints
+  
+    if a["ipv4"] and b["ipv4"]:
+        print(f"Checking IPv4 consistency for network {net['name']}: {a['ipv4']} vs {b['ipv4']}")
+        if not same_block(str(a["ipv4"].network), str(b["ipv4"].network)):
+            add_warning(
+                data,
+                "p2p_ipv4_mismatch",
+                network=net["name"],
+                net_name=net["name"],
+                ipv4_a=a["ipv4"],
+                ipv4_b=b["ipv4"]
+            )
 
-    if class_name == "rdc1":
-        if a["ipv4"] and b["ipv4"]:
-            if not same_block(str(a["ipv4"].network), str(b["ipv4"].network)):
-                add_warning(
-                    data,
-                    "p2p_ipv4_mismatch",
-                    network=net["name"],
-                    net_name=net["name"],
-                    ipv4_a=a["ipv4"],
-                    ipv4_b=b["ipv4"]
-                )
-
+    if (not config_helper.get_ipv6_support()):
         for ep in endpoints:
             if not ep["ipv4"]:
                 add_warning(
@@ -330,54 +331,52 @@ def check_p2p_consistency(net, data):
                     network=net["name"],
                     net_name=net["name"],
                     node_name=data['devices'][ep['node']]['name'],
-                    iface=ep['iface']
+                    iface=ep['iface'].get("name")
                 )
-        return
 
-    elif class_name == "rdc2":
-        # --- GLOBAL CHECK ---
-        if a["global"] and b["global"]:
-            if not same_block(str(a["global"].network), str(b["global"].network)):
+    # --- GLOBAL CHECK ---
+    if a["global"] and b["global"]:
+        if not same_block(str(a["global"].network), str(b["global"].network)):
+            add_warning(
+                data,
+                "p2p_global_mismatch",
+                network=net["name"],
+                net_name=net["name"],
+                global_a=a["global"],
+                global_b=b["global"]
+            )
+
+    # --- SITE CHECK ---
+    if a["site"] and b["site"]:
+        if not same_block(str(a["site"].network), str(b["site"].network)):
+            add_warning(
+                data,
+                "p2p_site_mismatch",
+                network=net["name"],
+                net_name=net["name"],
+                site_a=a["site"],
+                site_b=b["site"]
+            )
+
+    # --- MISSING ADDRESS CHECK ---
+    if(config_helper.is_intranet_network(net["name"])):
+        for ep in endpoints:
+            if not ep["global"]:
                 add_warning(
                     data,
-                    "p2p_global_mismatch",
+                    "p2p_missing_global",
                     network=net["name"],
                     net_name=net["name"],
-                    global_a=a["global"],
-                    global_b=b["global"]
+                    node_name=data['devices'][ep['node']]['name'],
+                    iface=ep['iface'].get("name")
                 )
 
-        # --- SITE CHECK ---
-        if a["site"] and b["site"]:
-            if not same_block(str(a["site"].network), str(b["site"].network)):
+            if not ep["site"]:
                 add_warning(
                     data,
-                    "p2p_site_mismatch",
+                    "p2p_missing_site",
                     network=net["name"],
                     net_name=net["name"],
-                    site_a=a["site"],
-                    site_b=b["site"]
+                    node_name=data['devices'][ep['node']]['name'],
+                    iface=ep['iface'].get("name")
                 )
-
-        # --- MISSING ADDRESS CHECK ---
-        if(config_helper.is_intranet_network(net["name"])):
-            for ep in endpoints:
-                if not ep["global"]:
-                    add_warning(
-                        data,
-                        "p2p_missing_global",
-                        network=net["name"],
-                        net_name=net["name"],
-                        node_name=data['devices'][ep['node']]['name'],
-                        iface=ep['iface']
-                    )
-
-                if not ep["site"]:
-                    add_warning(
-                        data,
-                        "p2p_missing_site",
-                        network=net["name"],
-                        net_name=net["name"],
-                        node_name=data['devices'][ep['node']]['name'],
-                        iface=ep['iface']
-                    )
