@@ -50,7 +50,7 @@ def format_via_info(via_info):
         if (node is None and interface is None and network is None):
             return "La dirección no existe en la topología"
 
-        text = f"{node}-{interface}"
+        text = f"{node}-{interface}" if interface != "__ANY__" else node
 
         if network:
             text += f" en red {config_helper.format_network_name(network)}"
