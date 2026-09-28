@@ -149,13 +149,19 @@ missing_ip_p2p:
   subject: Networks
 
 missing_ip_command:
-  message: "{node_name}: Comandos ip addr faltantes"
+  message: "{node_name}: comandos ip addr faltantes"
   type: design
   scope: network
   subject: Networks
 
 static_route_service_disabled:
   message: "{node_name}: el servicio StaticRoute no está activado"
+  type: design
+  scope: node
+  subject: Networks
+
+additional_router_services:
+  message: "{node_name}: servicios adicionales activados: {services}"
   type: design
   scope: node
   subject: Networks

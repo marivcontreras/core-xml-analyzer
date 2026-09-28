@@ -2,6 +2,9 @@ import re
 from collections import Counter
 
 from utils import config_helper
+from utils.warning import add_warning
+
+ALLOWED_ROUTER_SERVICES = {"StaticRoute", "IPForward"}
 
 def is_intranet_router(router):
     intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
@@ -55,6 +58,19 @@ def parse_devices(root, data):
         
         if dtype == "router":
             data["routers"][dev_id] = item
+
+            extra_services = [
+                svc.get("name") for svc in dev.findall("services/service")
+                if svc.get("name") not in ALLOWED_ROUTER_SERVICES
+            ]
+            if extra_services:
+                add_warning(
+                    data,
+                    "additional_router_services",
+                    node=name,
+                    node_name=name,
+                    services=", ".join(extra_services)
+                )
 
 # ---------------------------------------------------------
 # Infers devices/nodes from networks section (level 2 nodes)
