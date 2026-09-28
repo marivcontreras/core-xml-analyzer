@@ -154,6 +154,12 @@ missing_ip_command:
   scope: network
   subject: Networks
 
+static_route_service_disabled:
+  message: "{node_name}: el servicio StaticRoute no está activado"
+  type: design
+  scope: node
+  subject: Networks
+
 # ============================================================
 # IP COMMANDS VALIDATION WARNINGS (command interpretation)
 # ============================================================

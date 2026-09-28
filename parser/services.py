@@ -2,6 +2,7 @@ import re
 import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
 from utils.text import strip_comments
+from utils.warning import add_warning
 from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type, same_family, contains
 
 # ---------------------------------------------------------------------
@@ -50,6 +51,14 @@ def parse_routing(data):
                         "routing": []
                     }
                 }
+
+                node_name = data["routers"][node_id]["name"]
+                add_warning(
+                    data,
+                    "static_route_service_disabled",
+                    node=node_name,
+                    node_name=node_name
+                )
             continue
 
         text = services["StaticRoute"]
