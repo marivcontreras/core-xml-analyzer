@@ -56,6 +56,14 @@ def get_ipv6_support():
     return bool(config.get("ipv6_support", False))
 
 
+def get_allowed_router_services():
+    """Set of service names routers of the current class may have enabled."""
+    config = get_config()
+    if config is None:
+        raise ValueError("Configuration has not been loaded.")
+    return set(config.get("allowed_router_services", []))
+
+
 def get_iptables_columns():
     config = get_config()
     if config is None:

@@ -4,6 +4,10 @@ class_name: "rdc2"
 routing_config: "resources/rdc2/routing.yaml"
 max_prefixes_per_network: 2
 ipv6_support: true
+allowed_router_services:
+  - StaticRoute
+  - IPForward
+  - radvd
 
 subjects:
   - Networks

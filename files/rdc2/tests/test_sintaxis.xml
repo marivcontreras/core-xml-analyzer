@@ -347,6 +347,7 @@ ip -6 route add default via 2001:0:0:FF::A dev eth1]]></template>
 #       Below are samples that you can uncomment and edit.
 #ip route add 10.9.8.0/24 via 100.64.0.1
 
+ip addr add 100.64.0.2/24 dev eth2
 
 # default hacia internet, bloques internos hacia R4
 ip route add default via 100.64.0.1 dev eth2

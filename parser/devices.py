@@ -4,8 +4,6 @@ from collections import Counter
 from utils import config_helper
 from utils.warning import add_warning
 
-ALLOWED_ROUTER_SERVICES = {"StaticRoute", "IPForward"}
-
 def is_intranet_router(router):
     intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
     return router in intranet_routers
@@ -59,9 +57,11 @@ def parse_devices(root, data):
         if dtype == "router":
             data["routers"][dev_id] = item
 
+            allowed_services = config_helper.get_allowed_router_services()
+
             extra_services = [
                 svc.get("name") for svc in dev.findall("services/service")
-                if svc.get("name") not in ALLOWED_ROUTER_SERVICES
+                if svc.get("name") not in allowed_services
             ]
             if extra_services:
                 add_warning(

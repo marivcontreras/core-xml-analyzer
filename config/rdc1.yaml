@@ -3,6 +3,9 @@ class_name: "rdc1"
 routing_config: "resources/rdc1/routing.yaml"
 max_prefixes_per_network: 1
 ipv6_support: false
+allowed_router_services:
+  - StaticRoute
+  - IPForward
 
 subjects:
   - Networks

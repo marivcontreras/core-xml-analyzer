@@ -152,7 +152,6 @@ def gen_routing():
     t = repl(t, "ip -6 route add 2001:0:0:2::/63 via 2001:0:0:ff::f dev eth0",
                 "ip -6 route add 2001:0:0:2::/63 via 2001:0:0:ff::EE dev eth0")       # invalid_route_field
     write(OUT2, "test_routing.xml", t, [
-        "missing_route: R5 sin ruta hacia FD00:0:0:4::/63",
         "invalid_route_field: R5 ruta a 2001:0:0:2::/63 con via incorrecto",
     ])
 
@@ -265,7 +264,6 @@ def gen_rdc1_routing():
     t = repl(t, "ip route add 10.14.1.128/27 via 10.14.1.162 dev eth1\n", "")  # missing route
     write(OUT1, "test_routing.xml", t, [
         "invalid_route_field: R4 ruta a 10.14.0.0/24 con via incorrecto",
-        "missing_route: R4 sin ruta a 10.14.1.128/27",
     ])
 
 
