@@ -16,7 +16,7 @@ def validate_ip_addr_commands(node_id, data):
 
     node = data["devices"].get(node_id, {"name": f"node{node_id}"})
     node_name = node["name"]
-    ip_addr_count = 0
+    ifaces_with_cmd = set()
 
     for line_num, line in enumerate(text.splitlines(), start=1):
         line = line.strip()
@@ -24,11 +24,9 @@ def validate_ip_addr_commands(node_id, data):
         if line.startswith("ip -6 addr"):
             cmd_type = "ipv6"
             regex = IPV6_CMD_REGEX
-            ip_addr_count += 1
         elif line.startswith("ip addr add") or line.startswith("ip -4 addr add"):
             cmd_type = "ipv4"
             regex = IPV4_CMD_REGEX
-            ip_addr_count += 1
         else:
             continue
 
@@ -47,6 +45,7 @@ def validate_ip_addr_commands(node_id, data):
             continue
 
         addr, mask, iface = match.groups()
+        ifaces_with_cmd.add(iface)
 
         if not interface_exists(node_id, iface, data):
             add_warning(
@@ -112,14 +111,47 @@ def validate_ip_addr_commands(node_id, data):
                             line=line
                         )
         
-    if (ip_addr_count == 0 and node.get("type") == "router"):
-        add_warning(
-            data,
-            "missing_ip_command",
-            node=node_name,
-            node_name=node_name
-        )
-       
+    if node.get("type") == "router":
+        check_missing_ip_commands(node_id, node_name, ifaces_with_cmd, data)
+
+
+# -------------------------------------------------------------
+# For each interface of a router, warns if it has no ip addr command,
+# reporting whether an IP is defined on the link instead.
+# -------------------------------------------------------------
+def check_missing_ip_commands(node_id, node_name, ifaces_with_cmd, data):
+    for link in data["links"]:
+        for node_key, iface_key in (("node1", "iface1"), ("node2", "iface2")):
+            iface = link.get(iface_key)
+            if link[node_key] != node_id or not iface or not iface.get("name"):
+                continue
+
+            iface_name = iface["name"]
+            if iface_name in ifaces_with_cmd:
+                continue
+
+            link_ips = [
+                f"{iface[ip_key]}/{iface[mask_key]}" if iface.get(mask_key) else iface[ip_key]
+                for ip_key, mask_key in (("ip4", "ip4_mask"), ("ip6", "ip6_mask"))
+                if iface.get(ip_key)
+            ]
+            link_info = (
+                f"IP definida en el link: {', '.join(link_ips)}"
+                if link_ips else "sin IP definida en el link"
+            )
+
+            add_warning(
+                data,
+                "missing_ip_command",
+                node=node_name,
+                interface=iface_name,
+                node_name=node_name,
+                interface_name=iface_name,
+                link_info=link_info,
+                details={"link_ips": link_ips}
+            )
+
+
 # -------------------------------------------------------------
 # Checks if an interface name exists for a given node in the data structure.
 # -------------------------------------------------------------

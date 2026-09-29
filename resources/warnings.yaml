@@ -149,9 +149,9 @@ missing_ip_p2p:
   subject: Networks
 
 missing_ip_command:
-  message: "{node_name}: comandos ip addr faltantes"
+  message: "{node_name}: falta el comando ip addr para {interface_name} ({link_info})"
   type: design
-  scope: network
+  scope: interface
   subject: Networks
 
 static_route_service_disabled:
