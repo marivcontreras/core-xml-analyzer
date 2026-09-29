@@ -231,7 +231,7 @@
     </link>
     <link node1="1" node2="2">
       <iface1 id="1" name="eth1" mac="00:00:00:aa:00:02" ip4="201.0.1.2" ip4_mask="24"/>
-      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:03" ip4="201.0.1.1" ip4_mask="24"/>
+      <iface2 id="0" name="eth0" mac="00:00:00:aa:00:03"/>
       <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0" buffer="0"/>
     </link>
     <link node1="10" node2="5">
@@ -296,7 +296,6 @@ ip addr add 201.0.0.2/24 dev eth2]]></template>
 ip addr flush dev eth0
 ip addr flush dev eth1
 
-ip addr add 201.0.1.1/24 dev eth0
 ip addr add 10.14.0.1/24 dev eth1
 
 ip route add 10.14.1.160/28 via 10.14.0.2 dev eth1
@@ -427,6 +426,7 @@ ip addr flush dev eth0
 ip addr flush dev eth1
 ip addr flush dev eth2
 
+ip addr add 10.14.1.122/30 dev eth0
 ip addr add 10.14.1.1/26 dev eth1
 ip addr add 10.14.1.97/28 dev eth2
 

@@ -230,11 +230,13 @@ def gen_rdc1_p2p():
     # p2p_ipv4_mismatch: change R5 eth3 to a different block
     t = repl(t, "ip addr add 10.14.1.121/30 dev eth3",
                 "ip addr add 10.14.2.121/30 dev eth3")
-    # p2p_missing_ipv4: remove R6 eth0 address (the other p2p endpoint)
-    t = repl(t, "ip addr add 10.14.1.122/30 dev eth0\n", "")
+    # p2p_missing_ipv4: quitar la IPv4 de R2 eth0 (extremo de ISP<>R2), tanto del comando como del link de core
+    t = repl(t, "ip addr add 201.0.1.1/24 dev eth0\n", "")
+    t = repl(t, 'name="eth0" mac="00:00:00:aa:00:03" ip4="201.0.1.1" ip4_mask="24"/>',
+                'name="eth0" mac="00:00:00:aa:00:03"/>')
     write(OUT1, "test_p2p.xml", t, [
         "p2p_ipv4_mismatch: R5 eth3 en bloque 10.14.2 vs R6 eth0 en 10.14.1",
-        "p2p_missing_ipv4: R6 eth0 sin direccion IPv4",
+        "p2p_missing_ipv4: R2 eth0 (ISP<>R2) sin direccion IPv4",
     ])
 
 
