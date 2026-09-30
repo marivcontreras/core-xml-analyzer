@@ -1,0 +1,61 @@
+{% if "Tunneling" in data.subjects %}
+
+    <!-- TUNNELS -->
+    <h4>Túneles</h4>
+
+    {% if routing.tunnels %}
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Interfaz</th>
+                <th>Modo</th>
+                <th>Local</th>
+                <th>Remote</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for tunnel in routing.tunnels %}
+
+            <tr>
+                <td>{{ tunnel.name if tunnel.name else "-" }}</td>
+                <td>{{ tunnel.dev if tunnel.dev else "-" }}</td>
+                <td>{{ tunnel.mode if tunnel.mode else "-" }}</td>
+                <td>{{ tunnel.local if tunnel.local else "-" }}</td>
+                <td>{{ tunnel.remote if tunnel.remote else "-" }}</td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+    {% else %}
+
+    <p>No hay túneles</p>
+
+    {% endif %}       
+
+    {% set tunnel_warnings = routing.warnings["tunnels"] %}
+    {% if tunnel_warnings %}
+
+    <details class="warning-subgroup">
+        <summary class="warning-subgroup-title">
+            Advertencias de Túneles
+        </summary>
+
+        {% for warning in tunnel_warnings %}
+
+        <div class="warning-item warning-{{ warning.severity }}">
+            {{ warning.message }}
+        </div>
+
+        {% endfor %}
+
+    </details>
+
+    {% endif %}
+
+{% endif %}

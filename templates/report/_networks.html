@@ -1,0 +1,40 @@
+<div class="card">
+    <h2>Redes</h2>
+
+    <table>
+        <tr>
+            <th>Red</th>
+            <th>Tipo</th>
+            <th>Equipos</th>
+            <th>Prefijos</th>
+        </tr>
+
+        {% for net in networks %}
+        <tr>
+            <td>{{ net.name | network_name }}</td>
+            <td>
+                {{ net.kind }}
+            </td>
+
+            <td>
+                {{ net.members | join( ' | ' )}}
+            </td>
+            <td>
+                {% if net.prefixes %}
+                {% for prefix in net.prefixes %}
+                <div>
+                    {{ prefix }}
+                    {% set sources = net.prefix_sources.get(prefix, []) %}
+                    {% if sources %}
+                    <small>({{ sources | join(', ') }})</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p>- none detected -</p>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>

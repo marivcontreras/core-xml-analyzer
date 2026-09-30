@@ -1,0 +1,27 @@
+{% if router_warnings.items() %}
+<div class="card">
+    <h2>Configuración de Routers</h2>
+
+    {% for node, types in router_warnings.items() %}
+    <details class="warning-group">
+        <summary class="warning-group-title">{{ node }}</summary>
+
+        {% for type, warnings in types.items() %}
+        <div class="warning-subgroup">
+            <div class="warning-subgroup-title">{{ TYPE_LABELS[type] }}</div>
+            <ul class="warning-list">
+                {% for w in warnings %}
+                <li
+                    class="warning-item {% if w.type == 'error' %} warning-error {% elif w.type == 'warning' %} warning-warning {% endif %}">
+                    {{ w.message }}
+                    {% if w.interface %} ({{ w.interface }}) {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+
+    </details>
+    {% endfor %}
+</div>
+{% endif %}

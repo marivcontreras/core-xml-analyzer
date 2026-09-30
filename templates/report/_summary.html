@@ -1,0 +1,66 @@
+<div class="card">
+
+    <div class="summary-container">
+
+        <div class="summary-block">
+
+            <h2>Infraestructura</h2>
+
+            <table class="modern-table">
+                <tr>
+                    <th>Dispositivos Totales</th>
+                    <td>{{ summary.devices_total }}</td>
+                </tr>
+
+                <tr>
+                    <th>Routers</th>
+                    <td>{{ summary.routers }}</td>
+                </tr>
+
+                <tr>
+                    <th>Links</th>
+                    <td>{{ summary.links }}</td>
+                </tr>
+
+                <tr>
+                    <th>Redes</th>
+                    <td>{{ summary.networks }}</td>
+                </tr>
+            </table>
+
+        </div>
+
+        <div class="summary-block">
+
+            <h2>Resumen de Advertencias</h2>
+            {% if warning_summary.total > 0 %}
+            <table class="modern-table scope-summary-table">
+                <thead>
+                    <tr>
+                        <th>Alcance</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for scope, count in warning_summary.by_scope.items() %}
+
+                    <tr>
+                        <td>{{ TYPE_LABELS[scope] if scope in TYPE_LABELS else scope }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+            {% else %}
+            <p>No hay advertencias.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>

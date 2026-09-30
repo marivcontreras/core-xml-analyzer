@@ -1,0 +1,37 @@
+{% set routing_warnings = routing.warnings["routing"] %}
+{% if routing_warnings %}
+
+<details class="routing-warning-subgroup">
+    <summary class="routing-warning-subgroup-title">
+        Advertencias de Ruteo
+    </summary>
+    {% for warning in routing_warnings %}
+
+    <div class="warning-item warning-{{ warning.severity }}">
+        {{ warning.message }}
+    </div>
+
+    {% endfor %}
+
+</details>
+
+{% endif %}
+
+{% set isp_warnings = routing.warnings["isp"] %}
+{% if isp_warnings %}
+
+<details class="warning-subgroup">
+    <summary class="warning-subgroup-title">
+        Advertencias de ISP
+    </summary>
+    {% for warning in isp_warnings %}
+
+    <div class="warning-item warning-{{ warning.severity }}">
+        {{ warning.message }}
+    </div>
+
+    {% endfor %}
+
+</details>
+
+{% endif %}

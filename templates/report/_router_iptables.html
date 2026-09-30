@@ -1,0 +1,26 @@
+{% if "Firewall" in data.subjects %}
+    <!-- IPTABLES -->
+    <h4>Marcado de tráfico (iptables)</h4>
+    {% if routing.iptables %}
+    <table>
+        <thead>
+            <tr>
+                {% for column in iptables_columns %}
+                <th>{{ IPTABLES_COLUMN_LABELS.get(column, column) }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for rule in routing.iptables %}
+            <tr>
+                {% for column in iptables_columns %}
+                <td>{{ rule.get(column) if rule.get(column) else "-" }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay reglas de iptables</p>
+    {% endif %}
+{% endif %}

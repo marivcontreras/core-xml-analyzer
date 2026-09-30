@@ -1,0 +1,100 @@
+<!-- POLICY -->
+{% for node_id, routing in data.routing.items() %}
+{% if routing.policy %}
+{% set policy = routing.policy %}
+<div class="card">
+    <div class="policy-header">
+        <span class="policy-router">{{policy.router}} | Solución/es utilizada/s: </span>
+        {% for approach in policy.approach %}
+            <span class="policy-approach">{{approach}}</span>
+        {% endfor %}
+    </div>
+
+    {% if policy.behavior %}
+    <div class="policy-section">
+        <h4>Comportamiento</h4>
+
+        <table class="policy-table">
+            <thead>
+                <tr>
+                    <th>Herramienta</th>
+                    <th>Tag</th>
+                    <th>Opciones</th>
+                    <th>Solución (tabla usada y su entrada default)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key, value in policy.behavior.items() %}
+                <tr>
+                    <td>{{value.type}}</td>
+                    <td>{{key}}</td>
+                    <td>
+                        {% if value.options %}
+                        <div class="policy-entry">
+                            {% for op_name, op_value in value.options.items() %}
+                            <div class="route-field">
+
+                                <span class="route-field-name">
+                                    {{ op_name }}:
+                                </span>
+
+                                <span class="route-field-value">
+                                    {{ op_value }}
+                                </span>
+                            </div>
+
+                            {% endfor %}
+                        </div>
+
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div>
+                            {% if value.table %}
+                                {% if value.type == 'route' %}
+                                    Tabla {{ value.table }} |
+                                {% else %}
+                                    Se usa la tabla {{ value.table }} |
+                                {% endif %}
+                            {% endif %}
+                            {% if value.via %} Via: {{ value.via.node }} - {{ value.via.interface }} | {% endif %}
+                            {% if value.networks %}  Redes incluidas: {{ value.networks | map("network_name") | join(", ") }} | {% endif %}
+                            {% if value.src_networks %} Redes de origen: {{ value.src_networks | map("network_name") | join(", ") }} | {%
+                            endif %}
+                            {% if value.dst_networks %} Redes de destino: {{ value.dst_networks | map("network_name") | join(", ") }} {%
+                            endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if policy.evidence %}
+    <div class="policy-section">
+        <h4>Elementos Detectados</h4>
+
+        <ul class="policy-list">
+            {% for item in policy.evidence %}
+            <li>{{item.message}}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if policy.warnings %}
+    <div class="policy-section">
+        <h4>Advertencias</h4>
+
+        <div class="policy-warning-list">
+            {% for warning in policy.warnings %}
+            <div class="warning-item warning-{{ warning.type }}">{{warning.message}}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endfor %}

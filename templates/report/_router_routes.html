@@ -1,0 +1,39 @@
+{% if "Routing" in data.subjects %}
+
+    <!-- ROUTES -->
+    <h4>Rutas (ip route)</h4>
+
+    {% if routing.routes %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Destino</th>
+                <th>Redes</th>
+                <th>Via</th>
+                <th>Interfaz</th>
+                <th>Tabla</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for route in routing.routes %}
+
+            <tr class="{% if route.has_warnings %} tr-has-warning {% endif %}">
+                <td>{{ route.id if route.id else "-" }}</td>
+                <td>{{ route.type }}</td>
+                <td>{{ route.dst }}</td>
+                <td>{{ route.networks | map("network_name") | join(", ") }}</td>
+                <td>{{ route.via if route.via else "-" }}</td>
+                <td>{{ route.dev if route.dev else "-" }}</td>
+                <td>{{ route.table }}</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay rutas</p>
+    {% endif %}
+
+{% endif %}

@@ -1,0 +1,14 @@
+{% if uncategorized_warnings %}
+<div class="card">
+    <h2>Advertencias sin categorizar</h2>
+    <ul class="warning-list">
+        {% for types in uncategorized_warnings.values() %}
+        {% for items in types.values() %}
+        {% for w in items %}
+        <li class="warning-item">{{ w.message }}</li>
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}

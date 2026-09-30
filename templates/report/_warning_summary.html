@@ -1,0 +1,16 @@
+    {% if warning_summary_text %}
+    <div class="card">
+        <div class="warning-summary-title-section">
+            <h2>Resumen Completo de Advertencias</h2>
+
+            <div class="warning-summary-toolbar">
+                <button onclick="copyWarningSummary()">
+                    Copiar resumen
+                </button>
+            </div>
+        </div>
+
+        <textarea id="warning-summary" class="warning-summary-text" readonly>{% for line in warning_summary_text %}{{ line }}
+{% endfor %}</textarea>
+    </div>
+    {% endif %}

@@ -1,0 +1,189 @@
+<div class="card">
+    <h2>Matriz de Routing</h2>
+    <div>
+        <h5>NOTA: Esta tabla explica como se llega a cada red desde cada router (por cada par router-red elige la
+            ruta más especifica) </h5>
+    </div>
+    <div class="routing-table-wrapper">
+        <table class="routing-table">
+            <thead>
+                <tr>
+                    <th>Red</th>
+                    {% for router in data.routing_matrix_table.routers %}
+                    <th>{{ router }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in data.routing_matrix_table.rows %}
+                <tr>
+                    <td class="network-cell">
+
+                        <div class="network-name">
+                            <strong> {{ row.network | network_name }} </strong>
+                        </div>
+
+                        {% if row.prefixes %}
+                        <div class="network-prefixes">
+
+                            {% for prefix in row.prefixes %}
+
+                            <div class="network-prefix
+                                    {% if prefix %}
+                                        {% if prefix.startswith('FD') or prefix.startswith('fd') %}
+                                            network-prefix-ula
+                                        {% elif prefix.startswith('2001:') %}
+                                            network-prefix-global
+                                        {% endif %}
+                                    {% endif %}">
+                                {{ prefix }}
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+                        {% endif %}
+
+                    </td>
+
+                    {% for router in data.routing_matrix_table.routers %}
+
+                    {% set routes = row["values"][router] %}
+                    {% set validation = row["validation"][router] %}
+
+                    <td class="routing-cell {% if not validation['exists'] %} routing-missing {% endif %} {% if not
+                    validation['valid'] %} routing-invalid {% endif %}">
+                        {% if routes %}
+                        {% for route in routes %}
+
+                        {% set net_prefix = route.get("net_prefix") %}
+                        {% set type = route.get("type") %}
+                        <div class="route-entry
+                                {% if type == 'DIR' %}
+                                    route-entry-direct
+                                {% elif net_prefix %}
+                                    {% if net_prefix.startswith('FD') or net_prefix.startswith('fd') %}
+                                        route-entry-ula
+                                    {% elif net_prefix.startswith('2001:') %}
+                                        route-entry-global
+                                    {% endif %}
+                                {% endif %}">
+
+                            {% for field_name, field_value in route.items() %}
+                            {% set field_validation = route.get("_field_validation", {}).get(field_name) %}
+
+                            {% if field_value != None and field_name != "score" and field_name != "is_default"
+                            and field_name != "is_policy" and field_name != "via_info" and field_name !=
+                            "net_prefix" and field_name != "_field_validation" and field_value != "main" and
+                            field_value != "local" and field_name != "related_id" %}
+                            <div class="route-field {% if field_validation and not field_validation.valid %}
+                                route-field-invalid {% endif %}">
+
+                                {% if field_name != "type" and field_name != "via_info" and field_name !=
+                                "prefix_type" and field_name != "table" %}
+                                <span class="route-field-name">
+                                    {{ field_name }}:
+                                </span>
+                                {% elif field_name == "table" %}
+                                <span class="route-field-value" style="font-weight: 700">
+                                    {{ field_name }}:
+                                </span>
+                                {% endif %}
+
+                                {% if field_name == "via" %}
+                                <span class="route-field-value">
+                                    {% if route["via_info"]["node"] == None or route["via_info"]["interface"] ==
+                                    None %}
+                                    <span class="route-field-value">
+                                        {{ field_value }} (Inválido)
+                                    </span>
+                                    {% else %}
+                                    <span class="route-field-value">
+                                        {{ field_value }} ({{ route["via_info"]["node"]
+                                        }}-{{route["via_info"]["interface"] }})
+                                    </span>
+                                    {% endif %}
+                                </span>
+                                {% elif field_name == "table" %}
+                                <span class="route-field-value" style="font-weight: 700">
+                                    {{ field_value }}
+                                </span>
+                                {% else %}
+                                <span class="route-field-value">
+                                    {{ field_value }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+                        {% endfor %}
+                        {% else %}
+
+                        <div class="route-missing">
+                            No existe la ruta
+                        </div>
+
+                        {% endif %}
+
+                    </td>
+                    {% endfor %}
+
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+    {% if data.routing_matrix_table.grouped_warnings %}
+    <div class="routing-warnings">
+
+        <h3>Warnings por Router</h3>
+
+        {% for router, router_warnings in data.routing_matrix_table.grouped_warnings.items() %}
+
+        <details class="warning-group">
+            <summary class="warning-group-title">
+                {{ router }}
+            </summary>
+
+            {% for route, route_warnings in router_warnings.items() %}
+
+            <div class="warning-subgroup">
+
+                <div class="warning-subgroup-title">
+                    {{ route }}
+                </div>
+
+                <ul class="warning-list">
+
+                    {% for warning in route_warnings %}
+
+                    <li class="warning-item warning-{{ warning.severity }}">
+
+                        <div class="warning-message">
+                            {{ warning.message }}
+                        </div>
+
+                    </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+            {% endfor %}
+
+        </details>
+
+        {% endfor %}
+
+    </div>
+    {% endif %}
+</div>

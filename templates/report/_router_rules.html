@@ -1,0 +1,40 @@
+<!-- RULES -->
+{% if "RPDB" in data.subjects %}
+
+    <h4>Reglas (ip rule)</h4>
+    {% if routing.rules %}
+    <table>
+        <thead>
+            <tr>
+                <th>Prioridad</th>
+                <th>Acción</th>
+                <th>Eth-IN</th>
+                <th>Eth-OUT</th>
+                <th>Src</th>
+                <th>Dst</th>
+                <th>Proto</th>
+                <th>FwMark</th>
+                <th>Tabla</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rule in routing.rules %}
+            <tr>
+                <td>{{ rule.priority if rule.priority else "-" }}</td>
+                <td>{{ rule.action if rule.action else "-" }}</td>
+                <td>{{ rule.iif if rule.iif else "-" }}</td>
+                <td>{{ rule.oif if rule.oif else "-" }}</td>
+                <td>{{ rule.src if rule.src else "-" }}</td>
+                <td>{{ rule.dst if rule.dst else "-" }}</td>
+                <td>{{ rule.ipproto if rule.ipproto else "-" }}</td>
+                <td>{{ rule.fwmark if rule.fwmark else "-" }}</td>
+                <td>{{ rule.table }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay reglas</p>
+    {% endif %}
+
+{% endif %}

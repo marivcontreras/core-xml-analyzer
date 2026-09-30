@@ -1,0 +1,41 @@
+{% set known_network_warnings = namespace(found=false) %}
+{% for net in networks %}
+{% if warnings.get(net.name) %}
+{% set known_network_warnings.found = true %}
+{% endif %}
+{% endfor %}
+
+{% if known_network_warnings.found %}
+<div class="card">
+    <h2>Desglose de Advertencias por Red</h2>
+
+    {% for net in networks %}
+    <div class="network">
+        {% set net_warnings = warnings.get(net.name) %}
+        {% if net_warnings %}
+        <h3>{{ net.name | network_name }} ({{ net.kind }})</h3>
+
+        <p>Equipos: {{ net.members | join(", ") }} | Prefijos: 
+            {% for prefix in net.prefixes %}
+            {{ prefix }}{% set sources = net.prefix_sources.get(prefix, []) %}{% if sources %} ({{ sources | join(', ') }}){% endif %}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+
+        {% for type, items in net_warnings.items() %}
+        <div class="warning-subgroup">
+            <div class="warning-subgroup-title">
+                {{ TYPE_LABELS[type] if type in TYPE_LABELS else type }}
+            </div>
+            <ul class="warning-list">
+                {% for w in items %}
+                <li class="warning-item">{{ w.message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
