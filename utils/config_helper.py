@@ -77,9 +77,9 @@ def get_iptables_columns():
         return list(columns)
 
     if config.get("class_name") == "rdc1":
-        return ["chain", "src", "dst", "iif", "oif", "mark", "target"]
+        return ["table", "chain", "src", "dst", "iif", "oif", "mark", "target"]
 
-    return ["chain", "src", "dst", "iif", "oif", "protocol", "mark", "target"]
+    return ["table", "chain", "src", "dst", "iif", "oif", "protocol", "mark", "target"]
 
 
 def get_network_names(networks):

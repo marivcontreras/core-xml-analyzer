@@ -1,0 +1,51 @@
+<div class="card">
+    <h2>NAT (MASQUERADE)</h2>
+    <h5>NOTA: Se espera que los routers con salida al ISP tengan el comando
+        <code>iptables -t nat -A POSTROUTING -o &lt;interfaz hacia el ISP&gt; -j MASQUERADE</code>
+    </h5>
+
+    {% if data.firewall.nat %}
+    <table>
+        <thead>
+            <tr>
+                <th>Router</th>
+                <th>Interfaz esperada (hacia ISP)</th>
+                <th>Comandos MASQUERADE encontrados</th>
+                <th>Advertencias</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data.firewall.nat %}
+            <tr class="{% if entry.warnings %} tr-has-warning {% endif %}">
+                <td>{{ entry.router }}</td>
+                <td>{{ entry.expected_oifs | join(", ") if entry.expected_oifs else "-" }}</td>
+                <td>
+                    {% if entry.rules %}
+                    {% for rule in entry.rules %}
+                    <div class="route-field {% if rule.problems %} route-field-invalid {% endif %}">
+                        <code>{{ rule.command }}</code>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <span class="route-missing">No se encontró ningún comando MASQUERADE</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if entry.warnings %}
+                    <ul class="warning-list">
+                        {% for warning in entry.warnings %}
+                        <li class="warning-item warning-{{ warning.severity }}">{{ warning.message }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    OK
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay routers con NAT para evaluar.</p>
+    {% endif %}
+</div>

@@ -9,6 +9,7 @@ env = Environment(loader=FileSystemLoader("templates"))
 env.filters["network_name"] = format_network_name
 
 IPTABLES_COLUMN_LABELS = {
+    "table": "Tabla",
     "chain": "Chain",
     "src": "Src",
     "dst": "Dst",

@@ -64,6 +64,10 @@
     </details>
     {% endfor %}
 
+    {% if "Firewall" in data.subjects %}
+    {% include "report/_nat.html" %}
+    {% endif %}
+
     {% if "RPDB" in data.subjects %}
     {% include "report/_policy.html" %}
     {% endif %}

@@ -1,0 +1,14 @@
+# RDC1 Firewall Configuration
+#
+# masquerade:
+#   routers that must apply NAT (MASQUERADE) on the interface facing the ISP.
+#   The expected command is:
+#     iptables -t nat -A POSTROUTING -o <interface towards the ISP> -j MASQUERADE
+#   The output interface is inferred from the topology (the router's link to
+#   an internet router), so only the router names are listed here.
+
+masquerade:
+  routers:
+    - R2
+    - R4
+    - R1

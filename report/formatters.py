@@ -74,6 +74,21 @@ def build_warning_summary(data, warnings, router_warnings):
                 summary["by_severity"][severity] += 1
                 summary["total"] += 1
 
+    # --------------------------------------------------
+    # firewall (NAT) warnings
+    # --------------------------------------------------
+
+    for entry in data.get("firewall", {}).get("nat", []):
+
+        summary["by_scope"]["nat"] += len(entry["warnings"])
+
+        for item in entry["warnings"]:
+
+            severity = item.get("severity", "warning")
+
+            summary["by_severity"][severity] += 1
+            summary["total"] += 1
+
     return summary
 
 def _format_grouped_warning(router_name, category, code, prefix_type, items):
@@ -186,6 +201,20 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 
     for (router_name, category, code, prefix_type), grouped_items in routing_groups.items():
         lines.extend(_format_grouped_warning(router_name, category, code, prefix_type, grouped_items))
+
+    # --------------------------------------------------
+    # firewall (NAT) warnings
+    # --------------------------------------------------
+
+    for entry in data.get("firewall", {}).get("nat", []):
+        for item in entry["warnings"]:
+            severity = item.get("severity", "warning").upper()
+            lines.append(
+                f"[{TYPE_LABELS.get(severity, severity)}] "
+                f"[{TYPE_LABELS['nat']}] "
+                f"[{entry['router']}] "
+                f"{item.get('message')}"
+            )
 
     return lines
 

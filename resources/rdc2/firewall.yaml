@@ -1,0 +1,13 @@
+# RDC2 Firewall Configuration
+#
+# NOTE: the Firewall subject is not active for rdc2 yet (see config/rdc2.yaml),
+# so these checks are only evaluated once "Firewall" is added to its subjects.
+#
+# masquerade:
+#   routers that must apply NAT (MASQUERADE) on the interface facing the ISP.
+#   Expected command:
+#     iptables -t nat -A POSTROUTING -o <interface towards the ISP> -j MASQUERADE
+
+masquerade:
+  routers:
+    - R2

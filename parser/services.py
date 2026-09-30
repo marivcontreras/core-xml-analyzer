@@ -289,12 +289,14 @@ def parse_iptables(text):
     rules = []
 
     matches = re.findall(
-        r'\b(?:ip6tables|iptables)(?:\s+-[46])?\s+(.*)',
+        r'\b(ip6tables|iptables)((?:\s+-[46])?)\s+(.*)',
         text
     )
 
-    for line in matches:
+    for binary, family, line in matches:
         rule = {
+            "command": f"{binary}{family} {line.strip()}",
+            "table": None,
             "chain": None,
             "protocol": None,
             "mark": None,
@@ -306,6 +308,7 @@ def parse_iptables(text):
             "oif": None
         }
 
+        table = re.search(r'(?:^|\s)-t\s+(\S+)', line)
         chain = re.search(r'(!)?\s*-A\s+(\S+)', line)
         proto = re.search(r'(!)?\s*-p\s+(\S+)', line)
         mark = re.search(r'(!)?\s*--set-mark\s+(\S+)', line)
@@ -330,6 +333,9 @@ def parse_iptables(text):
         if oif:
             oif_value = oif.group(2)
             rule["oif"] = f"not {oif_value}" if oif.group(1) else oif_value
+
+        if table:
+            rule["table"] = table.group(1)
 
         if chain:
             rule["chain"] = chain.group(2)
