@@ -267,6 +267,36 @@ def gen_rdc1_routing():
     ])
 
 
+def gen_rdc1_nat():
+    t = BASE1
+    masq = "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+    # R2: interfaz de salida equivocada, -i y -s
+    t = repl(t, masq + "\niptables -t filter -A FORWARD -d 201.0.2.2",
+                "iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE\n"                   # masquerade_wrong_oif
+                "iptables -t nat -A POSTROUTING -i eth1 -o eth0 -j MASQUERADE\n"           # masquerade_in_interface
+                "iptables -t nat -A POSTROUTING -s 10.14.0.0/24 -o eth0 -j MASQUERADE\n"   # masquerade_src
+                "iptables -t filter -A FORWARD -d 201.0.2.2")
+    # R4: tabla, cadena, sin -o y opciones extra
+    t = repl(t, masq + "\niptables -t filter -A FORWARD -s 10.14.1.0/25",
+                "iptables -A POSTROUTING -o eth0 -j MASQUERADE\n"                          # masquerade_wrong_table
+                "iptables -t nat -A PREROUTING -o eth0 -j MASQUERADE\n"                    # masquerade_wrong_chain
+                "iptables -t nat -A POSTROUTING -j MASQUERADE\n"                           # masquerade_no_oif
+                "iptables -t nat -A POSTROUTING -o eth0 -p tcp -j MASQUERADE --to-ports 1024\n"  # masquerade_extra_option
+                "iptables -t filter -A FORWARD -s 10.14.1.0/25")
+    # R1: sin MASQUERADE -> missing_masquerade
+    t = repl(t, masq + "]]>", "]]>")
+    # R3: no deberia aplicar NAT -> unexpected_masquerade
+    t = repl(t, "ip route add 201.0.2.2 via 10.14.0.1 dev eth1]]>",
+                "ip route add 201.0.2.2 via 10.14.0.1 dev eth1\n"
+                "iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE]]>")
+    write(OUT1, "test_nat.xml", t, [
+        "masquerade_wrong_oif / masquerade_in_interface / masquerade_src: R2",
+        "masquerade_wrong_table / masquerade_wrong_chain / masquerade_no_oif / masquerade_extra_option: R4",
+        "missing_masquerade: R1 (sin comando)",
+        "unexpected_masquerade: R3",
+    ])
+
+
 if __name__ == "__main__":
     gen_networks_prefijos()
     gen_networks_faltantes()
@@ -281,3 +311,4 @@ if __name__ == "__main__":
     gen_rdc1_p2p()
     gen_rdc1_sintaxis()
     gen_rdc1_routing()
+    gen_rdc1_nat()

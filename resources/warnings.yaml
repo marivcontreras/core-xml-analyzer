@@ -368,41 +368,41 @@ missing_masquerade:
   subject: Firewall
 
 masquerade_wrong_table:
-  message: "{router_name}: el comando MASQUERADE debe aplicarse en la tabla nat (-t nat), pero se encontró en la tabla {ipt_table}: {command}"
+  message: "{router_name}: el comando MASQUERADE debe aplicarse en la tabla nat (-t nat), pero se encontró en la tabla {ipt_table}"
   type: error
   subject: Firewall
 
 masquerade_wrong_chain:
-  message: "{router_name}: el comando MASQUERADE debe aplicarse en la cadena POSTROUTING, pero se encontró en {chain}: {command}"
+  message: "{router_name}: el comando MASQUERADE debe aplicarse en la cadena POSTROUTING, pero se encontró en {chain}"
   type: error
   subject: Firewall
 
 masquerade_no_oif:
-  message: "{router_name}: el comando MASQUERADE no especifica la interfaz de salida (-o). Se esperaba la interfaz hacia el ISP ({expected}): {command}"
+  message: "{router_name}: el comando MASQUERADE no especifica la interfaz de salida (-o). Se esperaba la interfaz hacia el ISP ({expected})"
   type: warning
   subject: Firewall
 
 masquerade_wrong_oif:
-  message: "{router_name}: el comando MASQUERADE usa la interfaz de salida {actual}, pero la interfaz hacia el ISP es {expected}: {command}"
+  message: "{router_name}: el comando MASQUERADE usa la interfaz de salida {actual}, pero la interfaz hacia el ISP es {expected}."
   type: error
   subject: Firewall
 
 unexpected_masquerade:
-  message: "{router_name} no debería aplicar NAT (MASQUERADE): {command}"
+  message: "{router_name} no debería aplicar NAT (MASQUERADE)"
   type: warning
   subject: Firewall
 
 masquerade_in_interface:
-  message: "{router_name}: el comando MASQUERADE usa -i ({option_value}). MASQUERADE se aplica a paquetes salientes (-o), con -i se estarían considerando paquetes que pueden entrar y salir por la interfaz privada: {command}"
+  message: "{router_name}: el comando MASQUERADE usa -i ({option_value}). MASQUERADE se aplica a paquetes salientes (-o), con -i se estarían considerando paquetes que pueden entrar y salir por la interfaz privada"
   type: warning
   subject: Firewall
 
 masquerade_src:
-  message: "{router_name}: el comando MASQUERADE usa -s ({option_value}). Se estaría intentando filtrar con MASQUERADE, dejando salir paquetes sin enmascarar: {command}"
+  message: "{router_name}: el comando MASQUERADE usa -s ({option_value}). Se estaría intentando filtrar con MASQUERADE, dejando salir paquetes sin enmascarar"
   type: warning
   subject: Firewall
 
 masquerade_extra_option:
-  message: "{router_name}: el comando MASQUERADE tiene opciones adicionales no esperadas ({options}): {command}"
+  message: "{router_name}: el comando MASQUERADE tiene opciones adicionales no esperadas ({options})"
   type: warning
   subject: Firewall
