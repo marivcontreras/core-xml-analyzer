@@ -3,6 +3,10 @@ import ipaddress
 from utils import config_helper
 
 
+# All intranet networks live in a block whose first octet is 10.
+_INTRANET_BLOCK = ipaddress.ip_network("10.0.0.0/8")
+
+
 def _network_of(iface):
     """ip_network of an <iface> element, or None if it has no valid ip4."""
     if iface is None or not iface.get("ip4") or not iface.get("ip4_mask"):
@@ -19,7 +23,7 @@ def _iface_ip(iface):
 
 def _expected_l2_name(net, expected_by_key):
     """Config name whose (last_octet, mask) matches the network, if unique."""
-    if net is None or net.version != 4:
+    if net is None or net.version != 4 or not net.subnet_of(_INTRANET_BLOCK):
         return None
     key = (net.network_address.packed[-1], net.prefixlen)
     names = expected_by_key.get(key, [])
@@ -85,7 +89,7 @@ def _rename_p2p_routers(root, networks_cfg):
             if d1 is None or d2 is None:
                 continue
             n1, n2 = _network_of(i1), _network_of(i2)
-            if n1 is None or n1 != n2 or n1.version != 4:
+            if n1 is None or n1 != n2 or n1.version != 4 or not n1.subnet_of(_INTRANET_BLOCK):
                 continue
             if (n1.network_address.packed[-1], n1.prefixlen) != key:
                 continue
