@@ -347,5 +347,6 @@ def get_expected_isp_routing_matrix():
                 return loaded_matrix
         except Exception as e:
             #print(f"Warning: Failed to load ISP routing matrix from YAML: {e}")
+            pass
 
     return {}
