@@ -4,6 +4,8 @@ from report.formatters import build_matrix_table, build_text_warning_summary
 from utils import config_helper
 from utils.config_helper import get_subjects
 from utils.subjects import Subject
+from validation.firewall_routes import validate_consigna_routes
+from validation.firewall_sections import build_firewall_sections
 from validation.firewall_validation import validate_filters, validate_nat
 from validation.ip_commands import validate_ip_addr_commands
 from utils.routing_config import get_expected_routing_matrix
@@ -36,7 +38,8 @@ def parse_xml(xml_text):
         "routing_matrix": [],
         "routing_matrix_table": [],
         "routing_validation": {},
-        "firewall": {"nat": [], "filters": []}
+        "firewall": {"nat": [], "filters": [], "routes": []},
+        "firewall_sections": {"sections": [], "others": []}
     }
 
     parse_devices(root, data)
@@ -75,6 +78,8 @@ def parse_xml(xml_text):
     if Subject.FIREWALL in config_helper.get_subjects():
         validate_nat(data)
         validate_filters(data)
+        validate_consigna_routes(data)
+        build_firewall_sections(data)
 
     analyze_policies(data)
     #print(data["routing_validation"]);

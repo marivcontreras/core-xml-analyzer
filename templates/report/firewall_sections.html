@@ -1,0 +1,197 @@
+<div class="card">
+    <h2>Firewall por consigna</h2>
+    <h5>NOTA: Por cada consigna (o grupo de consignas) se muestran los comandos iptables encontrados en el equipo
+        donde se espera la configuración y se compara cada comando esperado (tabla, cadena, opciones y acción)
+        contra ellos. El orden importa: se aplica la primera regla que coincide. También se muestran las rutas de los
+        equipos de los que depende la consigna y los comandos de la consigna que se encontraron en otros equipos.
+    </h5>
+
+    {% if data.firewall_sections.sections %}
+    {% for section in data.firewall_sections.sections %}
+    <details class="warning-group" {% if section.has_warnings %} open {% endif %}>
+        <summary class="warning-group-title {% if section.has_warnings %} summary-warning {% endif %}">
+            {{ section.title }}
+        </summary>
+
+        {% for entry in section.firewall %}
+        <h3>Firewall: {{ entry.router }}</h3>
+
+        <h4>Comandos encontrados</h4>
+        {% if entry.commands %}
+        <table>
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Comando</th>
+                    <th>Evaluado como</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for command in entry.commands %}
+                <tr class="{% if command.status in ('error', 'misplaced') %} tr-has-warning {% endif %}">
+                    <td>{{ command.n }}</td>
+                    <td><code>{{ command.command }}</code></td>
+                    <td>{{ command.consigna }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No se encontraron comandos de esta consigna en {{ entry.router }}</p>
+        {% endif %}
+
+        <h4>Análisis</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Consigna</th>
+                    <th>Comando esperado</th>
+                    <th>Encontrado</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in entry.rows %}
+                <tr class="{% if row.problems %} tr-has-warning {% endif %}">
+                    <td>{{ row.consigna if row.consigna else "-" }}</td>
+                    <td><code>{{ row.expected }}</code></td>
+                    <td>
+                        {% if row.found_n %}
+                        N° {{ row.found_n }}
+                        {% else %}
+                        <span class="route-missing">No encontrado</span>
+                        {% endif %}
+                        {% if row.found_elsewhere %}
+                        <br>Encontrado en otro equipo: {{ row.found_elsewhere | join(", ") }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.problems %}
+                        <ul class="warning-list">
+                            {% for problem in row.problems %}
+                            {% if problem == row.mismatch %}
+                            <li class="warning-item warning-error">
+                                El comando difiere de lo esperado:
+                                <table class="diff-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Campo</th>
+                                            <th>Esperado</th>
+                                            <th>Encontrado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for diff in row.diffs %}
+                                        <tr>
+                                            <td>{{ diff.field }}</td>
+                                            <td>{{ diff.expected if diff.expected is not none else "ninguno" }}</td>
+                                            <td>{{ diff.actual if diff.actual is not none else "ninguno" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </li>
+                            {% else %}
+                            <li class="warning-item warning-error">{{ problem }}</li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        OK
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+
+        {% if section.misplaced %}
+        <h3>Comandos de esta consigna en otro equipo</h3>
+        <ul class="warning-list">
+            {% for item in section.misplaced %}
+            <li class="warning-item warning-warning">{{ item.message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% for part in section.routing %}
+        {% set routing = part.routing %}
+        <h3>Ruteo: {{ part.router }}</h3>
+        {% if routing.routes or not part.rows %}
+        {% include "report/router_routes.html" %}
+        {% else %}
+        <h4>Rutas (ip route)</h4>
+        <p>No se encontró la ruta de esta consigna</p>
+        {% endif %}
+        {% if part.rows %}
+        <h4>Análisis de rutas</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Consigna</th>
+                    <th>Ruta esperada</th>
+                    <th>Encontrada</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in part.rows %}
+                <tr class="{% if row.problems %} tr-has-warning {% endif %}">
+                    <td>{{ row.consigna if row.consigna else "-" }}</td>
+                    <td><code>{{ row.expected }}</code></td>
+                    <td>
+                        {% if row.found %}
+                        {{ row.found_id }}: <code>{{ row.found }}</code>
+                        {% else %}
+                        <span class="route-missing">No encontrada</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.problems %}
+                        <ul class="warning-list">
+                            {% for problem in row.problems %}
+                            <li class="warning-item warning-error">{{ problem }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        OK
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        {% include "report/router_routing_warnings.html" %}
+        {% endfor %}
+    </details>
+    {% endfor %}
+    {% else %}
+    <p>No hay comandos esperados para evaluar.</p>
+    {% endif %}
+
+    {% if data.firewall_sections.others %}
+    <details class="warning-group">
+        <summary class="warning-group-title">Otros comandos (no evaluados)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>Comando</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for other in data.firewall_sections.others %}
+                {% for command in other.commands %}
+                <tr>
+                    <td>{{ other.router }}</td>
+                    <td><code>{{ command }}</code></td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+</div>

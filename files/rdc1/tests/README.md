@@ -13,6 +13,10 @@ Config a usar: `rdc1`. Solo IPv4, routing e iptables.
 | `test_routing.xml` | `invalid_route_field*` | OK; aparece además `unreachable_network` colateral (`missing_route` solo da cuando falta la ruta default) |
 | `test_nat.xml` | `masquerade_wrong_oif`/`_in_interface`/`_src` (R2), `_wrong_table`/`_wrong_chain`/`_no_oif`/`_extra_option` (R4), `missing_masquerade` (R1), `unexpected_masquerade` (R3) | Sección NAT (MASQUERADE) |
 | `test_filters.xml` | `filter_rule_mismatch` (R2 f, R4 c x2, R6 g), `missing_filter_rule` (R2 d), `filter_rule_order` (R2 d) | Sección Filtros (iptables) |
+| `test_routes_consigna.xml` | `consigna_route_wrong_via` / `consigna_route_wrong_dev` (R3 default C), `consigna_route_wrong_dst` (R3 ruta a R1, E) | Secciones C y D, E, F (ruteo de R3) |
+| `test_routes_consigna_faltantes.xml` | `missing_consigna_route` (R3 default C), `consigna_route_wrong_dev` (R3 ruta a R1, E) | Secciones C y D, E, F (ruteo de R3) |
+| `test_dnat.xml` | `filter_rule_mismatch` (R2 h: `--dport` y `--to`), comando suelto en R5 | Sección h (DNAT) y "Otros comandos" |
+| `test_filters_misplaced.xml` | `filter_rule_misplaced` (consigna G en R3 y R5 en vez de R6), `missing_filter_rule` (R6 g) | Sección Filtros (iptables) |
 
 Nota: los warnings IPv6 (site/global, radvd, tunnels, policy) no aplican a rdc1
 y deben quedar suprimidos por el gate de subject/ipv6_support.

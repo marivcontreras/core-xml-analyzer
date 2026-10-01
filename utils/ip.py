@@ -28,6 +28,7 @@ TYPE_LABELS = {
     "tunnels": "Túneles",
     "nat": "NAT",
     "filters": "Filtros",
+    "routes": "Rutas de consignas",
     "error": "Errores",
     "warning": "Advertencias",
     "network": "Redes", 

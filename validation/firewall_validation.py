@@ -159,8 +159,9 @@ def validate_nat(data):
 # Expected filter commands (resources/<class>/firewall.yaml -> filters)
 # ---------------------------------------------------------------------------
 
-OPTION_KEYS = ("src", "dst", "iif", "oif", "protocol")
-OPTION_FLAGS = {"iif": "-i", "protocol": "-p", "src": "-s", "dst": "-d", "oif": "-o"}
+OPTION_KEYS = ("src", "dst", "iif", "oif", "protocol", "dport", "to")
+OPTION_FLAGS = {"iif": "-i", "protocol": "-p", "src": "-s", "dst": "-d", "oif": "-o",
+                "dport": "--dport", "to": "--to-destination"}
 FIELD_LABELS = {
     "action": "acción (-j)",
     "src": "origen (-s)",
@@ -168,6 +169,8 @@ FIELD_LABELS = {
     "iif": "interfaz de entrada (-i)",
     "oif": "interfaz de salida (-o)",
     "protocol": "protocolo (-p)",
+    "dport": "puerto de destino (--dport)",
+    "to": "destino de la traducción (--to-destination)",
 }
 # Minimum share of matching fields for a found command to be reported as
 # "the expected command, with differences" instead of as missing.
@@ -248,7 +251,10 @@ def resolve_value(key, spec, data, node_id):
         host_id = next((i for i, d in data["devices"].items() if d["name"].lower() == spec["host"].lower()), None)
         iface = member_interface(data, host_id, network) if host_id else None
         address = interface_address(data, host_id, iface) if iface else None
-        return (address or f"<IP de {spec['host']} en la red {network}>"), f"{spec['host']} en red {network}"
+        address = address or f"<IP de {spec['host']} en la red {network}>"
+        if "port" in spec:  # translation target: address:port
+            address = f"{address}:{spec['port']}"
+        return address, f"{spec['host']} en red {network}"
 
     return (network_prefix(data, network) or f"<bloque de la red {network}>"), f"red {network}"
 
@@ -298,10 +304,12 @@ def found_view(rule):
 
 def format_expected(view):
     parts = ["iptables", "-t", view["table"], "-A", view["chain"]]
-    for key in ("iif", "protocol", "src", "dst", "oif"):
+    for key in ("iif", "protocol", "src", "dst", "oif", "dport"):
         if view["options"].get(key) is not None:
             parts += [OPTION_FLAGS[key], str(view["options"][key])]
     parts += ["-j", view["action"]]
+    if view["options"].get("to") is not None:
+        parts += [OPTION_FLAGS["to"], str(view["options"]["to"])]
     text = " ".join(parts)
     networks = [f"{OPTION_FLAGS[k]}: {v}" for k, v in view["notes"].items()]
     if networks:
@@ -401,35 +409,133 @@ def match_expected(views, found_views):
     return pairs
 
 
+def rules_in_tables(data, node_id, tables):
+    """iptables commands of a device in the given tables, leaving out MASQUERADE
+    (evaluated by validate_nat)."""
+    return [r for r in data["routing"].get(node_id, {}).get("iptables", [])
+            if (r.get("table") or "filter") in tables and not is_masquerade(r)]
+
+
+def filter_rules(data, node_id):
+    """iptables commands of the filter table found on a device."""
+    return rules_in_tables(data, node_id, {"filter"})
+
+
+def make_warn(name, warnings, category="filters"):
+    """Function that records a `category` warning for device `name` in `warnings`
+    and returns its message (None if the warning is disabled)."""
+    def warn(code, **kwargs):
+        before = len(warnings)
+        add_routing_warning(None, category, code, warnings_list=warnings,
+                            router=name, router_name=name, **kwargs)
+        return warnings[-1]["message"] if len(warnings) > before else None
+    return warn
+
+
+def is_same_filter(expected, found):
+    """True if a found command is the expected one wherever it is applied.
+
+    Interfaces are not compared (they differ from device to device): the
+    command must have the same table, chain, action and protocol/source/
+    destination. Commands without a source or destination (e.g. a catch-all
+    REJECT on an interface) are too generic to be recognized elsewhere.
+    """
+    options, actual = expected["options"], found["options"]
+    if options["src"] is None and options["dst"] is None:
+        return False
+    if (expected["table"], expected["chain"], expected["action"]) != (found["table"], found["chain"], found["action"]):
+        return False
+    return all(norm(options[key]) == norm(actual[key]) for key in ("src", "dst", "protocol"))
+
+
+def find_misplaced(data, entries, owners):
+    """Find expected commands applied on a device other than the one they belong to.
+
+    owners: {device name: (node id, expected views, expected commands)}.
+    A command should be applied on its own device (e.g. R6) so packets are
+    filtered where they are meant to be, instead of travelling through other
+    parts of the network (R3, R5) first. Each hit is stored in the `misplaced`
+    list of the device where it was found (creating its entry if needed) and
+    in the `found_elsewhere` list of the expected row of its owner.
+    """
+    by_router = {entry["router"]: entry for entry in entries}
+
+    for node_id, device in data["devices"].items():
+        name = device["name"]
+        found_rules = filter_rules(data, node_id)
+        hits = []
+
+        for j, rule in enumerate(found_rules):
+            found = found_view(rule)
+            for owner, (owner_id, views, expected_list) in owners.items():
+                if owner_id == node_id:
+                    continue
+                for i, view in enumerate(views):
+                    if is_same_filter(view, found):
+                        hits.append((j, owner, i, expected_list[i]))
+
+        if not hits:
+            continue
+
+        entry = by_router.get(name)
+        if entry is None:
+            entry = {
+                "router": name,
+                "commands": [{"n": j + 1, "command": r["command"], "consigna": None, "status": "unevaluated"}
+                             for j, r in enumerate(found_rules)],
+                "rows": [],
+                "misplaced": [],
+                "warnings": [],
+            }
+            entries.append(entry)
+            by_router[name] = entry
+        warn = make_warn(name, entry["warnings"])
+
+        for j, owner, i, expected in hits:
+            consigna = expected.get("consigna") or "-"
+            command = entry["commands"][j]
+            command["consigna"] = f"{consigna} (corresponde a {owner})"
+            command["status"] = "misplaced"
+            entry["misplaced"].append({
+                "n": j + 1,
+                "command": command["command"],
+                "owner": owner,
+                "consigna": consigna,
+                "message": warn("filter_rule_misplaced", consigna=consigna, owner=owner,
+                                n=j + 1, command=command["command"]),
+            })
+
+            owner_entry = by_router.get(owner)
+            if owner_entry:
+                owner_entry["rows"][i]["found_elsewhere"].append(f"{name} (N° {j + 1})")
+
+
 def validate_filters(data):
     """Compare the expected filter commands with the ones found on each device.
 
     Stores the result in data["firewall"]["filters"]: one entry per device
     with expected commands, each row holding the found command (if any), its
-    problems, and the found commands that were not evaluated.
+    problems, and the found commands that were not evaluated. Commands of
+    one device found on another are listed in the latter's `misplaced`.
     """
     expected_filters = get_expected_filters()
     entries = []
+    owners = {}
 
     for name, expected_list in expected_filters.items():
         node_id = next((i for i, d in data["devices"].items() if d["name"] == name), None)
         if node_id is None:
             continue
 
-        # Only the filter table is evaluated here (nat is handled by its own sections).
-        found_rules = [r for r in data["routing"].get(node_id, {}).get("iptables", [])
-                       if (r.get("table") or "filter") == "filter"]
+        tables = {e.get("table") or "filter" for e in expected_list}
+        found_rules = rules_in_tables(data, node_id, tables)
         views = [expected_view(e, data, node_id) for e in expected_list]
         found_views = [found_view(r) for r in found_rules]
         pairs = match_expected(views, found_views)
+        owners[name] = (node_id, views, expected_list)
 
         warnings = []
-
-        def warn(code, **kwargs):
-            before = len(warnings)
-            add_routing_warning(None, "filters", code, warnings_list=warnings,
-                                router=name, router_name=name, **kwargs)
-            return warnings[-1]["message"] if len(warnings) > before else None
+        warn = make_warn(name, warnings)
 
         rows = []
         for i, (expected, view) in enumerate(zip(expected_list, views)):
@@ -441,6 +547,7 @@ def validate_filters(data):
                 "problems": [],
                 "diffs": [],
                 "mismatch": None,
+                "found_elsewhere": [],
             }
             if i not in pairs:
                 row["problems"].append(warn("missing_filter_rule", consigna=expected.get("consigna") or "-",
@@ -485,7 +592,9 @@ def validate_filters(data):
             "router": name,
             "commands": commands,
             "rows": rows,
+            "misplaced": [],
             "warnings": warnings,
         })
 
+    find_misplaced(data, entries, owners)
     data["firewall"]["filters"] = entries

@@ -320,6 +320,58 @@ def gen_rdc1_filters():
     ])
 
 
+def gen_rdc1_filters_misplaced():
+    t = BASE1
+    # R6: se saca la regla g; R3 y R5 la aplican (deberia estar en R6)
+    t = repl(t, "\niptables -t filter -A FORWARD -i eth1 -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT", "")  # missing_filter_rule (R6)
+    t = repl(t, "ip route add 201.0.2.2 via 10.14.0.1 dev eth1]]>",
+                "ip route add 201.0.2.2 via 10.14.0.1 dev eth1\n"
+                "iptables -t filter -A FORWARD -i eth2 -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT]]>")  # filter_rule_misplaced
+    t = repl(t, "ip route add default via 10.14.1.129 dev eth0]]>",
+                "ip route add default via 10.14.1.129 dev eth0\n"
+                "iptables -t filter -A FORWARD -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT]]>")          # filter_rule_misplaced
+    write(OUT1, "test_filters_misplaced.xml", t, [
+        "R3 y R5: comando de la consigna G (corresponde a R6) (filter_rule_misplaced)",
+        "R6: falta el comando de la consigna G (missing_filter_rule), indica donde se encontro",
+    ])
+
+
+def gen_rdc1_dnat():
+    t = BASE1
+    # R2: DNAT con otro puerto de entrada y otro destino
+    t = repl(t, "iptables -t nat -A PREROUTING -p tcp -i eth0 --dport 2222 -j DNAT --to 10.14.0.4:22",
+                "iptables -t nat -A PREROUTING -p tcp -i eth0 --dport 2223 -j DNAT --to 10.14.0.3:22")  # filter_rule_mismatch
+    # R5: comando que no corresponde a ninguna consigna
+    t = repl(t, "ip route add default via 10.14.1.129 dev eth0]]>",
+                "ip route add default via 10.14.1.129 dev eth0\n"
+                "iptables -t filter -A FORWARD -p icmp -j DROP]]>")                                    # Otros comandos
+    write(OUT1, "test_dnat.xml", t, [
+        "R2: DNAT con --dport 2223 y --to 10.14.0.3:22 (filter_rule_mismatch, consigna H)",
+        "R5: comando suelto, aparece en 'Otros comandos'",
+    ])
+
+
+def gen_rdc1_consigna_routes():
+    # R3: default hacia R5 (via y dev incorrectos), ruta a todo el bloque de R1 en vez de su IP
+    t = repl(BASE1, "ip route add default via 10.14.1.161 dev eth0",
+                    "ip route add default via 10.14.1.130 dev eth2")          # consigna_route_wrong_via / wrong_dev
+    t = repl(t, "ip route add 201.0.2.2 via 10.14.0.1 dev eth1",
+                "ip route add 201.0.2.0/24 via 10.14.0.1 dev eth1")           # consigna_route_wrong_dst
+    write(OUT1, "test_routes_consigna.xml", t, [
+        "R3: default via R5 (consigna_route_wrong_via, consigna_route_wrong_dev)",
+        "R3: 201.0.2.0/24 en vez de 201.0.2.2 (consigna_route_wrong_dst)",
+    ])
+
+    # R3: sin default, ruta a R1 con dev incorrecto
+    t = repl(BASE1, "ip route add default via 10.14.1.161 dev eth0\n", "")      # missing_consigna_route
+    t = repl(t, "ip route add 201.0.2.2 via 10.14.0.1 dev eth1",
+                "ip route add 201.0.2.2 via 10.14.0.1 dev eth0")               # consigna_route_wrong_dev
+    write(OUT1, "test_routes_consigna_faltantes.xml", t, [
+        "R3: falta la default hacia R4 (missing_consigna_route)",
+        "R3: ruta a la IP de R1 con dev eth0 (consigna_route_wrong_dev)",
+    ])
+
+
 if __name__ == "__main__":
     gen_networks_prefijos()
     gen_networks_faltantes()
@@ -336,3 +388,6 @@ if __name__ == "__main__":
     gen_rdc1_routing()
     gen_rdc1_nat()
     gen_rdc1_filters()
+    gen_rdc1_filters_misplaced()
+    gen_rdc1_dnat()
+    gen_rdc1_consigna_routes()

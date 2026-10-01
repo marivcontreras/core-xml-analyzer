@@ -417,6 +417,31 @@ filter_rule_mismatch:
   type: error
   subject: Firewall
 
+filter_rule_misplaced:
+  message: "{router_name}: el comando N° {n} ({command}) corresponde a la consigna {consigna} y debería estar en {owner}: filtrar en el equipo correspondiente evita que los paquetes recorran partes de la red innecesariamente"
+  type: warning
+  subject: Firewall
+
+missing_consigna_route:
+  message: "{router_name}: falta la ruta esperada ({consigna}): {expected}"
+  type: error
+  subject: Firewall
+
+consigna_route_wrong_dst:
+  message: "{router_name}: la ruta de la consigna {consigna} tiene un destino incorrecto: esperado {expected_value}, actual {actual}{hint}"
+  type: error
+  subject: Firewall
+
+consigna_route_wrong_via:
+  message: "{router_name}: la ruta de la consigna {consigna} ({dst}) tiene un via incorrecto: esperado {expected_value}, actual {actual}"
+  type: error
+  subject: Firewall
+
+consigna_route_wrong_dev:
+  message: "{router_name}: la ruta de la consigna {consigna} ({dst}) tiene una interfaz (dev) incorrecta: esperada {expected_value}, actual {actual}"
+  type: error
+  subject: Firewall
+
 filter_rule_order:
   message: "{router_name}: el comando de la consigna {consigna} ({expected}) debe ir después de ({previous}); el orden de las reglas define cuál se aplica primero"
   type: error

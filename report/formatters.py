@@ -13,6 +13,7 @@ SCOPE_SUBJECTS = {
     "tunnels": Subject.TUNNELING,
     "nat": Subject.FIREWALL,
     "filters": Subject.FIREWALL,
+    "routes": Subject.FIREWALL,
 }
 
 # -------------------------------------------------

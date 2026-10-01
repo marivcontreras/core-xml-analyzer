@@ -305,7 +305,9 @@ def parse_iptables(text):
             "src": None,
             "dst": None,
             "iif": None,
-            "oif": None
+            "oif": None,
+            "dport": None,
+            "to": None
         }
 
         table = re.search(r'(?:^|\s)-t\s+(\S+)', line)
@@ -317,6 +319,15 @@ def parse_iptables(text):
         dst = re.search(r'(!)?\s*-d\s+(\S+)', line)
         iif = re.search(r'(!)?\s*-i\s+(\S+)', line)
         oif = re.search(r'(!)?\s*-o\s+(\S+)', line)
+        dport = re.search(r'(!)?\s*--(?:dport|destination-port)\s+(\S+)', line)
+        to = re.search(r'--to(?:-destination)?\s+(\S+)', line)
+
+        if dport:
+            dport_value = dport.group(2)
+            rule["dport"] = f"not {dport_value}" if dport.group(1) else dport_value
+
+        if to:
+            rule["to"] = to.group(1)
 
         if src:
             src_value = src.group(2)

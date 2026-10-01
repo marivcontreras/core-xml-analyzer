@@ -30,6 +30,16 @@ def get_expected_filters():
     return load_firewall_yaml().get("filters") or {}
 
 
+def get_expected_routes():
+    """Expected routes per router: {router_name: [route, ...]}."""
+    return load_firewall_yaml().get("routes") or {}
+
+
+def get_firewall_sections():
+    """Report sections (one per group of consignas), in order: [{title, consignas, firewall, routing}]."""
+    return load_firewall_yaml().get("sections") or []
+
+
 def get_expected_masquerade_routers():
     """Names of the routers that must apply MASQUERADE towards the ISP."""
     masquerade = load_firewall_yaml().get("masquerade") or {}
