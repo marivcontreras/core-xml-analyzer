@@ -3,6 +3,17 @@ from collections import defaultdict
 from parser.devices import get_node
 from utils import config_helper
 from utils.ip import PREFIX_TYPE, TYPE_LABELS
+from utils.subjects import Subject
+
+# Subject each warning scope of the summary belongs to; scopes that are not
+# listed (network, router_config) are always shown.
+SCOPE_SUBJECTS = {
+    "routing": Subject.ROUTING,
+    "isp": Subject.ROUTING,
+    "tunnels": Subject.TUNNELING,
+    "nat": Subject.FIREWALL,
+    "filters": Subject.FIREWALL,
+}
 
 # -------------------------------------------------
 # Sumarizes metrics and warnings for analysis panel
@@ -75,19 +86,27 @@ def build_warning_summary(data, warnings, router_warnings):
                 summary["total"] += 1
 
     # --------------------------------------------------
-    # firewall (NAT) warnings
+    # firewall (NAT / filters) warnings
     # --------------------------------------------------
 
-    for entry in data.get("firewall", {}).get("nat", []):
+    for category, entries in data.get("firewall", {}).items():
+        for entry in entries:
 
-        summary["by_scope"]["nat"] += len(entry["warnings"])
+            summary["by_scope"][category] += len(entry["warnings"])
 
-        for item in entry["warnings"]:
+            for item in entry["warnings"]:
 
-            severity = item.get("severity", "warning")
+                severity = item.get("severity", "warning")
 
-            summary["by_severity"][severity] += 1
-            summary["total"] += 1
+                summary["by_severity"][severity] += 1
+                summary["total"] += 1
+
+    # Only list the scopes that belong to the subjects of the current class.
+    active_subjects = config_helper.get_subjects()
+    summary["by_scope"] = {
+        scope: count for scope, count in summary["by_scope"].items()
+        if SCOPE_SUBJECTS.get(scope) is None or SCOPE_SUBJECTS[scope] in active_subjects
+    }
 
     return summary
 
@@ -203,18 +222,19 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
         lines.extend(_format_grouped_warning(router_name, category, code, prefix_type, grouped_items))
 
     # --------------------------------------------------
-    # firewall (NAT) warnings
+    # firewall (NAT / filters) warnings
     # --------------------------------------------------
 
-    for entry in data.get("firewall", {}).get("nat", []):
-        for item in entry["warnings"]:
-            severity = item.get("severity", "warning").upper()
-            lines.append(
-                f"[{TYPE_LABELS.get(severity, severity)}] "
-                f"[{TYPE_LABELS['nat']}] "
-                f"[{entry['router']}] "
-                f"{item.get('message')}"
-            )
+    for category, entries in data.get("firewall", {}).items():
+        for entry in entries:
+            for item in entry["warnings"]:
+                severity = item.get("severity", "warning").upper()
+                lines.append(
+                    f"[{TYPE_LABELS.get(severity, severity)}] "
+                    f"[{TYPE_LABELS[category]}] "
+                    f"[{entry['router']}] "
+                    f"{item.get('message')}"
+                )
 
     return lines
 

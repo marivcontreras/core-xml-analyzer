@@ -25,6 +25,11 @@ def load_firewall_yaml():
         return {}
 
 
+def get_expected_filters():
+    """Expected filter commands per device: {device_name: [command, ...]}."""
+    return load_firewall_yaml().get("filters") or {}
+
+
 def get_expected_masquerade_routers():
     """Names of the routers that must apply MASQUERADE towards the ISP."""
     masquerade = load_firewall_yaml().get("masquerade") or {}

@@ -297,6 +297,29 @@ def gen_rdc1_nat():
     ])
 
 
+def gen_rdc1_filters():
+    t = BASE1
+    # R2: f difiere (sin -d), d-ACCEPT ausente, d-REJECT antes que f
+    t = repl(t, "iptables -t filter -A FORWARD -d 201.0.2.2 -s 10.14.1.112/29 -j ACCEPT\n"
+                "iptables -t filter -A FORWARD -s 10.14.0.0/24 -o eth0 -j ACCEPT\n"
+                "iptables -t filter -A FORWARD -o eth0 -j REJECT",
+                "iptables -t filter -A FORWARD -o eth0 -j REJECT\n"                  # filter_rule_order
+                "iptables -t filter -A FORWARD -s 10.14.1.112/29 -j ACCEPT")         # filter_rule_mismatch (falta -d)
+    # R4: c-ACCEPT con -o equivocado, c-REJECT con otra accion
+    t = repl(t, "iptables -t filter -A FORWARD -s 10.14.1.0/25 -o eth0 -j ACCEPT\n"
+                "iptables -t filter -A FORWARD -o eth0 -j REJECT",
+                "iptables -t filter -A FORWARD -s 10.14.1.0/25 -o eth1 -j ACCEPT\n"  # filter_rule_mismatch (oif)
+                "iptables -t filter -A FORWARD -o eth0 -j DROP")                     # filter_rule_mismatch (accion)
+    # R6: g sin -i
+    t = repl(t, "iptables -t filter -A FORWARD -i eth1 -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT",
+                "iptables -t filter -A FORWARD -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT")  # filter_rule_mismatch (iif)
+    write(OUT1, "test_filters.xml", t, [
+        "R2: f difiere (sin -d), d-ACCEPT falta (missing_filter_rule), d-REJECT antes que f (filter_rule_order)",
+        "R4: c-ACCEPT con -o eth1, c-REJECT con DROP (filter_rule_mismatch)",
+        "R6: g sin -i (filter_rule_mismatch)",
+    ])
+
+
 if __name__ == "__main__":
     gen_networks_prefijos()
     gen_networks_faltantes()
@@ -312,3 +335,4 @@ if __name__ == "__main__":
     gen_rdc1_sintaxis()
     gen_rdc1_routing()
     gen_rdc1_nat()
+    gen_rdc1_filters()

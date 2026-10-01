@@ -406,3 +406,18 @@ masquerade_extra_option:
   message: "{router_name}: el comando MASQUERADE tiene opciones adicionales no esperadas ({options})"
   type: warning
   subject: Firewall
+
+missing_filter_rule:
+  message: "{router_name}: falta el comando esperado ({consigna}): {expected}"
+  type: error
+  subject: Firewall
+
+filter_rule_mismatch:
+  message: "{router_name}: un comando de la consigna {consigna} difiere de lo esperado: {differences}"
+  type: error
+  subject: Firewall
+
+filter_rule_order:
+  message: "{router_name}: el comando de la consigna {consigna} ({expected}) debe ir después de ({previous}); el orden de las reglas define cuál se aplica primero"
+  type: error
+  subject: Firewall

@@ -27,6 +27,7 @@ TYPE_LABELS = {
     "routing": "Ruteo",
     "tunnels": "Túneles",
     "nat": "NAT",
+    "filters": "Filtros",
     "error": "Errores",
     "warning": "Advertencias",
     "network": "Redes", 

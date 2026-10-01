@@ -6,9 +6,89 @@
 #     iptables -t nat -A POSTROUTING -o <interface towards the ISP> -j MASQUERADE
 #   The output interface is inferred from the topology (the router's link to
 #   an internet router), so only the router names are listed here.
+#
+# filters:
+#   expected commands per device (router or PC), compared against the
+#   iptables commands found in its StaticRoute script.
+#   Each command lists:
+#     consigna : exercise of the assignment it belongs to (informative)
+#     table    : iptables table (default: filter)
+#     chain    : chain (FORWARD, INPUT, ...)
+#     action   : target (-j): ACCEPT, REJECT, DROP, ...
+#     options  : any of src (-s), dst (-d), iif (-i), oif (-o), protocol (-p).
+#                Options that are not listed must NOT be present in the command.
+#                Interface names, blocks and addresses depend on how each topology
+#                was built (group number, wiring), so besides a literal value they
+#                can be resolved from the topology:
+#                  iif/oif : {network: X}            interface of the device in network X
+#                  src/dst : {network: X}            block of network X
+#                            {networks: [X, Y]}      smallest block containing those networks
+#                            {host: H, network: X}   address of device H in network X
+#     optional : same keys as options. These conditions may be absent, but if
+#                present they must have the given value (redundant conditions
+#                that are technically fine, e.g. -o on an ACCEPT to R1).
+#     last     : (optional) true if the command must come after every other
+#                expected command of its chain (e.g. a catch-all REJECT).
+#                Without it the order between commands does not matter.
 
 masquerade:
   routers:
     - R2
     - R4
     - R1
+
+filters:
+  R2:
+    # f) solo el centro de cómputo accede a la IP pública de R1
+    - consigna: F [solo computo > R1]
+      table: filter
+      chain: FORWARD
+      action: ACCEPT
+      options:
+        src: {network: Sw-Comp}
+        dst: {host: R1, network: ISP<>R1}
+      optional:
+        oif: {network: ISP<>R2}
+    # d) solo el datacenter sale a Internet por R2
+    - consigna: D [solo datacenter > Internet]
+      table: filter
+      chain: FORWARD
+      action: ACCEPT
+      options:
+        src: {network: Sw-Dc}
+        oif: {network: ISP<>R2}
+    - consigna: D [!datacenter > Internet]
+      table: filter
+      chain: FORWARD
+      action: REJECT
+      last: true
+      options:
+        oif: {network: ISP<>R2}
+
+  R4:
+    # c) solo la Empresa 1 sale a Internet por R4
+    - consigna: C [solo Empresa 1 > Internet]
+      table: filter
+      chain: FORWARD
+      action: ACCEPT
+      options:
+        src: {networks: [Wlan-Inv, Sw-Esc, Wlan-Reu, Sw-Comp]}
+        oif: {network: ISP<>R4}
+    - consigna: C [!Empresa 1 > Internet]
+      table: filter
+      chain: FORWARD
+      action: REJECT
+      last: true
+      options:
+        oif: {network: ISP<>R4}
+
+  R6:
+    # g) wlan-Inv no accede a la PC de Administración
+    - consigna: G [!wlan-Inv > PC Admin]
+      table: filter
+      chain: FORWARD
+      action: REJECT
+      options:
+        iif: {network: wlan-Inv}
+        src: {network: Wlan-Inv}
+        dst: {host: Admin, network: Sw-Adm}

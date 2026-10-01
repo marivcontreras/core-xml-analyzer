@@ -443,8 +443,7 @@ iptables -t filter -A FORWARD -i eth1 -s 10.14.1.0/26 -d 10.14.1.163 -j REJECT]]
     </service>
     <service name="StaticRoute" node="24">
       <templates>
-        <template name="staticroute.sh"><![CDATA[#!/bin/sh
-iptables -t filter -A INPUT -s 10.14.1.0/26 -j REJECT]]></template>
+        <template name="staticroute.sh"><![CDATA[#!/bin/sh]]></template>
       </templates>
     </service>
   </service_configurations>

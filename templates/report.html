@@ -21,18 +21,18 @@
         <strong>Archivo:</strong> {{ filename }}
     </div>
 
-    {% include "report/_summary.html" %}
+    {% include "report/summary.html" %}
 
-    {% include "report/_networks.html" %}
+    {% include "report/networks.html" %}
 
-    {% include "report/_network_warnings.html" %}
+    {% include "report/network_warnings.html" %}
 
-    {% include "report/_uncategorized_warnings.html" %}
+    {% include "report/uncategorized_warnings.html" %}
 
-    {% include "report/_router_warnings.html" %}
+    {% include "report/router_warnings.html" %}
 
     {% if "Routing" in data.subjects %}
-    {% include "report/_routing_matrix.html" %}
+    {% include "report/routing_matrix.html" %}
     {% endif %}
 
     {% for node_id, routing in data.routing.items() %}
@@ -53,11 +53,11 @@
         </summary>
 
         {% if has_info %}
-        {% include "report/_router_rules.html" %}
-        {% include "report/_router_routes.html" %}
-        {% include "report/_router_routing_warnings.html" %}
-        {% include "report/_router_tunnels.html" %}
-        {% include "report/_router_iptables.html" %}
+        {% include "report/router_rules.html" %}
+        {% include "report/router_routes.html" %}
+        {% include "report/router_routing_warnings.html" %}
+        {% include "report/router_tunnels.html" %}
+        {% include "report/router_iptables.html" %}
         {% else %}
         <p>No hay comandos ni información configurada en este equipo.</p>
         {% endif %}
@@ -65,14 +65,15 @@
     {% endfor %}
 
     {% if "Firewall" in data.subjects %}
-    {% include "report/_nat.html" %}
+    {% include "report/nat.html" %}
+    {% include "report/filters.html" %}
     {% endif %}
 
     {% if "RPDB" in data.subjects %}
-    {% include "report/_policy.html" %}
+    {% include "report/policy.html" %}
     {% endif %}
 
-    {% include "report/_warning_summary.html" %}
+    {% include "report/warning_summary.html" %}
 
     <div class="card">
         <a href="/">Analyze another file</a>

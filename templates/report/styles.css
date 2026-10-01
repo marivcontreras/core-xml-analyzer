@@ -481,3 +481,14 @@ details[open] summary {
     margin: 0;
     color: #b00020;
 }
+
+.diff-table {
+    margin-top: 6px;
+    font-size: 13px;
+    background: white;
+}
+
+.diff-table th,
+.diff-table td {
+    padding: 4px 8px;
+}

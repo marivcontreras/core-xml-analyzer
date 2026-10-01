@@ -12,6 +12,7 @@ Config a usar: `rdc1`. Solo IPv4, routing e iptables.
 | `test_sintaxis.xml` | `invalid_ip_command`, `invalid_ipv4`, `net_ip_assigned`, `interface_not_found` | OK salvo `net_ip_assigned` (BUG #3) |
 | `test_routing.xml` | `invalid_route_field*` | OK; aparece además `unreachable_network` colateral (`missing_route` solo da cuando falta la ruta default) |
 | `test_nat.xml` | `masquerade_wrong_oif`/`_in_interface`/`_src` (R2), `_wrong_table`/`_wrong_chain`/`_no_oif`/`_extra_option` (R4), `missing_masquerade` (R1), `unexpected_masquerade` (R3) | Sección NAT (MASQUERADE) |
+| `test_filters.xml` | `filter_rule_mismatch` (R2 f, R4 c x2, R6 g), `missing_filter_rule` (R2 d), `filter_rule_order` (R2 d) | Sección Filtros (iptables) |
 
 Nota: los warnings IPv6 (site/global, radvd, tunnels, policy) no aplican a rdc1
 y deben quedar suprimidos por el gate de subject/ipv6_support.

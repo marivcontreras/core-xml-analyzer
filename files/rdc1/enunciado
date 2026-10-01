@@ -1,5 +1,3 @@
-Teniendo en cuenta el siguiente enunciado y su respectiva resolución, creame una guia de preguntas a resolver realizando pruebas en el simulador CORE, intentando cubrir todas las consignas con aproximadamente 2 preguntas por consigna.
-
 Enunciado:
 a) Configure las rutas en los router, minimizando la cantidad de entradas en las tablas de ruteo (considere el uso de rutas por defecto) para que todas las redes de la torre de oficinas estén interconectadas. 
 b) Configure todos los routers frontera para que los equipos puedan acceder a internet (R2, R4, R1). 
