@@ -21,7 +21,7 @@ def load_firewall_yaml():
         with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     except (OSError, yaml.YAMLError) as e:
-        print(f"Warning: Failed to load firewall YAML from {path}: {e}")
+        #print(f"Warning: Failed to load firewall YAML from {path}: {e}")
         return {}
 
 

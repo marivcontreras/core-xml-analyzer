@@ -20,7 +20,7 @@ def resolve_prefix_device(net, prefix, data):
             continue
 
         interface_prefixes = get_prefixes_for_interface(node_id, iface, data)
-        print(f"Node {node_id}, Interface {iface_name}: Found prefixes {interface_prefixes}")
+        #print(f"Node {node_id}, Interface {iface_name}: Found prefixes {interface_prefixes}")
         if prefix in interface_prefixes:
             node = data.get("devices", {}).get(node_id, {})
             return node.get("name") or node_id
@@ -47,7 +47,7 @@ def validate_networks(data):
             net.get("original_name", net.get("name"))
         )
         
-        print(f"Network {net['name']} has expected last octet: {expected_last_octet}")
+        #print(f"Network {net['name']} has expected last octet: {expected_last_octet}")
 
         if expected_last_octet is not None:
             for prefix in prefixes:
@@ -109,7 +109,7 @@ def validate_networks(data):
             
             if expected_mask is not None and net_obj.prefixlen != int(expected_mask):
                 device = resolve_prefix_device(net, prefix, data)
-                print(f"Network {net['name']} has prefix {prefix} with wrong mask. Expected: /{expected_mask}, actual: /{net_obj.prefixlen}. Device: {device}")
+                #print(f"Network {net['name']} has prefix {prefix} with wrong mask. Expected: /{expected_mask}, actual: /{net_obj.prefixlen}. Device: {device}")
                 add_warning(
                     data,
                     "invalid_prefix_length",
@@ -248,7 +248,7 @@ def validate_existing_devices(data):
     ]
 
     for network_name in dict.fromkeys(configured_network_names):
-        print(f"Configured network {network_name} is missing in the XML data.")
+        #print(f"Configured network {network_name} is missing in the XML data.")
         add_warning(
             data,
             "missing_configured_network",
@@ -279,7 +279,7 @@ def check_p2p_consistency(net, data):
         iface = m["iface"]
 
         addrs = get_staticroute_interface_addresses(data, node_id, iface)
-        print(f"Node {m}, Interface {iface}: Found addresses {addrs}")
+        #print(f"Node {m}, Interface {iface}: Found addresses {addrs}")
         #data["warnings"].append(f"node {node_id} for {iface}: found {addrs} IP addresses")
 
         ipv4 = None
@@ -311,7 +311,7 @@ def check_p2p_consistency(net, data):
     a, b = endpoints
   
     if a["ipv4"] and b["ipv4"]:
-        print(f"Checking IPv4 consistency for network {net['name']}: {a['ipv4']} vs {b['ipv4']}")
+        #print(f"Checking IPv4 consistency for network {net['name']}: {a['ipv4']} vs {b['ipv4']}")
         if not same_block(str(a["ipv4"].network), str(b["ipv4"].network)):
             add_warning(
                 data,

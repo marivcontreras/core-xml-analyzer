@@ -181,11 +181,11 @@ def resolve_p2p_route_via(node_id, dev, family, data):
         if not other_member:
             continue
 
-        print(other_member)
+        #print(other_member)
 
         peer_ip = get_staticroute_interface_addresses(data, other_member["node"], other_member["iface"])[0]
         #peer_ip = get_peer_interface_ip(other_member["node"], other_member["iface"], family, data)
-        print(peer_ip)
+        #print(peer_ip)
         if peer_ip:
             return peer_ip.ip
 

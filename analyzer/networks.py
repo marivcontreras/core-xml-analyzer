@@ -15,7 +15,7 @@ def infer_networks(data):
     # 1. REAL NETWORKS (switch / wifi)
     # -----------------------------------------
     for nid, l2 in data.get("l2nodes", {}).items():
-        print(f"Inferring network for L2 node {l2['name']} (ID: {nid})")
+        #print(f"Inferring network for L2 node {l2['name']} (ID: {nid})")
         members = []
         member_ifaces = []
 
@@ -41,7 +41,7 @@ def infer_networks(data):
             "prefix_sources": {}
         }
 
-        print(f"Network {net['name']} has members: {members} and member interfaces: {member_ifaces}")
+        #print(f"Network {net['name']} has members: {members} and member interfaces: {member_ifaces}")
         # collect prefixes from all router interfaces in this network
         for node_id, iface in member_ifaces:
             node = get_node(data, node_id)
@@ -50,7 +50,7 @@ def infer_networks(data):
                 continue
 
             prefix_sources = get_prefixes_for_interface_with_sources(node_id, iface, data)
-            print(f"{net['name']} | Node {node['name']} interface {iface['name']} has prefixes: {prefix_sources}")
+            #print(f"{net['name']} | Node {node['name']} interface {iface['name']} has prefixes: {prefix_sources}")
             prefixes = set(prefix_sources)
 
             if not prefixes:

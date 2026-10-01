@@ -255,11 +255,11 @@ def load_routing_config(class_name, base_path=None, router_type="intranet_router
                         if matrix:
                             return matrix
                     except (yaml.YAMLError, IOError) as e:
-                        print(f"Warning: Failed to load routing YAML from {routing_yaml_path}: {e}")
-                        print(f"Falling back to hardcoded routing matrix for {class_name}")
+                        #print(f"Warning: Failed to load routing YAML from {routing_yaml_path}: {e}")
+                        #print(f"Falling back to hardcoded routing matrix for {class_name}")
                         traceback.print_exc()
         except (yaml.YAMLError, IOError) as e:
-            print(f"Warning: Failed to load config from {config_file}: {e}")
+            #print(f"Warning: Failed to load config from {config_file}: {e}")
             traceback.print_exc()
     
     # Fallback: return empty dict or could import hardcoded matrix here
@@ -311,14 +311,14 @@ def get_expected_routing_matrix():
         # Extract class name from routing config path
         # (e.g. "rdc2" from "resources/rdc2/routing.yaml")
         class_name = os.path.basename(os.path.dirname(routing_yaml_path))
-        print(f"Loading expected routing matrix for class '{class_name}' from '{routing_yaml_path}'")
+        #print(f"Loading expected routing matrix for class '{class_name}' from '{routing_yaml_path}'")
 
         try:
             loaded_matrix = get_routing_matrix(class_name, router_type="intranet_routers")
             if loaded_matrix:
                 return loaded_matrix
         except Exception as e:
-            print(f"Warning: Failed to load routing matrix from YAML: {e}")
+            #print(f"Warning: Failed to load routing matrix from YAML: {e}")
             traceback.print_exc()
 
     return {}
@@ -346,6 +346,6 @@ def get_expected_isp_routing_matrix():
             if loaded_matrix:
                 return loaded_matrix
         except Exception as e:
-            print(f"Warning: Failed to load ISP routing matrix from YAML: {e}")
+            #print(f"Warning: Failed to load ISP routing matrix from YAML: {e}")
 
     return {}

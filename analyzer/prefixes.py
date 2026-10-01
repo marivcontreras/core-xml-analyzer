@@ -253,7 +253,7 @@ def resolve_ip_owner(ip_str, data):
     try:
         ip = ipaddress.ip_address(ip_str)
     except:
-        print(f"Invalid IP address: {ip_str}")
+        #print(f"Invalid IP address: {ip_str}")
         return None
     #print(f"Checking for IP {ip_str}...") 
     for net in data["networks"].values():
@@ -273,7 +273,7 @@ def resolve_ip_owner(ip_str, data):
                         "type": "neighbor"
                     }
 
-    print(f"IP address {ip_str} not found in any network")
+    #print(f"IP address {ip_str} not found in any network")
     return {
                 "node": None,
                 "interface": None,
