@@ -65,6 +65,12 @@ invalid_prefix_length:
   scope: network
   subject: Networks
 
+node_renamed:
+  message: "El equipo {node_name} no tenía el nombre esperado y fue renombrado a {new_name}"
+  type: warning
+  scope: node
+  subject: Networks
+
 invalid_last_octet:
   message: "{net_name}: prefijo {prefix} tiene el último octeto {actual} y debería ser {expected}"
   type: invalid

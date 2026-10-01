@@ -11,6 +11,7 @@ from validation.ip_commands import validate_ip_addr_commands
 from utils.routing_config import get_expected_routing_matrix
 from validation.routing_validation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
 
+from utils.warning import add_warning
 from .devices import parse_devices, parse_l2_networks, parse_network_nodes
 from .links import parse_links
 from .renamer import rename_nodes_by_last_octet
@@ -24,7 +25,7 @@ import xml.etree.ElementTree as ET
 def parse_xml(xml_text):
     root = ET.fromstring(xml_text)
 
-    rename_nodes_by_last_octet(root)
+    renamed_nodes = rename_nodes_by_last_octet(root)
 
     data = {
         "subjects": get_subjects(),
@@ -41,6 +42,9 @@ def parse_xml(xml_text):
         "firewall": {"nat": [], "filters": [], "routes": []},
         "firewall_sections": {"sections": [], "others": []}
     }
+
+    for old_name, new_name in renamed_nodes:
+        add_warning(data, "node_renamed", node=new_name, node_name=old_name, new_name=new_name)
 
     parse_devices(root, data)
     parse_network_nodes(root, data)

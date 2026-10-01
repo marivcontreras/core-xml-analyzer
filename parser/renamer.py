@@ -7,6 +7,12 @@ from utils import config_helper
 _INTRANET_BLOCK = ipaddress.ip_network("10.0.0.0/8")
 
 
+def _set_name(element, new_name, renamed):
+    """Sets the name and remembers the original one (first rename wins)."""
+    renamed.setdefault(element, element.get("name"))
+    element.set("name", new_name)
+
+
 def _network_of(iface):
     """ip_network of an <iface> element, or None if it has no valid ip4."""
     if iface is None or not iface.get("ip4") or not iface.get("ip4_mask"):
@@ -30,7 +36,7 @@ def _expected_l2_name(net, expected_by_key):
     return names[0] if len(names) == 1 else None
 
 
-def _rename_l2_networks(root, networks_cfg):
+def _rename_l2_networks(root, networks_cfg, renamed):
     """Renames switches/wlans based on the last octet + mask of their network."""
     expected_by_key = {}
     for item in networks_cfg.get("intranet_lan_networks", []):
@@ -63,10 +69,10 @@ def _rename_l2_networks(root, networks_cfg):
     kept = {fmt(n.get("name")) for n in section.findall("network") if n not in renames}
     for net_el, expected in renames.items():
         if fmt(expected) not in kept:
-            net_el.set("name", expected)
+            _set_name(net_el, expected, renamed)
 
 
-def _rename_p2p_routers(root, networks_cfg):
+def _rename_p2p_routers(root, networks_cfg, renamed):
     """Renames routers linked directly, using the p2p network 'A<>B' of the config.
 
     Matches the link by last octet + mask. When both router names are already
@@ -98,8 +104,8 @@ def _rename_p2p_routers(root, networks_cfg):
             if current == {left, right}:
                 break
             lower, higher = (d1, d2) if _iface_ip(i1) < _iface_ip(i2) else (d2, d1)
-            lower.set("name", left)
-            higher.set("name", right)
+            _set_name(lower, left, renamed)
+            _set_name(higher, right, renamed)
             break
 
 
@@ -107,7 +113,7 @@ _PUBLIC_RANGE = ipaddress.ip_network("200.0.0.0/5")  # 200.0.0.0 - 207.255.255.2
 _HOME_RANGE = ipaddress.ip_network("192.168.0.0/16")
 
 
-def _rename_isp_and_r1(root):
+def _rename_isp_and_r1(root, renamed):
     """ISP is the router attached only to 200.x networks; R1 the one attached to 192.168.x."""
     routers = {d.get("id"): d for d in root.findall("devices/device") if d.get("type") == "router"}
 
@@ -123,21 +129,25 @@ def _rename_isp_and_r1(root):
         if not router_nets:
             continue
         if all(n.subnet_of(_PUBLIC_RANGE) for n in router_nets):
-            routers[rid].set("name", "ISP")
+            _set_name(routers[rid], "ISP", renamed)
         elif any(n.subnet_of(_HOME_RANGE) for n in router_nets):
-            routers[rid].set("name", "R1")
+            _set_name(routers[rid], "R1", renamed)
 
 
 def rename_nodes_by_last_octet(root):
     """Renames switches and routers whose name differs from the configuration.
 
     Controlled by the ``rename_nodes_by_last_octet`` flag in the config file.
-    Must run on the XML tree before parsing.
+    Must run on the XML tree before parsing. Returns a list of
+    ``(old_name, new_name)`` for every node whose name actually changed.
     """
     if not config_helper.get_rename_nodes_by_last_octet():
-        return
+        return []
 
     networks_cfg = config_helper.get_config().get("networks", {})
-    _rename_l2_networks(root, networks_cfg)
-    _rename_isp_and_r1(root)
-    _rename_p2p_routers(root, networks_cfg)
+    renamed = {}  # element -> original name
+    _rename_l2_networks(root, networks_cfg, renamed)
+    _rename_isp_and_r1(root, renamed)
+    _rename_p2p_routers(root, networks_cfg, renamed)
+
+    return [(old, el.get("name")) for el, old in renamed.items() if old != el.get("name")]
