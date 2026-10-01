@@ -4,6 +4,8 @@ routing_config: "resources/rdc1/routing.yaml"
 firewall_config: "resources/rdc1/firewall.yaml"
 max_prefixes_per_network: 1
 ipv6_support: false
+# Rename switches/routers whose name differs from this config, matching by last_octet (+ mask)
+rename_nodes_by_last_octet: true
 allowed_router_services:
   - StaticRoute
   - IPForward

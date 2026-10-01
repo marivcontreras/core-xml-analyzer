@@ -11,6 +11,7 @@ from validation.routing_validation import validate_routing_matrix, validate_isp_
 
 from .devices import parse_devices, parse_l2_networks, parse_network_nodes
 from .links import parse_links
+from .renamer import rename_nodes_by_last_octet
 from .services import parse_routing, parse_services
 
 from analyzer.networks import infer_networks
@@ -20,6 +21,8 @@ import xml.etree.ElementTree as ET
 
 def parse_xml(xml_text):
     root = ET.fromstring(xml_text)
+
+    rename_nodes_by_last_octet(root)
 
     data = {
         "subjects": get_subjects(),
