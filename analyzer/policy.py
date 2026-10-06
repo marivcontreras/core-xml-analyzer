@@ -159,16 +159,11 @@ def process_routes(policy, routes, data):
 def analyze_policies(data):
     for node_id, router in data["routers"].items():
         name = router["name"]
-        if config_helper.get_class_name() == "rdc2":
-            if name == "R4":
-                analyze_r4_policy(data, node_id)
+        if name == "R4":
+            analyze_r4_policy(data, node_id)
 
-            elif name == "R5":
-                analyze_r5_policy(data, node_id)
-
-        elif config_helper.get_class_name() == "rdc1":
-            # check firewall rules
-            continue
+        elif name == "R5":
+            analyze_r5_policy(data, node_id)
 
 def analyze_r4_policy(data, node_id):
     routing = data["routing"].get(node_id)

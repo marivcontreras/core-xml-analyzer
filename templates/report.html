@@ -35,13 +35,24 @@
     {% include "report/routing_matrix.html" %}
     {% endif %}
 
+
+
+    {% if "Firewall" in data.subjects %}
+    {% include "report/nat.html" %}
+    {% include "report/firewall_sections.html" %}
+    {% endif %}
+
+    {% if "Policy" in data.subjects %}
+    {% include "report/policy.html" %}
+    {% endif %}
+
     {% for node_id, routing in data.routing.items() %}
     {% set has_info = (
-        ("RPDB" in data.subjects and routing.rules)
-        or ("Routing" in data.subjects and routing.routes)
-        or ("Tunneling" in data.subjects and routing.tunnels)
-        or ("Firewall" in data.subjects and routing.iptables)
-        or routing.warnings['routing'] or routing.warnings['tunnels'] or routing.warnings['isp']
+    ("RPDB" in data.subjects and routing.rules)
+    or ("Routing" in data.subjects and routing.routes)
+    or ("Tunneling" in data.subjects and routing.tunnels)
+    or ("Firewall" in data.subjects and routing.iptables)
+    or routing.warnings['routing'] or routing.warnings['tunnels'] or routing.warnings['isp']
     ) %}
     <details class="card">
         <summary class="
@@ -64,14 +75,7 @@
     </details>
     {% endfor %}
 
-    {% if "Firewall" in data.subjects %}
-    {% include "report/nat.html" %}
-    {% include "report/firewall_sections.html" %}
-    {% endif %}
-
-    {% if "RPDB" in data.subjects %}
-    {% include "report/policy.html" %}
-    {% endif %}
+    {% include "report/warning_table.html" %}
 
     {% include "report/warning_summary.html" %}
 

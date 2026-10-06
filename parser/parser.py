@@ -85,7 +85,7 @@ def parse_xml(xml_text):
         validate_consigna_routes(data)
         build_firewall_sections(data)
 
-    analyze_policies(data)
-    #print(data["routing_validation"]);
+    if Subject.POLICY in config_helper.get_subjects():
+        analyze_policies(data)
 
     return data

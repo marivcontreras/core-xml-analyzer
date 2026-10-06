@@ -492,3 +492,28 @@ details[open] summary {
 .diff-table td {
     padding: 4px 8px;
 }
+
+.warning-table-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.warning-table-filters select,
+.warning-table-filters input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.warning-table-filters input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.warning-table-count {
+    color: #6b7280;
+    font-size: 14px;
+}

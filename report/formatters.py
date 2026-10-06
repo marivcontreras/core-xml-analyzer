@@ -14,7 +14,22 @@ SCOPE_SUBJECTS = {
     "nat": Subject.FIREWALL,
     "filters": Subject.FIREWALL,
     "routes": Subject.FIREWALL,
+    "policy": Subject.POLICY,
 }
+
+def _network_warnings(data):
+    """Warnings of data["warnings"] that refer to a network or link (the node and
+    interface scoped ones are reported per router instead)."""
+    return [w for w in data["warnings"] if w.get("scope") not in ("node", "interface")]
+
+def _policy_warnings(data):
+    """(router, warning) pairs for the policy routing warnings."""
+    return [
+        (routing["policy"].get("router"), item)
+        for routing in data.get("routing", {}).values()
+        if routing.get("policy")
+        for item in routing["policy"].get("warnings", [])
+    ]
 
 # -------------------------------------------------
 # Sumarizes metrics and warnings for analysis panel
@@ -39,18 +54,13 @@ def build_warning_summary(data, warnings, router_warnings):
     # network warnings
     # --------------------------------------------------
 
-    for net_name, type_groups in warnings.items():
+    for item in _network_warnings(data):
 
-        for warning_type, items in type_groups.items():
+        severity = item.get("severity", "warning")
 
-            summary["by_scope"]["network"] += len(items)
-
-            for item in items:
-
-                severity = item.get("severity", "warning")
-
-                summary["by_severity"][severity] += 1
-                summary["total"] += 1
+        summary["by_scope"]["network"] += 1
+        summary["by_severity"][severity] += 1
+        summary["total"] += 1
 
     # --------------------------------------------------
     # router config warnings
@@ -102,6 +112,15 @@ def build_warning_summary(data, warnings, router_warnings):
                 summary["by_severity"][severity] += 1
                 summary["total"] += 1
 
+    # --------------------------------------------------
+    # policy warnings
+    # --------------------------------------------------
+
+    for _, item in _policy_warnings(data):
+        summary["by_scope"]["policy"] += 1
+        summary["by_severity"][item.get("type", "warning")] += 1
+        summary["total"] += 1
+
     # Only list the scopes that belong to the subjects of the current class.
     active_subjects = config_helper.get_subjects()
     summary["by_scope"] = {
@@ -113,7 +132,7 @@ def build_warning_summary(data, warnings, router_warnings):
 
 def _format_grouped_warning(router_name, category, code, prefix_type, items):
     #print(f"Formatting grouped warning for router {router_name}, category {category}, code {code}, prefix_type {prefix_type}, items: {items}")
-    severity = items[0].get("severity", "warning").upper()
+    severity = items[0].get("severity", "warning")
     label_type = TYPE_LABELS.get(severity, severity)
     label_code = TYPE_LABELS.get(code.upper(), code.upper()) if code else "UNKNOWN"
     prefix_type = prefix_type.upper() if prefix_type else None
@@ -179,7 +198,19 @@ def _format_grouped_warning(router_name, category, code, prefix_type, items):
     return [formatted]
 
 def build_text_warning_summary(data, grouped_warnings, router_warnings):
-    lines = []    
+    lines = []
+
+    # --------------------------------------------------
+    # network / link warnings
+    # --------------------------------------------------
+    for item in _network_warnings(data):
+        wtype = item.get("type", "warning")
+        lines.append(
+            f"[{TYPE_LABELS['warning']}] "
+            f"[{TYPE_LABELS.get(wtype, wtype)}] "
+            f"[{item.get('network') or TYPE_LABELS['network']}] "
+            f"{item.get('message')}"
+        )
 
     # --------------------------------------------------
     # router config warnings
@@ -190,7 +221,7 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
 
             for item in items:
 
-                severity = item.get("severity", "warning").upper()
+                severity = item.get("severity", "warning")
 
                 lines.append(
                     (
@@ -229,7 +260,7 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
     for category, entries in data.get("firewall", {}).items():
         for entry in entries:
             for item in entry["warnings"]:
-                severity = item.get("severity", "warning").upper()
+                severity = item.get("severity", "warning")
                 lines.append(
                     f"[{TYPE_LABELS.get(severity, severity)}] "
                     f"[{TYPE_LABELS[category]}] "
@@ -237,7 +268,62 @@ def build_text_warning_summary(data, grouped_warnings, router_warnings):
                     f"{item.get('message')}"
                 )
 
+    # --------------------------------------------------
+    # policy warnings
+    # --------------------------------------------------
+
+    for router_name, item in _policy_warnings(data):
+        severity = item.get("type", "warning")
+        lines.append(
+            f"[{TYPE_LABELS.get(severity, severity)}] "
+            f"[{TYPE_LABELS['policy']}] "
+            f"[{router_name}] "
+            f"{item.get('message')}"
+        )
+
     return lines
+
+def build_warning_rows(data, router_warnings):
+    """One row per warning (ungrouped) for the filterable warnings table.
+
+    Each row has the display labels (type, category, location, message) used
+    by the table and the raw keys (type_key, category_key) used by the filters.
+    """
+    rows = []
+
+    def add(wtype, category, location, message):
+        rows.append({
+            "type": TYPE_LABELS.get(wtype, wtype),
+            "type_key": wtype,
+            "category": TYPE_LABELS.get(category, category),
+            "category_key": category,
+            "location": location or "-",
+            "message": message,
+        })
+
+    for item in _network_warnings(data):
+        add(item.get("type", "warning"), "network", item.get("network"), item.get("message"))
+
+    for router_name, type_groups in router_warnings.items():
+        for items in type_groups.values():
+            for item in items:
+                add(item.get("severity", "warning"), "router_config", router_name, item.get("message"))
+
+    for node_id, routing in data.get("routing", {}).items():
+        router_name = get_node(data, node_id).get("name", node_id)
+        for category, items in routing.get("warnings", {}).items():
+            for item in items:
+                add(item.get("severity", "warning"), category, router_name, item.get("message"))
+
+    for category, entries in data.get("firewall", {}).items():
+        for entry in entries:
+            for item in entry["warnings"]:
+                add(item.get("severity", "warning"), category, entry["router"], item.get("message"))
+
+    for router_name, item in _policy_warnings(data):
+        add(item.get("type", "warning"), "policy", router_name, item.get("message"))
+
+    return rows
 
 # ------------------------------------
 # Formats networks for networks panel

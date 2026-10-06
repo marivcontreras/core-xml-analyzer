@@ -1,0 +1,54 @@
+    {% if warning_rows %}
+    <div class="card">
+        <h2>Tabla de Advertencias</h2>
+
+        <div class="warning-table-filters">
+            <select id="wt-type" onchange="filterWarningTable()">
+                <option value="">Todos los tipos</option>
+                {% for t in warning_rows | map(attribute="type") | unique | sort %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="wt-category" onchange="filterWarningTable()">
+                <option value="">Todas las categorías</option>
+                {% for c in warning_rows | map(attribute="category") | unique | sort %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+
+            <select id="wt-location" onchange="filterWarningTable()">
+                <option value="">Todas las ubicaciones</option>
+                {% for l in warning_rows | map(attribute="location") | unique | sort %}
+                <option value="{{ l }}">{{ l }}</option>
+                {% endfor %}
+            </select>
+
+            <input id="wt-text" type="search" placeholder="Buscar en el mensaje..." oninput="filterWarningTable()">
+
+            <span id="wt-count" class="warning-table-count"></span>
+        </div>
+
+        <table id="warning-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Categoría</th>
+                    <th>Ubicación</th>
+                    <th>Mensaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in warning_rows %}
+                <tr data-type="{{ row.type }}" data-category="{{ row.category }}" data-location="{{ row.location }}">
+                    <td>{{ row.type }}</td>
+                    <td>{{ row.category }}</td>
+                    <td>{{ row.location }}</td>
+                    <td>{{ row.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>filterWarningTable();</script>
+    {% endif %}
