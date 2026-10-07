@@ -451,3 +451,25 @@ filter_rule_order:
   message: "{router_name}: el comando de la consigna {consigna} ({expected}) debe ir después de ({previous}); el orden de las reglas define cuál se aplica primero"
   type: error
   subject: Firewall
+
+minimization_default:
+  message: "La entrada indirecta hacia {dst} (via {via}, dev {dev}) coincide con la configuración de la entrada por default y puede ser minimizada por default."
+  type: warning
+  subject: Routing
+
+minimization_summarize:
+  message: "Las entradas {entries} (via {via}, dev {dev}) podrían ser sumarizadas en una entrada con destino {block}."
+  type: warning
+  subject: Routing
+
+invalid_iptables_command:
+  message: "{node_name}: comando iptables inválido → '{line}' ({errors})"
+  type: syntax
+  scope: node
+  subject: Sintaxis
+
+invalid_route_command:
+  message: "{node_name}: comando ip route inválido → '{line}' ({errors})"
+  type: syntax
+  scope: node
+  subject: Sintaxis

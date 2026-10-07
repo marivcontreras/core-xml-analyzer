@@ -8,8 +8,11 @@ from validation.firewall_routes import validate_consigna_routes
 from validation.firewall_sections import build_firewall_sections
 from validation.firewall_validation import validate_filters, validate_nat
 from validation.ip_commands import validate_ip_addr_commands
+from validation.iptables_commands import validate_iptables_commands
+from validation.route_commands import validate_route_commands
 from utils.routing_config import get_expected_routing_matrix
 from validation.routing_validation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
+from validation.routing_minimization import validate_routing_minimization
 
 from utils.warning import add_warning
 from .devices import parse_devices, parse_l2_networks, parse_network_nodes
@@ -53,6 +56,8 @@ def parse_xml(xml_text):
     
     for node_id in data["services"]:
         validate_ip_addr_commands(node_id, data)
+        validate_iptables_commands(node_id, data)
+        validate_route_commands(node_id, data)
 
     parse_l2_networks(root, data)
 
@@ -75,6 +80,8 @@ def parse_xml(xml_text):
     data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["networks"], data["routing_validation"])
 
     validate_isp_routes(data)
+
+    validate_routing_minimization(data)
 
     if Subject.TUNNELING in config_helper.get_subjects():
         validate_tunnels(data)

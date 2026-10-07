@@ -57,15 +57,15 @@
 #   reported as having a wrong destination. Keys that are left out are not checked.
 
 sections:
-  - title: "C) Acceso a Internet solo para la Empresa 1 (firewall de R4, ruteo de R3)"
+  - title: "C) Acceso a Internet solo para la Empresa 1 (firewall en R4, ruteo en R3)"
     consignas: [C]
     firewall: [R4]
     routing: [R3]
-  - title: "D, E, F) Datacenter a Internet y tráfico hacia R1 por R2 (firewall de R2, ruteo de R3)"
+  - title: "D, E, F) Datacenter a Internet y tráfico hacia R1 por R2 (firewall en R2, ruteo en R3)"
     consignas: [D, E, F]
     firewall: [R2]
     routing: [R3]
-  - title: "G) Wlan-Inv sin acceso a la PC de Administración (firewall de R6)"
+  - title: "G) Wlan-Inv sin acceso a la PC de Administración (firewall en R6)"
     consignas: [G]
     firewall: [R6]
   - title: "H) SSH desde PC-Casa al ServerDocker (DNAT en R2)"
@@ -81,7 +81,7 @@ masquerade:
 filters:
   R2:
     # f) solo el centro de cómputo accede a la IP pública de R1
-    - consigna: F [solo computo > R1]
+    - consigna: F [solo red computo -> R1]
       table: filter
       chain: FORWARD
       action: ACCEPT
@@ -91,14 +91,14 @@ filters:
       optional:
         oif: {network: ISP<>R2}
     # d) solo el datacenter sale a Internet por R2
-    - consigna: D [solo datacenter > Internet]
+    - consigna: D [solo red DC -> Internet]
       table: filter
       chain: FORWARD
       action: ACCEPT
       options:
         src: {network: Sw-Dc}
         oif: {network: ISP<>R2}
-    - consigna: D [!datacenter > Internet]
+    - consigna: D [todo menos red DC -> Internet]
       table: filter
       chain: FORWARD
       action: REJECT
@@ -106,7 +106,7 @@ filters:
       options:
         oif: {network: ISP<>R2}
     # h) el puerto 2222 de R2 se redirige al SSH (22) del ServerDocker
-    - consigna: H [DNAT ssh > ServerDocker]
+    - consigna: H [DNAT ssh -> ServerDocker]
       table: nat
       chain: PREROUTING
       action: DNAT
@@ -120,14 +120,14 @@ filters:
 
   R4:
     # c) solo la Empresa 1 sale a Internet por R4
-    - consigna: C [solo Empresa 1 > Internet]
+    - consigna: C [solo Empresa 1 -> Internet]
       table: filter
       chain: FORWARD
       action: ACCEPT
       options:
         src: {networks: [Wlan-Inv, Sw-Esc, Wlan-Reu, Sw-Comp]}
         oif: {network: ISP<>R4}
-    - consigna: C [!Empresa 1 > Internet]
+    - consigna: C [todo menos Empresa 1 -> Internet]
       table: filter
       chain: FORWARD
       action: REJECT
@@ -137,7 +137,7 @@ filters:
 
   R6:
     # g) wlan-Inv no accede a la PC de Administración
-    - consigna: G [!wlan-Inv > PC Admin]
+    - consigna: G [wlan-Inv -/-> PC Admin]
       table: filter
       chain: FORWARD
       action: REJECT
@@ -149,12 +149,12 @@ filters:
 routes:
   R3:
     # c) la salida a Internet de la Empresa 1 es por R4
-    - consigna: C [default > R4]
+    - consigna: C [default -> R4]
       dst: default
       via: {host: R4, network: Sw-Adm}
       dev: {network: Sw-Adm}
     # e) el tráfico hacia la IP pública de R1 sale por R2
-    - consigna: E [IP de R1 > R2]
+    - consigna: E [IP de R1 -> R2]
       dst: {host: R1, network: ISP<>R1}
       via: {host: R2, network: Sw-Dc}
       dev: {network: Sw-Dc}

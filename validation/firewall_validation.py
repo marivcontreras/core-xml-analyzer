@@ -237,7 +237,7 @@ def resolve_value(key, spec, data, node_id):
     if key in ("iif", "oif"):
         network = spec.get("network")
         iface = member_interface(data, node_id, network)
-        return (iface["name"] if iface else f"<interfaz en la red {network}>"), f"red {network}"
+        return (iface["name"] if iface else f"<interfaz en la red {network}>"), f"eth en red {network}"
 
     if "networks" in spec:
         prefixes = [network_prefix(data, n) for n in spec["networks"]]
