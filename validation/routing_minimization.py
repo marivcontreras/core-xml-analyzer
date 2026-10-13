@@ -4,6 +4,12 @@ from parser.devices import get_node
 from utils.warning import add_routing_warning
 
 # -------------------------------------------------------------
+# Returns true if dst is a default entry ("default", 0.0.0.0/0 or ::/0).
+# -------------------------------------------------------------
+def is_default_dst(dst):
+    return dst in ("default", "0.0.0.0/0", "::/0")
+
+# -------------------------------------------------------------
 # Returns true if the route is an indirect (via) unicast entry
 # that can take part in minimization (not the default entry).
 # -------------------------------------------------------------
@@ -11,7 +17,8 @@ def is_minimizable_indirect(route):
     via = route.get("via")
     return (
         route.get("type") == "unicast"
-        and route.get("dst") not in (None, "default")
+        and route.get("dst") is not None
+        and not is_default_dst(route.get("dst"))
         and via not in (None, "-")
         and route.get("dev") is not None
     )
@@ -41,7 +48,7 @@ def validate_routing_minimization(data):
         defaults = {
             (r.get("family"), r.get("table")): r
             for r in routes
-            if r.get("dst") == "default" and r.get("type") == "unicast"
+            if is_default_dst(r.get("dst")) and r.get("type") == "unicast"
         }
 
         remaining = []
@@ -86,6 +93,10 @@ def validate_routing_minimization(data):
                 networks = [ipaddress.ip_network(r["dst"], strict=False) for r in group]
                 block = smallest_enclosing_block(networks)
             except ValueError:
+                continue
+
+            # a summary of 0.0.0.0/0 (or ::/0) would just be a default entry
+            if block.prefixlen == 0:
                 continue
 
             add_routing_warning(
