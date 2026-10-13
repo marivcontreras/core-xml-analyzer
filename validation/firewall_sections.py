@@ -22,6 +22,7 @@ def section_entry(entry, letters):
         "router": entry["router"],
         "commands": [c for c in entry["commands"] if c["consigna"] and belongs(c["consigna"])],
         "rows": [r for r in entry["rows"] if belongs(r["consigna"])],
+        "unevaluated": [],
     }
 
 
@@ -40,10 +41,28 @@ def build_firewall_sections(data):
     node_ids = {d["name"]: node_id for node_id, d in data["devices"].items()}
     specs = get_firewall_sections() or default_sections(entries)
 
+    # Commands that no consigna claimed (MASQUERADE has its own section).
+    claimed = {(entry["router"], c["command"])
+               for entry in entries.values() for c in entry["commands"] if c["consigna"]}
+    unevaluated = {}
+    for node_id, device in data["devices"].items():
+        if device.get("type") != "router":
+            continue
+        commands = [r["command"] for r in data["routing"].get(node_id, {}).get("iptables", [])
+                    if not is_masquerade(r) and (device["name"], r["command"]) not in claimed]
+        if commands:
+            unevaluated[device["name"]] = commands
+
     sections = []
+    shown = set()
     for spec in specs:
         letters = {str(c).upper() for c in spec["consignas"]} if spec.get("consignas") else None
         firewall = [section_entry(entries[name], letters) for name in spec.get("firewall", []) if name in entries]
+        for entry in firewall:
+            # Each router's unevaluated commands go in the first section it appears in.
+            if entry["router"] in unevaluated and entry["router"] not in shown:
+                shown.add(entry["router"])
+                entry["unevaluated"] = unevaluated[entry["router"]]
         routing = []
         for name in spec.get("routing", []):
             if node_ids.get(name) not in data["routing"]:
@@ -75,14 +94,8 @@ def build_firewall_sections(data):
             "has_warnings": has_warnings,
         })
 
-    # Commands that no consigna claimed (MASQUERADE has its own section).
-    claimed = {(entry["router"], c["command"])
-               for entry in entries.values() for c in entry["commands"] if c["consigna"]}
-    others = []
-    for node_id, device in data["devices"].items():
-        commands = [r["command"] for r in data["routing"].get(node_id, {}).get("iptables", [])
-                    if not is_masquerade(r) and (device["name"], r["command"]) not in claimed]
-        if commands:
-            others.append({"router": device["name"], "commands": commands})
+    # Only the routers that are not shown in any section stay here.
+    others = [{"router": name, "commands": commands}
+              for name, commands in unevaluated.items() if name not in shown]
 
     data["firewall_sections"] = {"sections": sections, "others": sorted(others, key=lambda o: o["router"])}

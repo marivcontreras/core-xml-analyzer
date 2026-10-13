@@ -490,7 +490,128 @@ details[open] summary {
 
 .diff-table th,
 .diff-table td {
+    padding: 4px 4px;
+}
+
+.consigna-pill {
+    display: inline-block;
+    flex: none;
+    min-width: 24px;
+    padding: 3px;
+    border-radius: 999px;
+    background: #7e8285;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
+.consigna-text {
+    font-size: 13px;
+    color: #444;
+}
+
+.cmd-table {
+    table-layout: fixed;
+}
+
+/* N°/ID, consigna and description are narrow; command and result share the rest equally. */
+.cmd-table > thead > tr > th:nth-child(1) {
+    width: 25px;
+}
+
+.cmd-table > thead > tr > th:nth-child(2) {
+    width: 35px;
+}
+
+.cmd-table > thead > tr > th:nth-child(3) {
+    width: 100px;
+}
+
+.cmd-table .diff-table {
+    table-layout: auto;
+}
+
+/* Result text in the style of the Encontrado/Esperado labels, a bit larger. */
+.cmd-table > tbody > tr > td:last-child {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.cmd-table .diff-table {
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.cmd-table td {
+    overflow-wrap: anywhere;
+}
+
+/* Result as plain text, not as a pill. */
+.cmd-table .warning-list {
+    gap: 6px;
+    margin: 0;
+}
+
+.cmd-table .warning-item {
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: #b00020;
+}
+
+.cmd-found .route-missing {
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.cmd {
     padding: 4px 8px;
+    border-left: 3px solid transparent;
+}
+
+.cmd + .cmd {
+    margin-top: 6px;
+}
+
+.cmd-expected {
+    border-left-color: #2e7d32;
+    background: rgba(46, 125, 50, 0.08);
+}
+
+.cmd-found {
+    border-left-color: #1565c0;
+    background: rgba(21, 101, 192, 0.08);
+}
+
+.cmd-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #555;
+}
+
+.cmd-expected code {
+    font-weight: bold;
+}
+
+.cmd-found code {
+    font-style: italic;
+}
+
+.cmd-notes {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #555;
+}
+
+.cmd-error {
+    background: rgba(176, 0, 32, 0.18);
+    color: #b00020;
+    border-radius: 3px;
+    padding: 0 3px;
 }
 
 .warning-table-filters {

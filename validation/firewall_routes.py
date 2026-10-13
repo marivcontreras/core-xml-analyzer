@@ -49,6 +49,25 @@ def format_route(values, notes=None):
     return f"{text}  ({'; '.join(details)})" if details else text
 
 
+def route_segments(values, notes, error_keys):
+    """The expected route split in pieces for display, flagging the ones
+    (dst, via, dev) that differ from the found route.
+
+    Returns {"parts": command pieces, "notes": where each value comes from};
+    each item is {"text", "error"}.
+    """
+    parts = [{"text": "ip route add", "error": False},
+             {"text": str(values["dst"]), "error": "dst" in error_keys}]
+    if values.get("via"):
+        parts.append({"text": f"via {values['via']}", "error": "via" in error_keys})
+    if values.get("dev"):
+        parts.append({"text": f"dev {values['dev']}", "error": "dev" in error_keys})
+    return {
+        "parts": parts,
+        "notes": [{"text": f"{key}: {note}", "error": key in error_keys} for key, note in (notes or {}).items()],
+    }
+
+
 def route_score(expected, route):
     """How many of via/dev of a found route equal the expected ones."""
     score = 0
@@ -103,6 +122,7 @@ def validate_consigna_routes(data):
             found = find_route(expected, routes)
             row = {"consigna": spec.get("consigna"), "expected": command,
                    "found_id": None, "found": None, "problems": []}
+            error_keys = set()
 
             if found is None:
                 row["problems"].append(warn("missing_consigna_route", consigna=consigna, expected=command))
@@ -111,6 +131,7 @@ def validate_consigna_routes(data):
                 row["found"] = format_route(found)
 
                 if canonical_dst(found["dst"]) != canonical_dst(expected["dst"]):
+                    error_keys.add("dst")
                     hint = ""
                     if overlapping(found["dst"], expected["dst"]) and "/" not in str(expected["dst"]):
                         hint = " (se espera la ruta hacia la IP y no hacia todo el bloque)"
@@ -119,15 +140,18 @@ def validate_consigna_routes(data):
                         expected_value=expected["dst"], actual=found["dst"], hint=hint))
 
                 if expected.get("via") and norm(found["via"]) != norm(expected["via"]):
+                    error_keys.add("via")
                     row["problems"].append(warn(
                         "consigna_route_wrong_via", consigna=consigna, dst=found["dst"],
                         expected_value=expected["via"], actual=found["via"] or "ninguno"))
 
                 if expected.get("dev") and found["dev"] != expected["dev"]:
+                    error_keys.add("dev")
                     row["problems"].append(warn(
                         "consigna_route_wrong_dev", consigna=consigna, dst=found["dst"],
                         expected_value=expected["dev"], actual=found["dev"] or "ninguna"))
 
+            row["expected_parts"] = route_segments(expected, notes, error_keys)
             rows.append(row)
 
         entries.append({"router": name, "rows": rows, "warnings": warnings})

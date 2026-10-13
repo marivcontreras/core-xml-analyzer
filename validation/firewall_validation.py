@@ -318,6 +318,28 @@ def format_expected(view):
     return f"{text}  (opcional: {', '.join(optional)})" if optional else text
 
 
+def expected_segments(view, error_keys):
+    """The expected command split in pieces for display, flagging the ones
+    whose field (action, src, iif...) differs from the found command.
+
+    Returns {"parts": command pieces, "notes": where each value comes from,
+    "optional": optional conditions}; each item is {"text", "error"}.
+    """
+    parts = [{"text": f"iptables -t {view['table']} -A {view['chain']}", "error": False}]
+    for key in ("iif", "protocol", "src", "dst", "oif", "dport"):
+        if view["options"].get(key) is not None:
+            parts.append({"text": f"{OPTION_FLAGS[key]} {view['options'][key]}", "error": key in error_keys})
+    parts.append({"text": f"-j {view['action']}", "error": "action" in error_keys})
+    if view["options"].get("to") is not None:
+        parts.append({"text": f"{OPTION_FLAGS['to']} {view['options']['to']}", "error": "to" in error_keys})
+
+    return {
+        "parts": parts,
+        "notes": [{"text": f"{OPTION_FLAGS[k]}: {v}", "error": k in error_keys} for k, v in view["notes"].items()],
+        "optional": [{"text": f"{OPTION_FLAGS[k]} {v}", "error": k in error_keys} for k, v in view["optional"].items()],
+    }
+
+
 def compare_fields(expected, found):
     """List of (field, expected value, found value) that differ."""
     pairs = [("action", expected["action"], found["action"])]
@@ -544,22 +566,27 @@ def validate_filters(data):
                 "consigna": expected.get("consigna"),
                 "expected": command,
                 "found_n": None,
+                "found_command": None,
                 "problems": [],
                 "diffs": [],
                 "mismatch": None,
                 "found_elsewhere": [],
             }
+            diff_keys = set()
             if i not in pairs:
                 row["problems"].append(warn("missing_filter_rule", consigna=expected.get("consigna") or "-",
                                             expected=command))
             else:
                 found_index, diffs = pairs[i]
                 row["found_n"] = found_index + 1
+                row["found_command"] = found_rules[found_index]["command"]
                 if diffs:
+                    diff_keys = {f for f, _, _ in diffs}
                     row["diffs"] = [{"field": FIELD_LABELS[f], "expected": e, "actual": a} for f, e, a in diffs]
                     row["mismatch"] = warn("filter_rule_mismatch", consigna=expected.get("consigna") or "-",
                                            differences=describe_diffs(diffs))
                     row["problems"].append(row["mismatch"])
+            row["expected_parts"] = expected_segments(view, diff_keys)
             rows.append(row)
 
         # Order: it only matters for the commands flagged `last: true` (e.g. a

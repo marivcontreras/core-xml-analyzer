@@ -38,6 +38,9 @@ def parse_services(root, data):
 def parse_routing(data):
     data["routing"] = {}
     for node_id, services in data["services"].items():
+        if node_id not in data["routers"]:
+            continue
+        
         if "StaticRoute" not in services:
             if node_id in data["routers"]:
                 data["routing"][node_id] = {

@@ -1,3 +1,9 @@
+{# "G [!wlan-Inv > PC Admin]" -> letter pill in one cell, description in another #}
+{% macro consigna_cells(text) -%}
+{%- set pieces = text.split(' ', 1) if text else [] -%}
+<td>{% if pieces %}<span class="consigna-pill">{{ pieces[0] }}</span>{% else %}-{% endif %}</td>
+<td class="consigna-text">{% if pieces | length > 1 %}{{ pieces[1].strip('[]') | upper }}{% else %}-{% endif %}</td>
+{%- endmacro %}
 <div class="card">
     <h2>Firewall por consigna</h2>
     <h5>NOTA: Por cada consigna (o grupo de consignas) se muestran los comandos iptables encontrados en el equipo
@@ -16,54 +22,50 @@
         {% for entry in section.firewall %}
         <h3>Firewall: {{ entry.router }}</h3>
 
-        <h4>Comandos encontrados</h4>
-        {% if entry.commands %}
-        <table>
+        <table class="cmd-table">
             <thead>
                 <tr>
                     <th>N°</th>
+                    <th>Item</th>
+                    <th>Descripción</th>
                     <th>Comando</th>
-                    <th>Evaluado como</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for command in entry.commands %}
-                <tr class="{% if command.status in ('error', 'misplaced') %} tr-has-warning {% endif %}">
-                    <td>{{ command.n }}</td>
-                    <td><code>{{ command.command }}</code></td>
-                    <td>{{ command.consigna }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No se encontraron comandos de esta consigna en {{ entry.router }}</p>
-        {% endif %}
-
-        <h4>Análisis</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Consigna</th>
-                    <th>Comando esperado</th>
-                    <th>Encontrado</th>
                     <th>Resultado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in entry.rows %}
                 <tr class="{% if row.problems %} tr-has-warning {% endif %}">
-                    <td>{{ row.consigna if row.consigna else "-" }}</td>
-                    <td><code>{{ row.expected }}</code></td>
+                    <td>{{ row.found_n if row.found_n else "-" }}</td>
+                    {{ consigna_cells(row.consigna) }}
                     <td>
-                        {% if row.found_n %}
-                        N° {{ row.found_n }}
-                        {% else %}
-                        <span class="route-missing">No encontrado</span>
-                        {% endif %}
-                        {% if row.found_elsewhere %}
-                        <br>Encontrado en otro equipo: {{ row.found_elsewhere | join(", ") }}
-                        {% endif %}
+                        <div class="cmd cmd-found">
+                            <span class="cmd-label">Encontrado</span>
+                            {% if row.found_command %}
+                            <code>{{ row.found_command }}</code>
+                            {% else %}
+                            <span class="route-missing">No encontrado</span>
+                            {% endif %}
+                            {% if row.found_elsewhere %}
+                            <div class="cmd-notes">Encontrado en otro equipo: {{ row.found_elsewhere | join(", ") }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="cmd cmd-expected">
+                            <span class="cmd-label">Esperado</span>
+                            <code>{% for part in row.expected_parts.parts %}<span class="{% if part.error %}cmd-error{% endif %}">{{ part.text }}</span> {% endfor %}</code>
+                            {% if row.expected_parts.notes or row.expected_parts.optional %}
+                            <div class="cmd-notes">
+                                {% for note in row.expected_parts.notes %}
+                                <span class="{% if note.error %}cmd-error{% endif %}">{{ note.text }}</span>{% if not loop.last or row.expected_parts.optional %}; {% endif %}
+                                {% endfor %}
+                                {% if row.expected_parts.optional %}
+                                opcional:
+                                {% for opt in row.expected_parts.optional %}
+                                <span class="{% if opt.error %}cmd-error{% endif %}">{{ opt.text }}</span>{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
                     </td>
                     <td>
                         {% if row.problems %}
@@ -102,6 +104,33 @@
                     </td>
                 </tr>
                 {% endfor %}
+                {% for command in entry.commands if command.status == 'misplaced' %}
+                <tr class="tr-has-warning">
+                    <td>{{ command.n }}</td>
+                    {{ consigna_cells(command.consigna) }}
+                    <td>
+                        <div class="cmd cmd-found">
+                            <span class="cmd-label">Encontrado</span>
+                            <code>{{ command.command }}</code>
+                        </div>
+                    </td>
+                    <td>Comando de otra consigna aplicado en este equipo</td>
+                </tr>
+                {% endfor %}
+                {% for command in entry.unevaluated %}
+                <tr>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>
+                        <div class="cmd cmd-found">
+                            <span class="cmd-label">Encontrado</span>
+                            <code>{{ command }}</code>
+                        </div>
+                    </td>
+                    <td>No corresponde a ninguna consigna</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
         {% endfor %}
@@ -118,34 +147,44 @@
         {% for part in section.routing %}
         {% set routing = part.routing %}
         <h3>Ruteo: {{ part.router }}</h3>
-        {% if routing.routes or not part.rows %}
+        {% if not part.rows %}
         {% include "report/router_routes.html" %}
         {% else %}
-        <h4>Rutas (ip route)</h4>
-        <p>No se encontró la ruta de esta consigna</p>
-        {% endif %}
-        {% if part.rows %}
-        <h4>Análisis de rutas</h4>
-        <table>
+        <table class="cmd-table">
             <thead>
                 <tr>
-                    <th>Consigna</th>
-                    <th>Ruta esperada</th>
-                    <th>Encontrada</th>
+                    <th>ID</th>
+                    <th>Item</th>
+                    <th>Descripción</th>
+                    <th>Ruta</th>
                     <th>Resultado</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in part.rows %}
                 <tr class="{% if row.problems %} tr-has-warning {% endif %}">
-                    <td>{{ row.consigna if row.consigna else "-" }}</td>
-                    <td><code>{{ row.expected }}</code></td>
+                    <td>{{ row.found_id | replace("route-", "") if row.found_id else "-" }}</td>
+                    {{ consigna_cells(row.consigna) }}
                     <td>
-                        {% if row.found %}
-                        {{ row.found_id }}: <code>{{ row.found }}</code>
-                        {% else %}
-                        <span class="route-missing">No encontrada</span>
-                        {% endif %}
+                        <div class="cmd cmd-found">
+                            <span class="cmd-label">Encontrada</span>
+                            {% if row.found %}
+                            <code>{{ row.found }}</code>
+                            {% else %}
+                            <span class="route-missing">No encontrada</span>
+                            {% endif %}
+                        </div>
+                        <div class="cmd cmd-expected">
+                            <span class="cmd-label">Esperada</span>
+                            <code>{% for piece in row.expected_parts.parts %}<span class="{% if piece.error %}cmd-error{% endif %}">{{ piece.text }}</span> {% endfor %}</code>
+                            {% if row.expected_parts.notes %}
+                            <div class="cmd-notes">
+                                {% for note in row.expected_parts.notes %}
+                                <span class="{% if note.error %}cmd-error{% endif %}">{{ note.text }}</span>{% if not loop.last %}; {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
                     </td>
                     <td>
                         {% if row.problems %}
