@@ -83,6 +83,7 @@ def build_firewall_sections(data):
         has_warnings = (
             any(row["problems"] for entry in firewall for row in entry["rows"])
             or bool(misplaced)
+            or any(entry["unevaluated"] for entry in firewall)
             or any(part["routing"]["warnings"]["routing"] or any(row["problems"] for row in part["rows"])
                    for part in routing)
         )

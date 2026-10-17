@@ -432,6 +432,11 @@ missing_consigna_route:
   type: error
   subject: Firewall
 
+filter_rule_unmatched:
+  message: "{router_name}: el comando ({command}) no corresponde a ninguna consigna"
+  type: warning
+  subject: Firewall
+
 consigna_route_wrong_dst:
   message: "{router_name}: la ruta de la consigna {consigna} tiene un destino incorrecto: esperado {expected_value}, actual {actual}{hint}"
   type: error
@@ -450,6 +455,12 @@ consigna_route_wrong_dev:
 filter_rule_order:
   message: "{router_name}: el comando de la consigna {consigna} ({expected}) debe ir después de ({previous}); el orden de las reglas define cuál se aplica primero"
   type: error
+  subject: Firewall
+
+missing_ssh_service:
+  message: "{node_name}: el servicio SSH no está activado (requerido por la consigna H)"
+  type: error
+  scope: node
   subject: Firewall
 
 minimization_default:

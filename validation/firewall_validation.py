@@ -624,4 +624,33 @@ def validate_filters(data):
         })
 
     find_misplaced(data, entries, owners)
+    find_unmatched(data, entries)
     data["firewall"]["filters"] = entries
+
+
+def find_unmatched(data, entries):
+    """Warn about iptables commands that do not correspond to any consigna.
+
+    MASQUERADE is left out (validate_nat evaluates it). A command is
+    claimed if it was paired with an expected command or recognized as one
+    applied on the wrong device. The warning goes in the device's entry
+    (created if it has no expected commands).
+    """
+    by_router = {entry["router"]: entry for entry in entries}
+    claimed = {(entry["router"], c["command"])
+               for entry in entries for c in entry["commands"] if c["consigna"]}
+
+    for node_id, device in data["routers"].items():
+        name = device["name"]
+        commands = [r["command"] for r in data["routing"].get(node_id, {}).get("iptables", [])
+                    if not is_masquerade(r) and (name, r["command"]) not in claimed]
+        if not commands:
+            continue
+
+        entry = by_router.get(name)
+        if entry is None:
+            entry = {"router": name, "commands": [], "rows": [], "misplaced": [], "warnings": []}
+            entries.append(entry)
+        warn = make_warn(name, entry["warnings"])
+        for command in commands:
+            warn("filter_rule_unmatched", command=command)
