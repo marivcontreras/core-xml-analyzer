@@ -23,6 +23,7 @@ def section_entry(entry, letters):
         "commands": [c for c in entry["commands"] if c["consigna"] and belongs(c["consigna"])],
         "rows": [r for r in entry["rows"] if belongs(r["consigna"])],
         "unevaluated": [],
+        "policy_errors": entry.get("policy_errors", {}),
     }
 
 
@@ -84,6 +85,7 @@ def build_firewall_sections(data):
             any(row["problems"] for entry in firewall for row in entry["rows"])
             or bool(misplaced)
             or any(entry["unevaluated"] for entry in firewall)
+            or any(entry["policy_errors"] for entry in firewall)
             or any(part["routing"]["warnings"]["routing"] or any(row["problems"] for row in part["rows"])
                    for part in routing)
         )

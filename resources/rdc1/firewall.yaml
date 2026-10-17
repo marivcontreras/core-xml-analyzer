@@ -97,6 +97,7 @@ filters:
       action: ACCEPT
       options:
         src: {network: Sw-Dc}
+      optional:
         oif: {network: ISP<>R2}
     - consigna: D [todo menos red DC -> Internet]
       table: filter
@@ -141,10 +142,11 @@ filters:
       table: filter
       chain: FORWARD
       action: REJECT
-      options:
-        iif: {network: wlan-Inv}
+      options:        
         src: {network: Wlan-Inv}
         dst: {host: Pc-Admin, network: Sw-Adm}
+      optional:
+        iif: {network: wlan-Inv}
 
 routes:
   R3:

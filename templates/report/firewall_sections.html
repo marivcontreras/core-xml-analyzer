@@ -128,7 +128,13 @@
                             <code>{{ command }}</code>
                         </div>
                     </td>
-                    <td>No corresponde a ninguna consigna</td>
+                    <td>
+                        {% if entry.policy_errors.get(command) %}
+                        <ul class="warning-list"><li class="warning-item warning-error">{{ entry.policy_errors[command] }}</li></ul>
+                        {% else %}
+                        No corresponde a ninguna consigna
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

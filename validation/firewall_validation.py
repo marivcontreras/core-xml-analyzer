@@ -624,8 +624,36 @@ def validate_filters(data):
         })
 
     find_misplaced(data, entries, owners)
+    find_policies(data, entries)
     find_unmatched(data, entries)
     data["firewall"]["filters"] = entries
+
+
+def find_policies(data, entries):
+    """Error for filter chains whose default policy is set to DROP or REJECT.
+
+    The default policy applies to all the traffic of the chain, while the
+    consignas only block outgoing traffic (with explicit rules).
+    """
+    by_router = {entry["router"]: entry for entry in entries}
+
+    for node_id, device in data["routers"].items():
+        name = device["name"]
+        bad = [r for r in data["routing"].get(node_id, {}).get("iptables", [])
+               if r.get("policy") in ("DROP", "REJECT")
+               and (r.get("table") or "filter") == "filter"]
+        if not bad:
+            continue
+
+        entry = by_router.get(name)
+        if entry is None:
+            entry = {"router": name, "commands": [], "rows": [], "misplaced": [], "warnings": []}
+            entries.append(entry)
+        warn = make_warn(name, entry["warnings"])
+        errors = entry.setdefault("policy_errors", {})
+        for rule in bad:
+            errors[rule["command"]] = warn("filter_default_policy", command=rule["command"],
+                                           chain=rule["policy_chain"], policy=rule["policy"])
 
 
 def find_unmatched(data, entries):
@@ -643,7 +671,8 @@ def find_unmatched(data, entries):
     for node_id, device in data["routers"].items():
         name = device["name"]
         commands = [r["command"] for r in data["routing"].get(node_id, {}).get("iptables", [])
-                    if not is_masquerade(r) and (name, r["command"]) not in claimed]
+                    if not is_masquerade(r) and not r.get("policy")
+                    and (name, r["command"]) not in claimed]
         if not commands:
             continue
 

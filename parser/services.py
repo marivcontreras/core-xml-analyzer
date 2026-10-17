@@ -3,6 +3,7 @@ import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
 from utils.text import strip_comments
 from utils.warning import add_warning
+from validation.route_commands import check_route_command
 from utils.ip import NETWORK_GROUPS, PREFIX_TYPE, classify_prefix_type, same_family, contains
 
 # ---------------------------------------------------------------------
@@ -90,6 +91,11 @@ def parse_routes(text, data, node_id):
     )
 
     for route_index, (is_v6, line) in enumerate(matches, start=1):
+        # routes with syntax errors are reported by validate_route_commands
+        # and must not be loaded into the routing matrix
+        if check_route_command(f"ip {'-6 ' if is_v6 else ''}route add {line}"):
+            continue
+
         route = {
             "id": f"route-{node_id}-{route_index}",
             "family": PREFIX_TYPE["ipv6"] if is_v6 else PREFIX_TYPE["ipv4"],
@@ -310,8 +316,15 @@ def parse_iptables(text):
             "iif": None,
             "oif": None,
             "dport": None,
-            "to": None
+            "to": None,
+            "policy_chain": None,
+            "policy": None
         }
+
+        policy = re.search(r'(?:^|\s)(?:-P|--policy)\s+(\S+)\s+(\S+)', line)
+        if policy:
+            rule["policy_chain"] = policy.group(1)
+            rule["policy"] = policy.group(2).upper()
 
         table = re.search(r'(?:^|\s)-t\s+(\S+)', line)
         chain = re.search(r'(!)?\s*-A\s+(\S+)', line)
