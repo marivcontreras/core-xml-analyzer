@@ -35,9 +35,9 @@ hosts:
     type: PC
     text: [docker]
     network: Sw-Dc
-  - name: PC-Admin
+  - name: Admin
     type: PC
-    text: [adm, admin]
+    text: [adm]
     network: Sw-Adm
 
 networks:

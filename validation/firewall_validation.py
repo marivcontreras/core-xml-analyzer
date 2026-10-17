@@ -279,6 +279,19 @@ def resolve_conditions(conditions, data, node_id, notes):
     return resolved
 
 
+def expected_actions(expected):
+    """Accepted targets (-j) of an expected command, upper-cased (`action` is a list)."""
+    actions = expected["action"]
+    if isinstance(actions, str):
+        actions = [actions]
+    return [str(a).upper() for a in actions]
+
+
+def action_text(view):
+    """Accepted targets of an expected command, for display (REJECT o DROP)."""
+    return " o ".join(view["action"])
+
+
 def expected_view(expected, data, node_id):
     notes = {}
     options = resolve_conditions(expected.get("options"), data, node_id, notes)
@@ -286,7 +299,7 @@ def expected_view(expected, data, node_id):
     return {
         "table": expected.get("table") or "filter",
         "chain": expected["chain"],
-        "action": str(expected["action"]).upper(),
+        "action": expected_actions(expected),
         "options": {k: options.get(k) for k in OPTION_KEYS},
         "optional": optional,
         "notes": notes,
@@ -307,7 +320,7 @@ def format_expected(view):
     for key in ("iif", "protocol", "src", "dst", "oif", "dport"):
         if view["options"].get(key) is not None:
             parts += [OPTION_FLAGS[key], str(view["options"][key])]
-    parts += ["-j", view["action"]]
+    parts += ["-j", action_text(view)]
     if view["options"].get("to") is not None:
         parts += [OPTION_FLAGS["to"], str(view["options"]["to"])]
     text = " ".join(parts)
@@ -329,7 +342,7 @@ def expected_segments(view, error_keys):
     for key in ("iif", "protocol", "src", "dst", "oif", "dport"):
         if view["options"].get(key) is not None:
             parts.append({"text": f"{OPTION_FLAGS[key]} {view['options'][key]}", "error": key in error_keys})
-    parts.append({"text": f"-j {view['action']}", "error": "action" in error_keys})
+    parts.append({"text": f"-j {action_text(view)}", "error": "action" in error_keys})
     if view["options"].get("to") is not None:
         parts.append({"text": f"{OPTION_FLAGS['to']} {view['options']['to']}", "error": "to" in error_keys})
 
@@ -342,7 +355,8 @@ def expected_segments(view, error_keys):
 
 def compare_fields(expected, found):
     """List of (field, expected value, found value) that differ."""
-    pairs = [("action", expected["action"], found["action"])]
+    accepted = found["action"] in expected["action"]
+    pairs = [("action", found["action"] if accepted else action_text(expected), found["action"])]
     for key in OPTION_KEYS:
         required, optional, actual = expected["options"][key], expected["optional"].get(key), found["options"][key]
         if required is None and optional is not None:
@@ -379,7 +393,7 @@ def similarity_score(expected, found):
     values that differ only in the mask (201.0.2.2 vs 201.0.2.2/24) and 0
     otherwise. Absent optional conditions are not compared.
     """
-    scores = [1.0 if expected["action"] == found["action"] else 0.0]
+    scores = [1.0 if found["action"] in expected["action"] else 0.0]
 
     for key in OPTION_KEYS:
         required, optional, actual = expected["options"][key], expected["optional"].get(key), found["options"][key]
@@ -426,7 +440,7 @@ def match_expected(views, found_views):
             used.add(j)
 
     assign(lambda i, j, similarity: similarity >= MIN_SIMILARITY)
-    assign(lambda i, j, similarity: views[i]["action"] == found_views[j]["action"])
+    assign(lambda i, j, similarity: found_views[j]["action"] in views[i]["action"])
 
     return pairs
 
@@ -465,7 +479,8 @@ def is_same_filter(expected, found):
     options, actual = expected["options"], found["options"]
     if options["src"] is None and options["dst"] is None:
         return False
-    if (expected["table"], expected["chain"], expected["action"]) != (found["table"], found["chain"], found["action"]):
+    if (expected["table"], expected["chain"]) != (found["table"], found["chain"]) \
+            or found["action"] not in expected["action"]:
         return False
     return all(norm(options[key]) == norm(actual[key]) for key in ("src", "dst", "protocol"))
 

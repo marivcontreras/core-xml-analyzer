@@ -14,7 +14,8 @@
 #     consigna : exercise of the assignment it belongs to (informative)
 #     table    : iptables table (default: filter)
 #     chain    : chain (FORWARD, INPUT, ...)
-#     action   : target (-j): ACCEPT, REJECT, DROP, ...
+#     action   : list of accepted targets (-j): [ACCEPT], [REJECT, DROP], ...
+#                (the found command must use any one of them)
 #     options  : any of src (-s), dst (-d), iif (-i), oif (-o), protocol (-p).
 #                Options that are not listed must NOT be present in the command.
 #                Interface names, blocks and addresses depend on how each topology
@@ -84,33 +85,37 @@ filters:
     - consigna: F [solo red computo -> R1]
       table: filter
       chain: FORWARD
-      action: ACCEPT
+      action: [ACCEPT]
       options:
         src: {network: Sw-Comp}
         dst: {host: R1, network: ISP<>R1}
       optional:
         oif: {network: ISP<>R2}
+        iif: {network: Sw-Dc}
     # d) solo el datacenter sale a Internet por R2
     - consigna: D [solo red DC -> Internet]
       table: filter
       chain: FORWARD
-      action: ACCEPT
+      action: [ACCEPT]
       options:
         src: {network: Sw-Dc}
       optional:
         oif: {network: ISP<>R2}
+        iif: {network: Sw-Dc}
     - consigna: D [todo menos red DC -> Internet]
       table: filter
       chain: FORWARD
-      action: REJECT
+      action: [REJECT, DROP]
       last: true
       options:
         oif: {network: ISP<>R2}
+      optional:
+        iif: {network: Sw-Dc}
     # h) el puerto 2222 de R2 se redirige al SSH (22) del ServerDocker
     - consigna: H [DNAT ssh -> ServerDocker]
       table: nat
       chain: PREROUTING
-      action: DNAT
+      action: [DNAT]
       options:
         protocol: tcp
         dport: 2222
@@ -124,27 +129,31 @@ filters:
     - consigna: C [solo Empresa 1 -> Internet]
       table: filter
       chain: FORWARD
-      action: ACCEPT
+      action: [ACCEPT]
       options:
         src: {networks: [Wlan-Inv, Sw-Esc, Wlan-Reu, Sw-Comp]}
         oif: {network: ISP<>R4}
+      optional:
+        iif: {network: Sw-Adm}
     - consigna: C [todo menos Empresa 1 -> Internet]
       table: filter
       chain: FORWARD
-      action: REJECT
+      action: [REJECT, DROP]
       last: true
       options:
         oif: {network: ISP<>R4}
+      optional:
+        iif: {network: Sw-Adm}
 
   R6:
     # g) wlan-Inv no accede a la PC de Administración
     - consigna: G [wlan-Inv -/-> PC Admin]
       table: filter
       chain: FORWARD
-      action: REJECT
-      options:        
+      action: [REJECT, DROP]
+      options:
         src: {network: Wlan-Inv}
-        dst: {host: Pc-Admin, network: Sw-Adm}
+        dst: {host: Admin, network: Sw-Adm}
       optional:
         iif: {network: wlan-Inv}
 
