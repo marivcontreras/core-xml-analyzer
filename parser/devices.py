@@ -3,7 +3,8 @@ from collections import Counter
 
 from utils import config_helper
 from utils.warning import add_warning
-from .renamer import DOCKER_NAME
+
+DOCKER_NAME = "Server-Docker"
 
 def is_intranet_router(router):
     intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])

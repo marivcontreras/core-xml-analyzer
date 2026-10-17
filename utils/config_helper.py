@@ -64,6 +64,14 @@ def get_rename_nodes_by_last_octet():
     return bool(config.get("rename_nodes_by_last_octet", False))
 
 
+def get_hosts():
+    """Hosts of the current class: dicts with name, type, text (list) and network."""
+    config = get_config()
+    if config is None:
+        raise ValueError("Configuration has not been loaded.")
+    return config.get("hosts", [])
+
+
 def get_allowed_router_services():
     """Set of service names routers of the current class may have enabled."""
     config = get_config()

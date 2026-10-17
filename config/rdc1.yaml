@@ -28,6 +28,18 @@ devices:
   other_routers:
     - R1
 
+hosts:
+  # A host of the given type connected to `network` whose name contains any of
+  # `text` (case-insensitive) is renamed to `name`
+  - name: Server-Docker
+    type: PC
+    text: [docker]
+    network: Sw-Dc
+  - name: PC-Admin
+    type: PC
+    text: [adm, admin]
+    network: Sw-Adm
+
 networks:
   # defined by the name of the switch
   intranet_lan_networks:

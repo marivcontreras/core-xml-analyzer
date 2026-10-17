@@ -144,7 +144,7 @@ filters:
       options:
         iif: {network: wlan-Inv}
         src: {network: Wlan-Inv}
-        dst: {host: Admin, network: Sw-Adm}
+        dst: {host: Pc-Admin, network: Sw-Adm}
 
 routes:
   R3:
