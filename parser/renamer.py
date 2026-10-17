@@ -134,6 +134,37 @@ def _rename_isp_and_r1(root, renamed):
             _set_name(routers[rid], "R1", renamed)
 
 
+DOCKER_NETWORK = "Sw-Dc"
+DOCKER_NAME = "Server-Docker"
+
+
+def rename_docker_server(root, renamed):
+    """Renames the host on the Sw-Dc network whose name contains 'docker' to Server-Docker."""
+    fmt = config_helper.format_network_name
+    section = root.find("networks")
+    if section is None:
+        return
+    net_ids = {n.get("id") for n in section.findall("network") if fmt(n.get("name")) == fmt(DOCKER_NETWORK)}
+    if not net_ids:
+        return
+
+    hosts = {d.get("id"): d for d in root.findall("devices/device") if d.get("type") != "router"}
+    candidates = {}
+    for link in root.findall("links/link"):
+        n1, n2 = link.get("node1"), link.get("node2")
+        for net_id, host_id in ((n1, n2), (n2, n1)):
+            host = hosts.get(host_id)
+            if net_id in net_ids and host is not None and "docker" in host.get("name", "").lower():
+                candidates[host_id] = host
+
+    wanted = DOCKER_NAME.lower()
+    taken = {d.get("name", "").lower() for d in root.findall("devices/device")}
+    for host in candidates.values():
+        if wanted not in taken:
+            _set_name(host, DOCKER_NAME, renamed)
+            taken.add(wanted)
+
+
 def rename_nodes_by_last_octet(root):
     """Renames switches and routers whose name differs from the configuration.
 
@@ -149,5 +180,6 @@ def rename_nodes_by_last_octet(root):
     _rename_l2_networks(root, networks_cfg, renamed)
     _rename_isp_and_r1(root, renamed)
     _rename_p2p_routers(root, networks_cfg, renamed)
+    rename_docker_server(root, renamed)
 
     return [(old, el.get("name")) for el, old in renamed.items() if old != el.get("name")]

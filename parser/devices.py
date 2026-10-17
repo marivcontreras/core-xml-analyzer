@@ -3,6 +3,7 @@ from collections import Counter
 
 from utils import config_helper
 from utils.warning import add_warning
+from .renamer import DOCKER_NAME
 
 def is_intranet_router(router):
     intranet_routers = config_helper.get_config().get("devices", {}).get("intranet_routers", [])
@@ -53,7 +54,10 @@ def parse_devices(root, data):
 
         data["devices"][dev_id] = item
         data["nodes"][dev_id] = item
-        
+
+        if name.lower() == DOCKER_NAME.lower() and not any(svc.get("name") == "SSH" for svc in dev.findall("services/service")):
+            add_warning(data, "missing_ssh_service", node=name, node_name=name)
+
         if dtype == "router":
             data["routers"][dev_id] = item
 

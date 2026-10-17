@@ -113,7 +113,7 @@ filters:
       options:
         protocol: tcp
         dport: 2222
-        to: {host: ServerDocker, network: Sw-Dc, port: 22}
+        to: {host: Server-Docker, network: Sw-Dc, port: 22}
       optional:
         iif: {network: ISP<>R2}
         dst: {host: R2, network: ISP<>R2}
