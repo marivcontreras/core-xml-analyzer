@@ -1,5 +1,5 @@
 from utils.firewall_config import get_firewall_sections
-from validation.firewall_validation import is_masquerade
+from validation.firewall_validation import interpret_command, is_masquerade
 
 
 def consigna_letter(consigna):
@@ -54,12 +54,21 @@ def build_firewall_sections(data):
         if commands:
             unevaluated[device["name"]] = commands
 
+    # Reading of the options of every command, for the ones no consigna claims.
+    interpretations = {
+        (device["name"], r["command"]): interpret_command(data, node_id, r)
+        for node_id, device in data["devices"].items() if device.get("type") == "router"
+        for r in data["routing"].get(node_id, {}).get("iptables", [])
+    }
+
     sections = []
     shown = set()
     for spec in specs:
         letters = {str(c).upper() for c in spec["consignas"]} if spec.get("consignas") else None
         firewall = [section_entry(entries[name], letters) for name in spec.get("firewall", []) if name in entries]
         for entry in firewall:
+            entry["interpretations"] = {c: interpretations.get((entry["router"], c), [])
+                                        for c in [x["command"] for x in entry["commands"]] + unevaluated.get(entry["router"], [])}
             # Each router's unevaluated commands go in the first section it appears in.
             if entry["router"] in unevaluated and entry["router"] not in shown:
                 shown.add(entry["router"])
@@ -98,7 +107,8 @@ def build_firewall_sections(data):
         })
 
     # Only the routers that are not shown in any section stay here.
-    others = [{"router": name, "commands": commands}
+    others = [{"router": name, "commands": commands,
+               "interpretations": {c: interpretations.get((name, c), []) for c in commands}}
               for name, commands in unevaluated.items() if name not in shown]
 
     data["firewall_sections"] = {"sections": sections, "others": sorted(others, key=lambda o: o["router"])}

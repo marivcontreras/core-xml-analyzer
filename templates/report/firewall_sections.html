@@ -4,6 +4,10 @@
 <td>{% if pieces %}<span class="consigna-pill">{{ pieces[0] }}</span>{% else %}-{% endif %}</td>
 <td class="consigna-text">{% if pieces | length > 1 %}{{ pieces[1].strip('[]') | upper }}{% else %}-{% endif %}</td>
 {%- endmacro %}
+{# what the options of a command mean in the topology (interface -> network, block -> network...) #}
+{% macro interpretation(lines) -%}
+{%- if lines %}<div class="cmd-notes">{% for line in lines %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}</div>{% endif -%}
+{%- endmacro %}
 <div class="card">
     <h2>Firewall por consigna</h2>
     <h5>NOTA: Por cada consigna (o grupo de consignas) se muestran los comandos iptables encontrados en el equipo
@@ -42,6 +46,7 @@
                             <span class="cmd-label">Encontrado</span>
                             {% if row.found_command %}
                             <code>{{ row.found_command }}</code>
+                            {% if row.diffs %}{{ interpretation(entry.interpretations.get(row.found_command)) }}{% endif %}
                             {% else %}
                             <span class="route-missing">No encontrado</span>
                             {% endif %}
@@ -112,6 +117,7 @@
                         <div class="cmd cmd-found">
                             <span class="cmd-label">Encontrado</span>
                             <code>{{ command.command }}</code>
+                            {{ interpretation(entry.interpretations.get(command.command)) }}
                         </div>
                     </td>
                     <td>Comando de otra consigna aplicado en este equipo</td>
@@ -126,6 +132,7 @@
                         <div class="cmd cmd-found">
                             <span class="cmd-label">Encontrado</span>
                             <code>{{ command }}</code>
+                            {{ interpretation(entry.interpretations.get(command)) }}
                         </div>
                     </td>
                     <td>
@@ -231,7 +238,7 @@
                 {% for command in other.commands %}
                 <tr>
                     <td>{{ other.router }}</td>
-                    <td><code>{{ command }}</code></td>
+                    <td><code>{{ command }}</code>{{ interpretation(other.interpretations.get(command)) }}</td>
                 </tr>
                 {% endfor %}
                 {% endfor %}

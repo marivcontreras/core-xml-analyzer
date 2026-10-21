@@ -671,6 +671,76 @@ def find_policies(data, entries):
                                            chain=rule["policy_chain"], policy=rule["policy"])
 
 
+def describe_address(data, value):
+    """Which network or device an address/block of a command refers to, in words."""
+    try:
+        block = ipaddress.ip_network(str(value), strict=False)
+    except ValueError:
+        return None
+
+    nets = []
+    for net in data["networks"].values():
+        for prefix in net["prefixes"]:
+            try:
+                network = ipaddress.ip_network(prefix, strict=False)
+            except ValueError:
+                continue
+            if network.version == block.version:
+                nets.append((net, network))
+
+    if block.num_addresses == 1:
+        for net in data["networks"].values():
+            for member in net["member_interfaces"]:
+                address = interface_address(data, member["node"], member["iface"])
+                try:
+                    same = address and ipaddress.ip_address(address.split("/")[0]) == block.network_address
+                except ValueError:
+                    same = False
+                if same:
+                    return f"dirección de {data['devices'][member['node']]['name']} en la red {net['name']}"
+
+    exact = [n["name"] for n, network in nets if network == block]
+    if exact:
+        return f"bloque de la red {exact[0]}"
+    inside = [n["name"] for n, network in nets if block.subnet_of(network)]
+    if inside:
+        return f"dentro del bloque de la red {inside[0]}"
+    contained = sorted({n["name"] for n, network in nets if network.subnet_of(block)})
+    if contained:
+        return f"bloque que agrupa las redes {', '.join(contained)}"
+    return "no pertenece a ninguna red de la topología"
+
+
+def interpret_command(data, node_id, rule):
+    """Plain-language reading of the options of an iptables command, e.g.
+    "-i eth1: interfaz hacia la red wlan-Inv", for commands no consigna claims."""
+    lines = []
+
+    for key in ("iif", "oif"):
+        name = rule.get(key)
+        if not name:
+            continue
+        network = next((net["name"] for net in data["networks"].values()
+                        for m in net["member_interfaces"]
+                        if m["node"] == node_id and m["iface"]["name"] == name), None)
+        text = f"interfaz hacia la red {network}" if network else "interfaz sin red asignada en la topología"
+        lines.append(f"{OPTION_FLAGS[key]} {name}: {text}")
+
+    for key in ("src", "dst"):
+        if rule.get(key):
+            text = describe_address(data, rule[key])
+            if text:
+                lines.append(f"{OPTION_FLAGS[key]} {rule[key]}: {text}")
+
+    to = rule.get("to")
+    if to:
+        text = describe_address(data, str(to).rsplit(":", 1)[0])
+        if text:
+            lines.append(f"{OPTION_FLAGS['to']} {to}: {text}")
+
+    return lines
+
+
 def find_unmatched(data, entries):
     """Warn about iptables commands that do not correspond to any consigna.
 
