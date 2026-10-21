@@ -1,6 +1,7 @@
 import re
 import ipaddress
 from analyzer.prefixes import get_staticroute_interface_addresses, resolve_ip_owner, resolve_route_dev
+from utils.services import commands_text
 from utils.text import strip_comments
 from utils.warning import add_warning
 from validation.route_commands import check_route_command
@@ -65,7 +66,7 @@ def parse_routing(data):
                 )
             continue
 
-        text = services["StaticRoute"]
+        text = commands_text(data, node_id)
 
         data["routing"][node_id] = {
             "routes": parse_routes(text, data, node_id),

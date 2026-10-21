@@ -1,6 +1,7 @@
 import ipaddress
 import re
 
+from utils.services import commands_text
 from utils.warning import add_warning
 from validation.command_lines import extract_commands, tokenize_command
 from validation.configs.route_config import (
@@ -17,7 +18,7 @@ ROUTE_COMMAND_REGEX = r"ip(?:\s+-[46])?\s+route\b"
 # problem found in it.
 # -------------------------------------------------------------
 def validate_route_commands(node_id, data):
-    text = data["services"].get(node_id, {}).get("StaticRoute", "")
+    text = commands_text(data, node_id)
     node_name = data["devices"].get(node_id, {"name": f"node{node_id}"})["name"]
 
     for line_num, line in extract_commands(text, ROUTE_COMMAND_REGEX):

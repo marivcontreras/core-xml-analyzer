@@ -1,5 +1,6 @@
 import ipaddress
 
+from utils.services import commands_text
 from utils.warning import add_warning
 from validation.configs.ip_commands_config import (
     IPV4_CMD_REGEX,
@@ -11,8 +12,7 @@ from validation.configs.ip_commands_config import (
 )
 
 def validate_ip_addr_commands(node_id, data):
-    services = data["services"].get(node_id, {})
-    text = services.get("StaticRoute", "")
+    text = commands_text(data, node_id)
 
     node = data["devices"].get(node_id, {"name": f"node{node_id}"})
     node_name = node["name"]

@@ -1,6 +1,7 @@
 import ipaddress
 import re
 
+from utils.services import commands_text
 from utils.warning import add_warning
 from validation.command_lines import extract_commands, tokenize_command
 from validation.configs.iptables_config import (
@@ -14,7 +15,7 @@ from validation.configs.iptables_config import (
 # listing every problem found in it.
 # -------------------------------------------------------------
 def validate_iptables_commands(node_id, data):
-    text = data["services"].get(node_id, {}).get("StaticRoute", "")
+    text = commands_text(data, node_id)
     node_name = data["devices"].get(node_id, {"name": f"node{node_id}"})["name"]
 
     commands = extract_commands(text, r"(?:%s)\b" % "|".join(IPTABLES_BINARIES))

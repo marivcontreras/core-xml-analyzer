@@ -2,6 +2,7 @@ import ipaddress
 import re
 
 from parser.devices import get_node
+from utils.services import commands_text
 from utils.text import reverse_network_name
 from utils import config_helper
 from utils.subjects import Subject
@@ -77,8 +78,7 @@ def get_prefixes_for_interface_with_sources(node_id, iface, data):
 # ----------------------------------------------------------------------------
 def get_prefixes_from_staticroute(node_id, iface_name, data):
     prefixes = set()
-    services = data["services"].get(node_id, {})
-    text = services.get("StaticRoute", "")
+    text = commands_text(data, node_id)
 
     ipv6_matches = IPV6_CMD_EXTRACT_REGEX.findall(text)
     ipv4_matches = IPV4_CMD_EXTRACT_REGEX.findall(text)
@@ -183,8 +183,7 @@ def get_staticroute_interface_addresses(data, node_id, iface = None):
     """
     iface_name = iface.get("name") if iface else None
 
-    services = data["services"].get(node_id, {})
-    text = services.get("StaticRoute", "")
+    text = commands_text(data, node_id)
 
     by_iface = {}
     seen = set()

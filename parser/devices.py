@@ -50,7 +50,8 @@ def parse_devices(root, data):
         item = {
             "id": dev_id,
             "name": name,
-            "type": dtype
+            "type": dtype,
+            "services": [svc.get("name") for svc in dev.findall("services/service")]
         }
 
         data["devices"][dev_id] = item

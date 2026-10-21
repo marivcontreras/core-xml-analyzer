@@ -2,6 +2,7 @@ import ipaddress
 
 from utils import config_helper
 from utils.firewall_config import get_expected_filters, get_expected_masquerade_routers
+from utils.services import commands_text
 from utils.warning import add_routing_warning
 from validation.configs.ip_commands_config import IPV4_CMD_EXTRACT_REGEX, IPV6_CMD_EXTRACT_REGEX
 
@@ -216,7 +217,7 @@ def network_prefix(data, network_name):
 
 def interface_address(data, node_id, iface):
     """IP address of an interface: from its `ip addr` command, else from CORE."""
-    text = data["services"].get(node_id, {}).get("StaticRoute", "")
+    text = commands_text(data, node_id)
     for addr, mask, dev in IPV4_CMD_EXTRACT_REGEX.findall(text) + IPV6_CMD_EXTRACT_REGEX.findall(text):
         if dev == iface["name"]:
             return addr
