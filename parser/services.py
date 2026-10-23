@@ -328,7 +328,7 @@ def parse_iptables(text):
             rule["policy"] = policy.group(2).upper()
 
         table = re.search(r'(?:^|\s)-t\s+(\S+)', line)
-        chain = re.search(r'(!)?\s*-A\s+(\S+)', line)
+        chain = re.search(r'(?:^|\s)-([AI])\s+(\S+)(?:\s+(\d+))?', line)
         proto = re.search(r'(!)?\s*-p\s+(\S+)', line)
         mark = re.search(r'(!)?\s*--set-mark\s+(\S+)', line)
         target = re.search(r'(!)?\s*-j\s+(\S+)', line)
@@ -387,7 +387,19 @@ def parse_iptables(text):
             else:
                 rule["action"] = "OTHER"
 
-        rules.append(rule)
+        # -A appends; -I inserts at the given position (the beginning by default),
+        # so the list keeps the order in which the rules are evaluated.
+        position = None
+        if chain and chain.group(1) == "I":
+            position = int(chain.group(3)) if chain.group(3) else 1
+        if position is None:
+            rules.append(rule)
+        else:
+            same_chain = [i for i, r in enumerate(rules)
+                          if (r["table"] or "filter", r["chain"]) == (rule["table"] or "filter", rule["chain"])]
+            index = same_chain[position - 1] if 0 < position <= len(same_chain) else (
+                same_chain[-1] + 1 if same_chain else len(rules))
+            rules.insert(index, rule)
 
     return rules
 

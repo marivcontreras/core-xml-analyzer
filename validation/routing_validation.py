@@ -812,6 +812,39 @@ def validate_isp_routes(data):
                 route=format_route(route)
             )
 
+def validate_default_routes(data):
+    # Every non-internet router must have a default route. Checked against the
+    # router's raw routing table (see note in validate_isp_routes).
+    internet_routers = set(get_expected_isp_routing_matrix())
+
+    for router_name in routing_config.get_expected_routing_matrix():
+
+        if router_name in internet_routers:
+            continue
+
+        node_id = get_node_id(data, router_name)
+
+        if node_id is None:
+            continue
+
+        router_data = data["routing"].get(node_id)
+
+        if router_data is None:
+            continue
+
+        has_default = any(
+            route and route.get("dst") == PREFIX_TYPE["default"]
+            for route in router_data.get("routes", [])
+        )
+
+        if not has_default:
+            add_routing_warning(
+                router_data,
+                "routing",
+                "missing_default_route",
+                router_name=router_name
+            )
+
 def validate_tunnels(data):
 
     expected_tunnels = {

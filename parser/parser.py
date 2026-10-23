@@ -11,7 +11,7 @@ from validation.ip_commands import validate_ip_addr_commands
 from validation.iptables_commands import validate_iptables_commands
 from validation.route_commands import validate_route_commands
 from utils.routing_config import get_expected_routing_matrix
-from validation.routing_validation import validate_routing_matrix, validate_isp_routes, validate_tunnels, propagate_routing_warnings
+from validation.routing_validation import validate_routing_matrix, validate_isp_routes, validate_default_routes, validate_tunnels, propagate_routing_warnings
 from validation.routing_minimization import validate_routing_minimization
 
 from utils.warning import add_warning
@@ -80,6 +80,8 @@ def parse_xml(xml_text):
     data["routing_matrix_table"] = build_matrix_table(data["routing_matrix"], data["networks"], data["routing_validation"])
 
     validate_isp_routes(data)
+
+    validate_default_routes(data)
 
     validate_routing_minimization(data)
 

@@ -125,7 +125,7 @@
                 {% endfor %}
                 {% for command in entry.unevaluated %}
                 <tr class="tr-has-warning">
-                    <td>-</td>
+                    <td>{{ entry.unevaluated_n.get(command) or "-" }}</td>
                     <td>-</td>
                     <td>-</td>
                     <td>

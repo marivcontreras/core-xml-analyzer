@@ -23,8 +23,19 @@ def section_entry(entry, letters):
         "commands": [c for c in entry["commands"] if c["consigna"] and belongs(c["consigna"])],
         "rows": [r for r in entry["rows"] if belongs(r["consigna"])],
         "unevaluated": [],
+        "unevaluated_n": {},
         "policy_errors": entry.get("policy_errors", {}),
     }
+
+
+def unevaluated_numbers(entry, commands):
+    """Order number (N°) of each command no consigna claimed, the same one the
+    device's preview of commands gives it (None if the device has no such number)."""
+    numbers = {}
+    for c in (entry or {}).get("commands", []):
+        numbers.setdefault(c["command"], c["n"])
+    # Not in the preview (e.g. another table): position among the unclaimed ones.
+    return {command: numbers.get(command) or i + 1 for i, command in enumerate(commands)}
 
 
 def build_firewall_sections(data):
@@ -73,6 +84,7 @@ def build_firewall_sections(data):
             if entry["router"] in unevaluated and entry["router"] not in shown:
                 shown.add(entry["router"])
                 entry["unevaluated"] = unevaluated[entry["router"]]
+                entry["unevaluated_n"] = unevaluated_numbers(entries.get(entry["router"]), unevaluated[entry["router"]])
         routing = []
         for name in spec.get("routing", []):
             if node_ids.get(name) not in data["routing"]:

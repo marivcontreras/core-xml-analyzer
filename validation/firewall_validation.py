@@ -36,6 +36,7 @@ EXPECTED_OPTIONS = {
     "-4", "-6",
     "-t", "--table",
     "-A", "--append",
+    "-I", "--insert",
     "-o", "--out-interface",
     "-j", "--jump",
 }

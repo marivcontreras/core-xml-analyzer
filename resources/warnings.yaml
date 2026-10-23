@@ -271,6 +271,11 @@ invalid_default_route:
   type: warning
   subject: Routing
 
+missing_default_route:
+  message: "{router_name}: no tiene ruta por defecto"
+  type: warning
+  subject: Routing
+
 unreachable_network:
   message: "{prefix_type}: No se pueden alcanzar las redes {route_name} desde {router_name}"
   type: error
